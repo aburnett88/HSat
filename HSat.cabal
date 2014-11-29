@@ -1,0 +1,52 @@
+name: HSat
+version: 0.0.0.1
+synopsis: A general library for analysing and finding solutions to Boolean Satisfiability Problems
+homepage: https://github.com/aburnett88/HSat.git
+license-file: LICENSE
+author: Andrew Burnett
+maintainer: andyburnett88@gmail.com
+category: AI
+build-type: Simple
+extra-source-files: README.md
+cabal-version: >=1.10
+
+library
+  Hs-Source-Dirs: src
+  GHC-Options: -O2 -Werror -fwarn-unused-binds
+  default-language: Haskell2010
+  Build-Depends:
+    base >= 4.0,
+    vector >=0.10,
+    text >= 1.1,
+    ansi-wl-pprint == 0.6.7.1
+  Exposed-Modules:
+    HSat.Data.BSP
+    HSat.Data.BSP.Common
+    HSat.Data.BSP.Common.Clause
+    HSat.Data.BSP.Common.Clauses
+    HSat.Data.BSP.Common.Literal
+    HSat.Data.BSP.Common.Sign
+    HSat.Data.BSP.Common.Variable
+    HSat.Data.BSP.CNF
+    HSat.Utils
+    HSat.Utils.ModuleError
+    HSat.Utils.Printer
+
+Test-Suite HSat-tests
+  type: exitcode-stdio-1.0
+  GHC-Options: -O2 -Werror -fwarn-unused-binds
+  hs-source-dirs: tests-src
+  main-is: Test.hs
+  default-language: Haskell2010
+  build-depends:
+    tasty,
+    tasty-hunit,
+    tasty-quickcheck,
+    tasty-golden,
+    HSat,
+    base,
+    vector,
+    text,
+    mtl,
+    containers,
+    directory
