@@ -14,7 +14,9 @@ module HSat.Data.BSP.Common.Sign (
   -- * Data Type
   Sign(..),
   -- * Constructors
-  fromBool,fromInt,
+  fromBool,
+  fromInt,
+  fromInt',
   -- * Conversions
   toBool,
   -- * Queries
@@ -47,6 +49,14 @@ fromInt       :: Int -> Sign
 fromInt i
   | i == 0    = error "HSat.CNF.Sign.fromInt: Argument zero"
   | i < 0     = varNeg
+  | otherwise = var
+
+{-|
+This function takes an Int and constructs the Sign part of the variable. It does not check for zero
+-}
+fromInt' :: Int -> Sign
+fromInt' i
+  | i < 0 = varNeg
   | otherwise = var
 
 {-|

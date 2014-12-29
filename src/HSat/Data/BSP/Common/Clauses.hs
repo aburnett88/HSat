@@ -68,7 +68,7 @@ addClause (Clauses cl) c = Clauses $ V.snoc cl c
 Constructs a 'Clauses' with no 'Clause' inside
 -}
 empty :: Clauses
-empty = Clauses $ V.empty
+empty = Clauses V.empty
 
 {-|
 Finds the maximum 'Word' in each 'Variable' in all 'Clause's. If there are none (or all 'Clause' are empty) then 0 is returned

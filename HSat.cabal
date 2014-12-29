@@ -1,5 +1,5 @@
 name: HSat
-version: 0.0.0.1
+version: 0.0.0.2
 synopsis: A general library for analysing and finding solutions to Boolean Satisfiability Problems
 homepage: https://github.com/aburnett88/HSat.git
 license-file: LICENSE
@@ -18,7 +18,8 @@ library
     base >= 4.0,
     vector >=0.10,
     text >= 1.1,
-    ansi-wl-pprint == 0.6.7.1
+    ansi-wl-pprint == 0.6.7.1,
+    attoparsec
   Exposed-Modules:
     HSat.Data.BSP
     HSat.Data.BSP.Common
@@ -28,6 +29,8 @@ library
     HSat.Data.BSP.Common.Sign
     HSat.Data.BSP.Common.Variable
     HSat.Data.BSP.CNF
+    HSat.Data.BSP.CNF.Builder
+    HSat.Data.BSP.CNF.Parser
     HSat.Utils
     HSat.Utils.ModuleError
     HSat.Utils.Printer

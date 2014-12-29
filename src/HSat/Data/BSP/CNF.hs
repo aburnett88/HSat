@@ -11,13 +11,17 @@ This module provides the Conjunctive Normal Form (CNF) data type and associated 
 module HSat.Data.BSP.CNF (
   CNF(..),
   fromClauses,
-  toClauses
+  toClauses,
+  toInts,
+  fromInts
 
   ) where
 
 import Data.Word
 import HSat.Data.BSP.Common.Clauses (Clauses)
 import HSat.Data.BSP.Common.Clauses as CL
+import qualified HSat.Data.BSP.Common.Clause as C
+import qualified HSat.Data.BSP.Common.Literal as L
 
 {-|
 The Conjunctive Normal Form type. It is much like a 'Clauses'
@@ -46,3 +50,16 @@ Turns a CNF data type to a Clauses data type
 -}
 toClauses :: CNF -> Clauses
 toClauses = _getClauses
+
+{-|
+Takes a 'CNF' data structure and converts it into a list of 'Int's
+-}
+toInts :: CNF -> [[Int]]
+toInts xs =
+  map (map L.toInt . C.toList) . CL.toList . _getClauses $ xs
+
+{-|
+Converts a list of 'Int's into a CNF data structure
+-}
+fromInts :: [[Int]] -> CNF
+fromInts xs = fromClauses . CL.fromList . map (C.fromList . map L.fromInt) $ xs

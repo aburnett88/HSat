@@ -41,5 +41,5 @@ A 'Problem' represents the problem itself, and how it is represented.
 -}
 data Problem =
   -- | A Problem in Conjunctive Normal Form ('CNF'). 
-  Problem_CNF CNF
+  ProblemCNF CNF
   deriving (Eq,Show)

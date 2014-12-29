@@ -25,7 +25,8 @@ tests = testGroup name [
   testProperty "getword . fromInt == fromEnum" test2,
   testCase "getWord . fromWord' 0 == 0" test3,
   testCase "varInRange 10 (Variable 6)" test4,
-  testCase "varInRange 4 (Variable 6)" test5
+  testCase "varInRange 4 (Variable 6)" test5,
+  testCase "fromInt' 0 == 0" test6
   ]
 
 test1   :: Variable -> Property
@@ -49,3 +50,7 @@ test5 =
   assert $
   (V.varInRange 6 (V.fromWord 10) == False)
 
+test6 :: Assertion
+test6 =
+  assert $
+  (V.fromInt' 0 == (V.fromWord' 0))

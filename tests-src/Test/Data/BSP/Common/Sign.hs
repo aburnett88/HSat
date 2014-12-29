@@ -25,7 +25,8 @@ tests = testGroup name [
   testProperty "fromInt" test2,
   testProperty "x == toBool . fromBool $ x" test3,
   testCase "isPos var" test4,
-  testCase "isNeg varNeg" test5
+  testCase "isNeg varNeg" test5,
+  testCase "fromInt'" test6
   ]
 
 test1       :: Bool -> Property
@@ -46,3 +47,8 @@ test4 = assert $ S.isPos S.var
 
 test5 :: Assertion
 test5 = assert $ S.isNeg S.varNeg
+
+test6 :: Assertion
+test6 =
+  assert $
+  (S.fromInt' 0 == S.var)

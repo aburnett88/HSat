@@ -31,7 +31,8 @@ tests = testGroup name [
   testCase "isPositive -12 == False" test6,
   testCase "isPositive 12 == True" test7,
   testCase "litInRange 100 -99 == True" test8,
-  testCase "litInRange 88 -99 == False" test9
+  testCase "litInRange 88 -99 == False" test9,
+  testCase "fromInt' 0 . toInt == 0" test10
   ]
 
 test1   :: Literal -> Property
@@ -76,5 +77,7 @@ test9 =
   assert $
   (not $ L.litInRange 88 $ L.fromInt (-99))
 
-
-
+test10 :: Assertion
+test10 =
+  assert $
+  ((L.toInt . L.fromInt' $ 0) == 0)

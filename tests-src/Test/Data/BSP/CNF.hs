@@ -16,6 +16,8 @@ module Test.Data.BSP.CNF (
 import TestUtils
 import HSat.Data.BSP.CNF (CNF)
 import qualified HSat.Data.BSP.CNF as CNF
+import qualified Test.Data.BSP.CNF.Builder as Builder
+import qualified Test.Data.BSP.CNF.Parser as Parser
 
 name :: String
 name = "Test.Data.BSP.CNF"
@@ -23,6 +25,8 @@ name = "Test.Data.BSP.CNF"
 tests :: TestTree
 tests =
   testGroup name [
+    Builder.tests,
+    Parser.tests,
     testProperty "fromClauses . toClauses == id" test1
     ]
 

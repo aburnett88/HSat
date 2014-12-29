@@ -35,7 +35,7 @@ import qualified Data.Vector as VE
 instance Arbitrary CNF.CNF where
   arbitrary = do
     cl <- arbitrary
-    return . CNF.fromClauses $ cl
+    return  . CNF.fromClauses $ cl
 
 instance Arbitrary CL.Clauses where
   arbitrary = do

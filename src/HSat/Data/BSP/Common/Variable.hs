@@ -15,6 +15,7 @@ module HSat.Data.BSP.Common.Variable (
   fromInt,
   fromWord,
   fromWord',
+  fromInt',
   -- * Deconstructors
   getWord,
   -- * Utility Functions
@@ -40,6 +41,13 @@ fromInt i
   | i > 0 = Variable . toEnum $ i
   | i < 0 = Variable . toEnum . abs $ i
   | otherwise = error "HSat.CNF.Variable.fromInt: Argument zero"
+
+{-|
+Constructs a Variable from an Int without checking the zeroth
+case
+-}
+fromInt' :: Int -> Variable
+fromInt' = Variable . toEnum . abs
 
 {-|
 Constructs a Variable from a Word. Fails if it is a zero

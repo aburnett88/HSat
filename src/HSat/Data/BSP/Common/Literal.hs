@@ -15,6 +15,7 @@ module HSat.Data.BSP.Common.Literal (
   -- * Constructors
   fromInt,
   fromTuple,
+  fromInt',
   -- * Conversions
   toInt,
   toTuple,
@@ -52,6 +53,15 @@ fromInt i = Literal b w
   where
     b = S.fromInt i
     w = V.fromInt i
+
+{-|
+Constructs a 'Literal' from an 'Int' and does not throw exceptions if a zero
+-}
+fromInt' :: Int -> Literal
+fromInt' i = Literal b w
+  where
+    b = S.fromInt' i
+    w = V.fromInt' i
 
 err :: String -> String -> String
 err = moduleErr "HSat.Data.BSP.Common.Literal"
