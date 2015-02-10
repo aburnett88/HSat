@@ -290,4 +290,4 @@ forceError correct dummyVal = do
       when (dv==ans) (print ans) >> return ans
       )
                ((\_ -> return Nothing) :: ErrorCall -> IO (Maybe a))
-  assert . isNothing $ maybValue
+  assertBool "Did not throw error" (isNothing $ maybValue)

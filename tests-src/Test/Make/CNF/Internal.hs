@@ -17,7 +17,8 @@ name = "Internal"
 
 tests :: TestTree
 tests =
-  testGroup name [
+  testGroup name []
+  {-
     testGroup "fillClauses" [
        fillClausesTest1
        ],
@@ -96,3 +97,4 @@ evalClauseSizesTest1 =
     (vpec,xs,total) <- evalClauseSizes w vpc s
     return $ property $ (testList vpc xs) .&&. (sum xs==total)
 
+-}

@@ -13,7 +13,6 @@ module Test.Problem.BSP.Common.Sign (
   tests
   ) where
 
-
 import HSat.Problem.BSP.Common.Sign
 import TestUtils
 
@@ -95,30 +94,30 @@ mkSignFromIntegerTest3 =
 signToIntegerTest1 :: TestTree
 signToIntegerTest1 =
   testCase "signToInteger (mkSign True) == 1" $
-  1 @=? (signToInteger $ mkSign True)
+  1 @=? signToInteger (mkSign True)
 
 signToIntegerTest2 :: TestTree
 signToIntegerTest2 =
   testCase "signToInteger (mkSign False) == -1" $
-  (-1) @=? (signToInteger $ mkSign False)
+  (-1) @=? signToInteger (mkSign False)
 
 signToIntegerTest3 :: TestTree
 signToIntegerTest3 =
   testProperty "mkSignFromInteger . signToInteger == id" $ property
   (\sign ->
-    (mkSignFromInteger $ signToInteger sign) === sign
+    mkSignFromInteger (signToInteger sign) === sign
     )
 
 isPosTest1 :: TestTree
 isPosTest1 =
   testProperty "isPos . mkSign $ x == x" $ property
   (\bool ->
-    (isPos $ mkSign bool) === bool
+    isPos (mkSign bool) === bool
     )
   
 isNegTest1 :: TestTree
 isNegTest1 =
   testProperty "isNeg . mkSign $ x == (not x)" $ property
   (\bool ->
-    (isNeg $ mkSign bool) === not bool
+    isNeg (mkSign bool) === not bool
     )

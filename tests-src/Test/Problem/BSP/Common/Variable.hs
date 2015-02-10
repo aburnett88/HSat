@@ -51,20 +51,13 @@ mkVariableTest1 =
   forAll
   mkWordNonZero
   (\word ->
-    word == (getWord . mkVariable $ word)
+    word === (getWord . mkVariable $ word)
     )
 
 mkVariableTest2 :: TestTree
 mkVariableTest2 =
-  testCase "mkVariale 0 throws runtime error" $ do
-    rtnValue <- E.catch (
-      do
-        let rtn = Just . mkVariable $ 0
-            dummyVal = Just . mkVariable $ 1
-        when (dummyVal==rtn) (print rtn)
-        return rtn
-        ) ((\_ -> return Nothing) :: ErrorCall -> IO (Maybe Variable))
-    assert . isNothing $ rtnValue
+  testCase "mkVariale 0 throws runtime error" $
+  forceError (mkVariable 0) (mkVariable 1)
 
 mkVariableFromIntegerTest1 :: TestTree
 mkVariableFromIntegerTest1 =
@@ -72,54 +65,37 @@ mkVariableFromIntegerTest1 =
   forAll
   mkIntegerNonZero
   (\int ->
-    abs int == (toInteger . getWord . mkVariableFromInteger $ int)
+    abs int === (toInteger . getWord . mkVariableFromInteger $ int)
     )
 
 mkVariableFromIntegerTest2 :: TestTree
 mkVariableFromIntegerTest2 =
-  testCase "mkVariableFromInteger 0 throws runtime error" $ do
-    rtnValue <- E.catch (
-      do
-        let rtn = Just . mkVariableFromInteger $ 0
-            dummyVal = Just . mkVariableFromInteger $ 1
-        when (dummyVal==rtn) (print rtn)
-        return rtn
-        ) ((\_ -> return Nothing) :: ErrorCall -> IO (Maybe Variable))
-    assert . isNothing $ rtnValue
+  testCase "mkVariableFromInteger 0 throws runtime error" $
+  forceError (mkVariableFromInteger 0) (mkVariableFromInteger 1)
 
 mkVariableFromIntegerTest3 :: TestTree
 mkVariableFromIntegerTest3 =
-  testCase "mkVariableFromInteger (maxBound :: Word) + 1 throws runtime error" $ do
-    rtnValue <- E.catch (
-      do
-        let rtn = Just . mkVariableFromInteger . (1+) . toInteger $ (maxBound :: Word)
-            dummyVal = Just . mkVariableFromInteger $ 1
-        when (rtn==dummyVal) (print rtn)
-        return rtn
-        ) ((\_ -> return Nothing) :: ErrorCall -> IO (Maybe Variable))
-    assert . isNothing $ rtnValue
+  testCase "mkVariableFromInteger (maxBound + 1) throws runtime error" $
+  forceError (
+    mkVariableFromInteger . (1+) . toInteger $ (maxBound :: Word)
+    ) (mkVariableFromInteger 1)
 
 mkVariableFromIntegerTest4 :: TestTree
 mkVariableFromIntegerTest4 =
-  testCase "mkVarFromInteger negate $ (maxBound :: Word) + 1 throws runtime error" $ do
-    rtnValue <- E.catch (
-      do
-        let rtn = Just . mkVariableFromInteger . negate . (1+) . toInteger $ (
-              maxBound :: Word)
-            dummyVal = Just . mkVariableFromInteger $ 1
-        when (rtn==dummyVal) (print rtn)
-        return rtn
-        ) ((\_ -> return Nothing) :: ErrorCall -> IO (Maybe Variable))
-    assert . isNothing $ rtnValue
+  testCase "mkVarFromInteger (negate maxBound + 1) throws runtime error" $
+  forceError (
+    mkVariableFromInteger . negate . (1+) . toInteger $ (maxBound :: Word)
+    ) (mkVariableFromInteger 1)
 
 varInRangeTest1 :: TestTree
 varInRangeTest1 =
-  testProperty "Returned result is consistant with input" $ property (
-    \(range,var) ->
+  testProperty "Returned result is consistant with input" $ property
+  (\(range,var) ->
     case compare (getWord var) range of
-      GT -> not (varInRange range var)
-      _  -> varInRange range var
+      GT -> varInRange range var === False
+      _  -> varInRange range var === True
       )
+  
 
 variableToIntegerTest1 :: TestTree
 variableToIntegerTest1 =
@@ -127,5 +103,5 @@ variableToIntegerTest1 =
   forAll
   mkIntegerNonZero
   (\int ->
-    abs int == (variableToInteger . mkVariableFromInteger $ int)
+    abs int === (variableToInteger . mkVariableFromInteger $ int)
     )

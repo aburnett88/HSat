@@ -6,85 +6,95 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-This module provides the data type for a Variable
+This module exports the common functions and definition of 'Variable' which
+represents the part of a 'Literal' that denotes its numerical value within
+a larger problem.
 -}
 module HSat.Problem.BSP.Common.Variable (
   -- * Data Type
   Variable(..),
-  -- * Constructors
-  mkVariable,
-  mkVariableFromInteger,
+  -- * Constructors for Variable
+  mkVariable,            -- :: Word -> Variable
+  mkVariableFromInteger, -- :: Integer -> Variable
   -- * Utility Functions
-  varInRange,
-  variableToInteger
+  varInRange,            -- :: Word -> Variable -> Bool
+  variableToInteger      -- :: Variable -> Integer
   ) where
 
 import Data.Word
 import HSat.Printer
 
+name :: String
+name = "HSat.Problem.BSP.Common.Literal"
+
 {-|
-The Variable type is a newtype wrapper for a Word
+A 'Variable' represents a numerial representation of a variable wtihin a
+problem.
+
+Internally represented as a 'Word'
 -}
 newtype Variable = Variable {
-  getWord :: Word -- ^ The Word representation of the Variable
+  -- ^ The underlying 'Word' that is represented
+  getWord :: Word
   } deriving (Eq,Show)
+             
 {-|
-A quick constructor for a 'Variable'
+Constructs a 'Variabe' from a 'Word'.
+
+Throws an error if the argument is zero
 -}
-mkVariable   :: Word -> Variable
-mkVariable 0 = error "HSat.Problem.BSP.Common.Variable:mkVariable: Argument zero"
-mkVariable w = Variable w
-
---The maximum Integer represenation of a Word. Its put through mkVariable so that
---no errors are thrown
-maxVariable :: Integer
-maxVariable = toInteger . getWord . mkVariable $ maxBound
-
---A message builder helper
-filename     :: String -> String
-filename msg = "HSat.Problem.BSP.Common.Variable." ++ msg
-
---A method of showing the message for bad Integer values 
-mkVariableFromIntegerMsg2   :: Integer -> String
-mkVariableFromIntegerMsg2 i = filename (
-  "mkVariableFromInteger: Cannot construct Variable. Input "++ show i ++
-  ", but ranges are from "++(show . negate $ maxVariable) ++ " to " ++
-  show maxVariable)
+mkVariable      :: Word -> Variable
+mkVariable 0    = error (name ++ ":mkVariable. Argument " ++ show 0)
+mkVariable word = Variable word
 
 {-|
-Constructs a Variable from an Int. Fails if it is a zero.
-If it is a negative number, the absolute value is used. 
+Constructs a 'Variab'e from an 'Integer'.
+
+Throws a runtime error if the value is 0, or above the maximum
+value for a 'Word'
 -}
-mkVariableFromInteger :: Integer -> Variable
-mkVariableFromInteger i =
-  case compare i 0 of
-    EQ -> error (filename "mkVariableFromInteger: Argument zero")
-    LT ->
-      let i' = abs i
-      in case compare i' maxVariable of
-        GT -> error (mkVariableFromIntegerMsg2 i)
-        _ -> Variable . fromInteger $ i'
-    GT ->
-      case compare i maxVariable of
-        GT -> error (mkVariableFromIntegerMsg2 i)
-        _ -> Variable . fromInteger $ i
+mkVariableFromInteger         :: Integer -> Variable
+mkVariableFromInteger integer =
+  let name' = ":mkVariableFromInteger. Argument "
+      absInteger = case compare integer 0 of
+        EQ -> error (name ++ name' ++ show integer)
+        LT -> abs integer
+        GT -> integer
+  in case compare absInteger maxWord of
+    GT -> error (name ++ name' ++ show integer)
+    _  -> Variable $ fromInteger absInteger
 
 {-|
-Takes an argument x. Returns True if the underlying variable is within the range 0 < v <= x.
+The maximum 'Integer' representation of a'Word'. It is used to deduce whether
+an error should be thrown.
+
+It is put through the constructor for mkVariable to make sure that no runtime
+errors are thrown
 -}
-varInRange                    :: Word -> Variable -> Bool
-varInRange range (Variable w) = w <= range
+maxWord :: Integer
+maxWord = toInteger . getWord . mkVariable $ maxBound
 
 {-|
-Takes a 'Variable' and constructs the 'Integer' representation
+Takes an initial argument x. Returns 'True' if the underlying 'Word' within
+the 'Variable' is less than or equal to x
 -}
-variableToInteger              :: Variable -> Integer
-variableToInteger (Variable w) = toInteger w
+varInRange                       :: Word -> Variable -> Bool
+varInRange 0     _               = False
+varInRange range (Variable word) = word <= range
+
+{-|
+Constructs an 'Integer' from a 'Variable'
+-}
+variableToInteger :: Variable -> Integer
+variableToInteger = toInteger . getWord
 
 instance Printer Variable where
   compact   = text . show . variableToInteger
   unicode   = compact
   noUnicode = compact
 
+{-|
+Order is denoted by the underlying 'Word' in the 'Variable'
+-}
 instance Ord Variable where
   compare (Variable a) (Variable b) = compare a b
