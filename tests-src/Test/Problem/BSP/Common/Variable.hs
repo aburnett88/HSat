@@ -6,20 +6,16 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The test leaf for the Variable module
+The TestTree Leaf for the Variable module
 -}
 
 module Test.Problem.BSP.Common.Variable (
   tests
   ) where
 
-import qualified Control.Exception as E (catch)
-import           Control.Exception.Base (ErrorCall)
-import           Control.Monad (when)
-import           Data.Maybe (isNothing)
-import           Data.Word
-import           HSat.Problem.BSP.Common.Variable
-import           TestUtils
+import Data.Word
+import HSat.Problem.BSP.Common.Variable
+import TestUtils
 
 name :: String
 name = "Variable"
