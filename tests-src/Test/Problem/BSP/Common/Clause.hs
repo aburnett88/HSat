@@ -25,9 +25,12 @@ tests :: TestTree
 tests =
   testGroup name [
     testGroup "mkClause" [
-       mkClauseTest1,
-       mkClauseTest2
+       mkClauseTest1
        ],
+    testGroup "emptyClause" [
+      emptyClauseTest1,
+      emptyClauseTest2
+      ],
     testGroup "mkClauseFromIntegers" [
       mkClauseFromIntegersTest1
       ],
@@ -45,28 +48,35 @@ tests =
 
 mkClauseTest1 :: TestTree
 mkClauseTest1 =
-  testCase "clauseLength . mkClause == 0" $ assert (
-    getSizeClause mkClause == 0
-    )
+  testProperty ("let getSizeClause == (length cl) getLiterals == cl in" ++
+                "mkClause cl") $ property $
+  (\vectLiterals ->
+    let expectedSize = toEnum . V.length $ vectLiterals
+        clause = mkClause vectLiterals
+    in (expectedSize === getSizeClause clause) .&&.
+       (getLiterals clause === vectLiterals)
+       )
 
-mkClauseTest2 :: TestTree
-mkClauseTest2 =
-  testCase "getLiterals . mkClause == V.empty" $ assert (
-    getLiterals mkClause == V.empty
-    )
+emptyClauseTest1 :: TestTree
+emptyClauseTest1 =
+  testCase "clauseLength . mkClause == 0" $ getSizeClause emptyClause @=? 0
+
+emptyClauseTest2 :: TestTree
+emptyClauseTest2 =
+  testCase "getLiterals . mkClause == V.empty" $ getLiterals emptyClause @=? V.empty
 
 clauseToIntegersTest1 :: TestTree
 clauseToIntegersTest1 =
   testProperty "mkClauseFromIntegers . clauseToIntegers == id" $ property (
     \clause ->
-      clause == (mkClauseFromIntegers . clauseToIntegers $ clause)
+      clause === (mkClauseFromIntegers . clauseToIntegers $ clause)
     )
 
 clauseAddLitTest1 :: TestTree
 clauseAddLitTest1 =
   testProperty "addLit c l == mkClause c ++ [l]" $ property (
     \(clause,lit) ->
-      mkClauseFromLits ((V.toList . getLiterals $ clause)++[lit]) ==
+      mkClauseFromLits ((V.toList . getLiterals $ clause)++[lit]) ===
       clauseAddLiteral clause lit
       )
 
@@ -76,13 +86,13 @@ mkClauseFromIntegersTest1 =
   forAll
   (choose (0,testMaxClauseSize) >>= flip replicateM mkIntegerNonZero)
   (\ints ->
-    ints == (clauseToIntegers . mkClauseFromIntegers $ ints)
+    ints === (clauseToIntegers . mkClauseFromIntegers $ ints)
     )
 
 clauseIsEmptyTest1 :: TestTree
 clauseIsEmptyTest1 =
   testCase "clauseIsEmpty [] == True" $ assert (
-    clauseIsEmpty mkClause
+    clauseIsEmpty emptyClause
     )
 
 clauseIsEmptyTest2 :: TestTree

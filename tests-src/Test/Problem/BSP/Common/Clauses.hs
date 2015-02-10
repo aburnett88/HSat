@@ -15,7 +15,7 @@ module Test.Problem.BSP.Common.Clauses (
 
 import TestUtils
 import HSat.Problem.BSP.Common.Clauses
-import HSat.Problem.BSP.Common.Clause (mkClause)
+import HSat.Problem.BSP.Common.Clause (emptyClause)
 import Control.Monad (replicateM)
 import qualified Data.Vector as V
 
@@ -101,5 +101,5 @@ clausesIsEmptyTest1 =
 clausesIsEmptyTest2 :: TestTree
 clausesIsEmptyTest2 =
   testCase "clausesIsEmpty [..]" $ assert (
-    not . clausesIsEmpty . mkClausesFromClause $ [mkClause]
+    not . clausesIsEmpty . mkClausesFromClause $ [emptyClause]
     )

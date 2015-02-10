@@ -29,7 +29,7 @@ import qualified Control.Exception as E (catch)
 import           Control.Exception.Base (ErrorCall)
 import           Control.Monad (replicateM,liftM,liftM2)
 import           Data.Text (Text,pack,unpack)
-import qualified Data.Vector as V (toList)
+import qualified Data.Vector as V
 import           Data.Word
 import HSat.Make.Config
 import HSat.Make.Internal
@@ -291,3 +291,10 @@ forceError correct dummyVal = do
       )
                ((\_ -> return Nothing) :: ErrorCall -> IO (Maybe a))
   assertBool "Did not throw error" (isNothing $ maybValue)
+
+instance Arbitrary a => Arbitrary (V.Vector a) where
+  arbitrary = do
+    list <- arbitrary
+    return $ V.fromList list
+  shrink vect =
+    map V.fromList $ shrink . V.toList $ vect

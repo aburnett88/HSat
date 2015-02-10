@@ -37,7 +37,7 @@ cnfBuilder v c = return $ cnfBuilder' v c
 
 cnfBuilder' :: Word -> Word -> CNFBuilder
 cnfBuilder' v c =
-  CNFBuilder v c 0 mkClauses mkClause
+  CNFBuilder v c 0 mkClauses emptyClause
 
 finishClause :: CNFBuilder -> CNFBuildErr
 finishClause cnf = return . finishClause' $ cnf
@@ -46,7 +46,7 @@ finishClause' :: CNFBuilder -> CNFBuilder
 finishClause' cnf = f $ 
   cnf {
      clauses = clausesAddClause (clauses cnf) (currentClause cnf),
-     currentClause = mkClause
+     currentClause = emptyClause
                      }
   where
     f = if clauseIsEmpty . currentClause $ cnf then

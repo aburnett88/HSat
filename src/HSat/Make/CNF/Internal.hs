@@ -162,7 +162,7 @@ type CNFStatusErr random result =
 Takes a set of 'Clauses', a 'Word' denoting size, and adds a 'Clause' to the 'Clauses' that has the size of the 'Word'
 -}
 runChooseClauses                :: (MonadRandom m) => Clauses -> Word -> CNFStatusErr m Clauses
-runChooseClauses clauses clSize = clausesAddClause clauses `liftM` chooseClause clSize mkClause
+runChooseClauses clauses clSize = clausesAddClause clauses `liftM` chooseClause clSize emptyClause
 
 {-|
 Adds a randomly generated 'Literal' to the 'Clause' until the counter reaches zero

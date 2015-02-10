@@ -20,7 +20,8 @@ module HSat.Problem.BSP.Common.Clause (
   getSizeClause,       -- :: Clause -> Word
   getLiterals,         -- :: Clause -> Vector Literal
   -- * Construction
-  mkClause,            -- :: Clause
+  mkClause,            -- :: Vector Literal -> Clause
+  emptyClause,         -- :: Clause
   mkClauseFromLits,    -- :: [Literal] -> Clause
   mkClauseFromIntegers,-- :: [Integer] -> Clause
   clauseAddLiteral,    -- :: Clause -> Literal -> Clause
@@ -38,15 +39,22 @@ import           HSat.Problem.BSP.Common.Literal
 {-|
 Constructs an empty 'Clause'
 -}
-mkClause :: Clause
-mkClause = Clause V.empty 0
+emptyClause :: Clause
+emptyClause = Clause V.empty 0
+
+{-|
+Constructs a 'Clause' from a Vector of 'Literal's
+-}
+mkClause :: Vector Literal -> Clause
+mkClause vect =
+  Clause vect (toEnum $ V.length vect)
 
 {-|
 Constructs a 'Clause' from a list of 'Literal's
 -}
 mkClauseFromLits :: [Literal] -> Clause
 mkClauseFromLits =
-  foldl clauseAddLiteral mkClause
+  foldl clauseAddLiteral emptyClause
 
 {-|
 Appends the 'Literal' to the 'Clause' and returns the new 'Clause'
@@ -62,7 +70,7 @@ mkClauseFromIntegers :: [Integer] -> Clause
 mkClauseFromIntegers =
   foldl (\clause int ->
           clauseAddLiteral clause $ mkLiteralFromInteger int
-        ) mkClause
+        ) emptyClause
 
 {-|
 Constructs a list of 'Integer's from a 'Clause'

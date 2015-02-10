@@ -113,7 +113,7 @@ parseProblemLineTest1 =
     )
   where
     testStr = "p cnf 24 2424"
-    cnf' = CNFBuilder 24 2424 0 mkClauses mkClause
+    cnf' = CNFBuilder 24 2424 0 mkClauses emptyClause
 
 parseProblemLineTest2 :: TestTree
 parseProblemLineTest2 =
@@ -122,7 +122,7 @@ parseProblemLineTest2 =
     )
   where
     testStr = "   p    cnf    24 \t2424"
-    cnf' = CNFBuilder 24 2424 0 mkClauses mkClause
+    cnf' = CNFBuilder 24 2424 0 mkClauses emptyClause
 
 parseProblemLineTest3 :: TestTree
 parseProblemLineTest3 =
@@ -150,7 +150,7 @@ parseProblemLineTest3 =
                        (xs !! 2) ++ (show v) ++ (xs !! 3) ++ (show c) ++
                        (xs !! 4)
                        )
-        cnf' = CNFBuilder v c 0 mkClauses mkClause
+        cnf' = CNFBuilder v c 0 mkClauses emptyClause
     in (parseOnly parseProblemLine text) === (Right . Right $ cnf')
        )
        
@@ -206,7 +206,7 @@ parseClauseTest1 =
     parseOnly (parseClause $ return cnf) (pack testStr) == (Right . Right $ cnf')
     )
   where
-    cnf = CNFBuilder 10 10 0 mkClauses mkClause
+    cnf = CNFBuilder 10 10 0 mkClauses emptyClause
     cnf' = V.foldl (flip addLiteral') cnf (getLiterals cl)
     cl = mkClauseFromLits $ map mkLiteralFromInteger [
       1,2,3,-4,-5,6,-7,8,9
