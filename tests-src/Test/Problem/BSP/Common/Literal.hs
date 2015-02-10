@@ -6,7 +6,7 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The tests for the 'Literal' data type
+The TestTree Leaf for the Literal module
 -}
 
 module Test.Problem.BSP.Common.Literal (
@@ -23,8 +23,7 @@ tests :: TestTree
 tests =
   testGroup name [
     testGroup "mkLiteral" [
-       mkLiteralTest1,
-       mkLiteralTest2
+       mkLiteralTest1
        ],
     testGroup "mkLiteralFromInteger" [
       mkLiteralFromIntTest1
@@ -34,34 +33,27 @@ tests =
       ]
     ]
 
-
 mkLiteralTest1 :: TestTree
 mkLiteralTest1 =
-  testProperty "getVariable . mkLiteral s v == v" $ property (
-    \(sign,var) ->
-     getVariable (mkLiteral sign var) == var
-    )
-
-mkLiteralTest2 :: TestTree
-mkLiteralTest2 =
-  testProperty "getSign . mkLiteral s v == s" $ property (
-    \(sign,var) ->
-     getSign (mkLiteral sign var) == sign
-    )
+  testProperty "getVariable == v, getSign == s in mkLiteral s v" $ property
+  (\(sign,variable) ->
+    let resSign = getSign $ mkLiteral sign variable
+        resVar  = getVariable $ mkLiteral sign variable
+    in (resSign === sign) .&&. (resVar === variable)
+  )
 
 mkLiteralFromIntTest1 :: TestTree
 mkLiteralFromIntTest1 =
-  testProperty "literalToInteger . mkLiteralFromInteger == id" $ property (
-    forAll
-    mkIntegerNonZero
-    (\int ->
-      (literalToInteger . mkLiteralFromInteger $ int) == int
-      )
+  testProperty "literalToInteger . mkLiteralFromInteger == id" $
+  forAll
+  mkIntegerNonZero
+  (\int ->
+    literalToInteger (mkLiteralFromInteger int) === int
     )
 
 literalToIntegerTest1 :: TestTree
 literalToIntegerTest1 =
-  testProperty "mkLiteralFromInteger . literalToInteger lit = lit" $ property (
-    \lit ->
-    (mkLiteralFromInteger . literalToInteger $ lit) == lit
+  testProperty "mkLiteralFromInteger . literalToInteger == id" $ property
+  (\lit ->
+    mkLiteralFromInteger (literalToInteger lit) === lit
     )

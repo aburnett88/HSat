@@ -1,35 +1,41 @@
 {-|
 Module      : HSat.Data.BSP.Common.Literal
 Description : The Literal data type
-Copyright   : (c) Andrew Burnett 2014
+Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-A 'Literal' represents either a 'Variable', or the negation
-of that 'Variable'.
+This module exports the common functions and definition of 'Literal' which
+represents the pair of a 'Sign' and a 'Variable' commonly used in Boolean
+formulae.
 -}
 module HSat.Problem.BSP.Common.Literal (
   -- * Data type
   Literal(..),
-  mkLiteral,
-  mkLiteralFromInteger,
-  literalToInteger
+  -- * Constructors
+  mkLiteral,           -- :: Sign -> Variable -> Literal
+  mkLiteralFromInteger,-- :: Integer -> Literal
+  -- * Conversions
+  literalToInteger     -- :: Literal -> Integer
   ) where
 
-import HSat.Problem.BSP.Common.Sign
 import HSat.Printer
+import HSat.Problem.BSP.Common.Sign
 import HSat.Problem.BSP.Common.Variable
 
 {-|
-Tche 'Literal' data type. Abstractly representeda s a pair containing a 'Sign' and a
-'Variable'
+A 'Literal' describes the pairing of a 'Sign' and 'Variable' and can be used
+to either describe the occurence, or the negation of a 'Variable' within a
+Boolean formulae. 
+
+Internally represented as a 'Sign' and a 'Variable'
 -}
 
 data Literal = Literal {
-  -- | The 'Sign' of the 'Literal'. either positive or negative
+  -- | The underlying 'Sign' that is represented
   getSign :: Sign,
-  -- | The 'Variable' part of the 'Literal'
+  -- | The underlying 'Variable' that is represented
   getVariable :: Variable
   } deriving (Eq,Show)
 
@@ -40,16 +46,21 @@ mkLiteral :: Sign -> Variable -> Literal
 mkLiteral = Literal
 
 {-|
-Constructs a 'Literal' from an 'Integer' representation
+Constructs a 'Literal' from an 'Integer'.
+
+It is possible that this may throw an error if the 'Integer' is outside the
+range allowed by the underlying representation within 'Variable'
 -}
-mkLiteralFromInteger   :: Integer -> Literal
-mkLiteralFromInteger i = Literal (mkSignFromInteger i) (mkVariableFromInteger i)
+mkLiteralFromInteger         :: Integer -> Literal
+mkLiteralFromInteger integer =
+  Literal (mkSignFromInteger integer) (mkVariableFromInteger integer)
 
 {-|
-Converts a 'Literal' to its 'Integer' representation
+Constructs an 'Integer' from a 'Literal'
 -}
-literalToInteger               :: Literal -> Integer
-literalToInteger (Literal s v) = signToInteger s * variableToInteger v
+literalToInteger                    :: Literal -> Integer
+literalToInteger (Literal sign var) =
+  signToInteger sign * variableToInteger var
 
 instance Printer Literal where
   compact   = text . show . literalToInteger
@@ -58,6 +69,9 @@ instance Printer Literal where
     | isPos s = green . unicode $ v
     | otherwise = red . unicode $ v
 
+{-|
+Ordered by the 'Variable' and, if they are the same, then by the 'Sign'
+-}
 instance Ord Literal where
   compare (Literal s v) (Literal s' v') =
     case compare v v' of
