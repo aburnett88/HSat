@@ -6,86 +6,74 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-This module provides the Clause data type and associated functions.
+This module exports the common functions and definition of 'Clause' which is
+in its simplest form a list of 'Literal's.
 
-A Clause consists of a abstract list of 'Literal's, which in turn represent either the positive or negative occurence of a 'HSat.Data.BSP.Common.Variable'
+These can be used, for example, to represent problems in Conjunctive Normal
+Form and Disjunctive Normal Form, however are kept deliberatly abstract at
+this stage. 
 -}
 
 module HSat.Problem.BSP.Common.Clause (
   -- * Data Type
-  Clause(getLiterals,clauseLength),
+  Clause,
+  getSizeClause,       -- :: Clause -> Word
+  getLiterals,         -- :: Clause -> Vector Literal
   -- * Construction
-  mkClause,
-  mkClauseFromLits,
-  mkClauseFromIntegers,
-  clauseAddLit,
-  clauseToIntegers,
-  clauseIsEmpty
+  mkClause,            -- :: Clause
+  mkClauseFromLits,    -- :: [Literal] -> Clause
+  mkClauseFromIntegers,-- :: [Integer] -> Clause
+  clauseAddLiteral,    -- :: Clause -> Literal -> Clause
+  -- * Conversions
+  clauseToIntegers,    -- :: Clause -> [Integer]
+  -- * Tests
+  clauseIsEmpty        -- :: Clause -> Bool
   ) where
 
 import           Data.Vector (Vector)
 import qualified Data.Vector as V
-import           Data.Word
-import           HSat.Printer
+import           HSat.Problem.BSP.Common.Clause.Internal
 import           HSat.Problem.BSP.Common.Literal
 
 {-|
-A Clause contains a finite number of Literals. Internally
-this is represented as a Vector
--}
-data Clause = Clause {
-  -- | The vector of Literals that represents the Clause
-  getLiterals :: Vector Literal,
-  -- | The size of the 'Clause'
-  clauseLength :: Word
-  } deriving (Eq,Show)
-
-{-|
-Creates an empty 'Clause'
+Constructs an empty 'Clause'
 -}
 mkClause :: Clause
 mkClause = Clause V.empty 0
 
 {-|
-creates a 'Clause' from a list of 'Literal's
+Constructs a 'Clause' from a list of 'Literal's
 -}
 mkClauseFromLits :: [Literal] -> Clause
-mkClauseFromLits  =
-  foldl clauseAddLit mkClause
+mkClauseFromLits =
+  foldl clauseAddLiteral mkClause
 
 {-|
-Takes a 'Clause' and a 'Literal' as arguments and appends
-the 'Literal' to the 'Clause'
+Appends the 'Literal' to the 'Clause' and returns the new 'Clause'
 -}
-clauseAddLit                :: Clause -> Literal -> Clause
-clauseAddLit (Clause c n) l = Clause (V.snoc c l) (n+1)
+clauseAddLiteral                     :: Clause -> Literal -> Clause
+clauseAddLiteral (Clause vect n) lit =
+  Clause (V.snoc vect lit) (n+1)
 
 {-|
-Converts a list of 'Literal's to a 'Clause'
+Constructs a list of 'Literal's from a 'Clause'
 -}
 mkClauseFromIntegers :: [Integer] -> Clause
 mkClauseFromIntegers =
-  foldl (\clause int -> clauseAddLit clause $ mkLiteralFromInteger int) mkClause
-{-|
-Turns a 'Clause' into a list of 'Literal's
--}
-clauseToIntegers              :: Clause -> [Integer]
-clauseToIntegers (Clause c _) =
-  V.toList . V.map literalToInteger $ c
+  foldl (\clause int ->
+          clauseAddLiteral clause $ mkLiteralFromInteger int
+        ) mkClause
 
 {-|
-Checks whether a 'Clause' is empty
+Constructs a list of 'Integer's from a 'Clause'
 -}
-clauseIsEmpty               :: Clause -> Bool
-clauseIsEmpty (Clause cl _) = cl == V.empty
+clauseToIntegers                 :: Clause -> [Integer]
+clauseToIntegers (Clause vect _) =
+  V.toList . V.map literalToInteger $ vect
 
---Printer instance
-
-instance Printer Clause where
-  compact   = printLit compact
-  noUnicode = printLit noUnicode
-  unicode   = printLit unicode
-
-printLit     :: (Literal -> Doc) -> Clause -> Doc
-printLit f c =
-  encloseSep lbracket rbracket comma $ map f . V.toList . getLiterals $ c
+{-|
+Tests whether a 'Clause' is empty
+-}
+clauseIsEmpty              :: Clause -> Bool
+clauseIsEmpty (Clause _ 0) = True
+clauseIsEmpty _            = False

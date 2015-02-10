@@ -79,7 +79,7 @@ addLiteral l cnf =
 addLiteral' :: Literal -> CNFBuilder -> CNFBuilder
 addLiteral' l cnf =
   (\cnf' -> cnf' {
-    currentClause = clauseAddLit (currentClause cnf) l
+    currentClause = clauseAddLiteral (currentClause cnf) l
                     }
             )
   $ if clauseIsEmpty . currentClause $ cnf then

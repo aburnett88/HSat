@@ -150,7 +150,7 @@ addLiteralTest1 = genAddLiteralTest1 (
   \(b,lit) ->
   let build = (return b) >>= addLiteral lit
   in build == (return $ b {
-                  currentClause = clauseAddLit (currentClause b) lit,
+                  currentClause = clauseAddLiteral (currentClause b) lit,
                   currentClauseNumb = (+) (currentClauseNumb b) (
                     if clauseIsEmpty . currentClause $ b then
                       1 else
@@ -163,7 +163,7 @@ addLiteral'Test1 = genAddLiteralTest1 (
   \(b,lit) ->
   let build = addLiteral' lit b
   in build == b {
-    currentClause = clauseAddLit (currentClause b) lit,
+    currentClause = clauseAddLiteral (currentClause b) lit,
     currentClauseNumb = (+) (currentClauseNumb b) (
       if clauseIsEmpty . currentClause $ b then
         1 else
@@ -184,7 +184,7 @@ addLiteral'Test2 = genAddLiteralTest2 (
   \(b,lit) ->
   let build = addLiteral' lit b
   in build == b {
-    currentClause = clauseAddLit (currentClause b) lit,
+    currentClause = clauseAddLiteral (currentClause b) lit,
     currentClauseNumb = (+) (currentClauseNumb b) (
       if clauseIsEmpty . currentClause $ b then
         1 else

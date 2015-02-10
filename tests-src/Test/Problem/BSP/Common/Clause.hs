@@ -46,7 +46,7 @@ tests =
 mkClauseTest1 :: TestTree
 mkClauseTest1 =
   testCase "clauseLength . mkClause == 0" $ assert (
-    clauseLength mkClause == 0
+    getSizeClause mkClause == 0
     )
 
 mkClauseTest2 :: TestTree
@@ -67,7 +67,7 @@ clauseAddLitTest1 =
   testProperty "addLit c l == mkClause c ++ [l]" $ property (
     \(clause,lit) ->
       mkClauseFromLits ((V.toList . getLiterals $ clause)++[lit]) ==
-      clauseAddLit clause lit
+      clauseAddLiteral clause lit
       )
 
 mkClauseFromIntegersTest1 :: TestTree

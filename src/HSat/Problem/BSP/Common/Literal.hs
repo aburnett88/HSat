@@ -34,7 +34,7 @@ Internally represented as a 'Sign' and a 'Variable'
 
 data Literal = Literal {
   -- | The underlying 'Sign' that is represented
-  getSign :: Sign,
+  getSign     :: Sign    ,
   -- | The underlying 'Variable' that is represented
   getVariable :: Variable
   } deriving (Eq,Show)

@@ -37,6 +37,7 @@ library
     HSat.Problem.BSP.CNF.Builder.Internal
     HSat.Problem.BSP.Common
     HSat.Problem.BSP.Common.Clause
+    HSat.Problem.BSP.Common.Clause.Internal
     HSat.Problem.BSP.Common.Clauses
     HSat.Problem.BSP.Common.Literal
     HSat.Problem.BSP.Common.Sign

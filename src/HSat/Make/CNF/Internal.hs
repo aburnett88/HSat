@@ -169,7 +169,7 @@ Adds a randomly generated 'Literal' to the 'Clause' until the counter reaches ze
 -}
 chooseClause          :: (MonadRandom m) => Word -> Clause -> CNFStatusErr m Clause
 chooseClause 0 clause = return clause
-chooseClause n clause = chooseLiteral >>= chooseClause (n-1) . clauseAddLit clause
+chooseClause n clause = chooseLiteral >>= chooseClause (n-1) . clauseAddLiteral clause
 
 {-|
 Allows us to choose a 'Literal'.
