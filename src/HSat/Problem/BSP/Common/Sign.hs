@@ -14,14 +14,14 @@ module HSat.Problem.BSP.Common.Sign (
   -- * Data Type
   Sign(..),
   -- * Construct Signs
-  mkSign,
-  mkSignFromInteger,
+  mkSign,            -- :: Bool -> Sign
+  mkSignFromInteger, -- :: Integer -> Sign
   -- * Conversions
-  signToInteger,
+  signToInteger,     -- :: Sign -> Integer
   -- * Tests
-  isPos,isNeg,
+  isPos,isNeg,       -- :: Sign -> Bool
   -- * Constants
-  pos,neg
+  pos,neg            -- :: Sign
   ) where
 
 import HSat.Printer
@@ -71,7 +71,7 @@ mkSignFromInteger   :: Integer -> Sign
 mkSignFromInteger i
   | i < 0 = neg
   | i > 0 = pos
-  | otherwise = error (name ++ ":fromInteger: Argument " ++ show i)
+  | otherwise = error (name ++ ":mkSignFromInteger: Argument " ++ show i)
 
 {-|
 Constructs an 'Integer' from a 'Sign'. Will only return the values 1 or (-1)
