@@ -1,5 +1,5 @@
 name: HSat
-version: 0.0.0.2
+version: 0.0.0.3
 synopsis: A general library for analysing and finding solutions to Boolean Satisfiability Problems
 homepage: https://github.com/aburnett88/HSat.git
 license-file: LICENSE
@@ -19,21 +19,41 @@ library
     vector >=0.10,
     text >= 1.1,
     ansi-wl-pprint == 0.6.7.1,
-    attoparsec
+    attoparsec,
+    directory,
+    MonadRandom,
+    random,
+    containers,
+    mtl,
+    either
   Exposed-Modules:
-    HSat.Data.BSP
-    HSat.Data.BSP.Common
-    HSat.Data.BSP.Common.Clause
-    HSat.Data.BSP.Common.Clauses
-    HSat.Data.BSP.Common.Literal
-    HSat.Data.BSP.Common.Sign
-    HSat.Data.BSP.Common.Variable
-    HSat.Data.BSP.CNF
-    HSat.Data.BSP.CNF.Builder
-    HSat.Data.BSP.CNF.Parser
-    HSat.Utils
-    HSat.Utils.ModuleError
-    HSat.Utils.Printer
+    HSat.Problem
+    HSat.Problem.ProblemExpr
+    HSat.Problem.ProblemType
+    HSat.Problem.Source
+    HSat.Problem.BSP.CNF
+    HSat.Problem.BSP.CNF.Internal
+    HSat.Problem.BSP.CNF.Builder
+    HSat.Problem.BSP.CNF.Builder.Internal
+    HSat.Problem.BSP.Common
+    HSat.Problem.BSP.Common.Clause
+    HSat.Problem.BSP.Common.Clauses
+    HSat.Problem.BSP.Common.Literal
+    HSat.Problem.BSP.Common.Sign
+    HSat.Problem.BSP.Common.Variable
+    HSat.Make
+    HSat.Make.Internal
+    HSat.Make.Config
+    HSat.Make.CNF
+    HSat.Make.CNF.Internal
+    HSat.Writer
+    HSat.Writer.Internal
+    HSat.Writer.CNF
+    HSat.Writer.CNF.Internal
+    HSat.Parser
+    HSat.Parser.CNF
+    HSat.Parser.CNF.Internal
+    HSat.Printer
 
 Test-Suite HSat-tests
   type: exitcode-stdio-1.0
@@ -52,4 +72,19 @@ Test-Suite HSat-tests
     text,
     mtl,
     containers,
-    directory
+    directory,
+    MonadRandom,
+    random,
+    attoparsec
+
+Benchmark Parsing-Files
+    type: exitcode-stdio-1.0
+    main-is: Main.hs
+    hs-source-dirs: benchs-src/Parsing
+    default-language: Haskell2010
+    build-depends:
+      parse-dimacs,
+      directory,
+      HSat,
+      criterion,
+      base

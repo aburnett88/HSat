@@ -10,7 +10,11 @@ HSat is a library used for solving and analysing Boolean Satisfiability Problems
 
 ## Pre-version 1.0
 
-### 0.0.0.2
+### 0.0.0.3 10th February 2015
+* Rearranged many modules
+* Added Make, Parser, Writer to new modules
+
+### 0.0.0.2 29th December 2014
 
 * Library
   * Added HSat.Data.BSP.CNF.Builder

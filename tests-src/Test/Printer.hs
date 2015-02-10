@@ -1,26 +1,24 @@
 {-|
-Module      : Test.Data
-Description : The Data hierarchy testing module
+Module      : Test.Printer
+Description : The Printer tests
 Copyright   : (c) Andrew Burnett 2014
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The tree node for all tests for modules with a suffix of Data
+Contains the tests for the Printer type.
 -}
 
-module Test.Data (
+module Test.Printer (
   tests
   ) where
 
 import TestUtils
-import qualified Test.Data.BSP as BSP
 
 name :: String
-name = "Test.Data"
+name = "Printer"
 
 tests :: TestTree
 tests =
   testGroup name [
-    BSP.tests
     ]
