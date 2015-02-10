@@ -19,9 +19,14 @@ module TestUtils (
   checkBounds,         -- :: (Ord a) => a -> Bounds a -> Bool
   testList,
   testEq,
-  testAllEq
+  testAllEq,
+  forceError
   ) where
 
+import           Control.Monad (when)
+import           Data.Maybe (isNothing)
+import qualified Control.Exception as E (catch)
+import           Control.Exception.Base (ErrorCall)
 import           Control.Monad (replicateM,liftM,liftM2)
 import           Data.Text (Text,pack,unpack)
 import qualified Data.Vector as V (toList)
@@ -275,3 +280,14 @@ instance Arbitrary VariablePredicate where
       0 -> NoPredicate
       1 -> AtleastOnce
       2 -> PosAndNeg
+
+forceError :: (Eq a, Show a) => a -> a -> Assertion
+forceError correct dummyVal = do
+  maybValue <- E.catch (
+    do
+      let ans = Just correct
+          dv = Just dummyVal
+      when (dv==ans) (print ans) >> return ans
+      )
+               ((\_ -> return Nothing) :: ErrorCall -> IO (Maybe a))
+  assert . isNothing $ maybValue
