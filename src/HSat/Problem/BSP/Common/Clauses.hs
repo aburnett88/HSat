@@ -10,13 +10,13 @@ A 'Clauses' data type represents a collection of 'Clause'
 -}
 module HSat.Problem.BSP.Common.Clauses (
   -- * Clause
-  Clauses(
-     getVectClause,
-     getSizeClauses
-     ), -- :: Clause
+  Clauses,
+  getVectClause,           -- :: Clauses -> Vector Clause
+  getSizeClauses,          -- :: Clauses -> Word
   -- * Construction
-  mkClauses,               -- :: Clauses
+  mkClauses,               -- :: Vector Clause -> Clauses
   mkClausesFromClause,     -- :: [Clause] -> Clauses
+  emptyClauses,             -- :: Clauses
   clausesAddClause,        -- :: Clauses -> Clause -> Clauses
   mkClausesFromIntegers,   -- :: [[Integer]] -> Clauses
   -- * Other Functions
@@ -37,36 +37,27 @@ import           HSat.Problem.BSP.Common.Clause
 import HSat.Problem.BSP.Common.Literal
 import HSat.Problem.BSP.Common.Variable
 import HSat.Problem.BSP.Common.Sign
+import HSat.Problem.BSP.Common.Clauses.Internal
 
 {-|
-A 'Clauses' represents a list of 'Clause', which in themselves represent
-'Literal's in a problem.
-
-This general data structure can be thought of as representing a Boolean formula
-in Conjuctive or Disjunctive Normal Form.
-
-Internally represented as a 'Vector' of 'Clause' and a cached 'Word' that
-represents the size of the 'Vector'
+Constructs 'Clauses' from a 'Vector' of 'Clause'
 -}
-data Clauses = Clauses {
-  -- | Internally represented as a 'Vector' of 'Clause'
-  getVectClause :: Vector Clause,
-  -- | A size variable describing how many 'Clause' are contained
-  getSizeClauses  :: Word
-  } deriving (Eq,Show)
+mkClauses :: Vector Clause -> Clauses
+mkClauses vect =
+  Clauses vect (toEnum $ V.length vect)
 
 {-|
 Constructs an empty 'Clauses'
 -}
-mkClauses :: Clauses
-mkClauses = Clauses V.empty 0
+emptyClauses :: Clauses
+emptyClauses = Clauses V.empty 0
 
 {-|
 Construct a 'Clauses' from a list of 'Clause'
 -}
 mkClausesFromClause :: [Clause] -> Clauses
 mkClausesFromClause =
-  foldl clausesAddClause mkClauses
+  foldl clausesAddClause emptyClauses
 
 {-|
 Append the 'Clause' to the 'Clauses' to create a new 'Clauses'
@@ -91,7 +82,7 @@ supported values, which is constrained by the 'Word' data type.
 mkClausesFromIntegers :: [[Integer]] -> Clauses
 mkClausesFromIntegers =
   foldl (\clauses ints ->
-          clausesAddClause clauses (mkClauseFromIntegers ints)) mkClauses
+          clausesAddClause clauses (mkClauseFromIntegers ints)) emptyClauses
 
 {-|
 Constructs a list of list of 'Integer' that represents the 'Clauses' argument
@@ -99,15 +90,6 @@ Constructs a list of list of 'Integer' that represents the 'Clauses' argument
 clausesToIntegers :: Clauses -> [[Integer]]
 clausesToIntegers =
   V.toList . V.map clauseToIntegers . getVectClause
-
-instance Printer Clauses where
-  compact   = generalPrinter compact
-  noUnicode = generalPrinter noUnicode
-  unicode   = generalPrinter unicode
-
-generalPrinter :: (Clause -> Doc) -> Clauses -> Doc
-generalPrinter f cl =
-  encloseSep lbracket rbracket comma $ map f . V.toList . getVectClause $ cl
 
 {-|
 Returns a tuple containing the maximum 'Variabe' within a set of 'Clauses' and the

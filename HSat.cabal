@@ -39,6 +39,7 @@ library
     HSat.Problem.BSP.Common.Clause
     HSat.Problem.BSP.Common.Clause.Internal
     HSat.Problem.BSP.Common.Clauses
+    HSat.Problem.BSP.Common.Clauses.Internal
     HSat.Problem.BSP.Common.Literal
     HSat.Problem.BSP.Common.Sign
     HSat.Problem.BSP.Common.Variable

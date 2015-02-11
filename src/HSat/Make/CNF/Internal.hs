@@ -73,7 +73,7 @@ chooseClauses clausesInit = do
       varNumb    = getVarNumb clausesInit
       varPred    = HSat.Make.CNF.Internal.getVarPred clausesInit
       initStatus = mkStatus varNumb varTotal varPred
-  evalStateT (foldM runChooseClauses mkClauses listClSize) initStatus
+  evalStateT (foldM runChooseClauses emptyClauses listClSize) initStatus
 
 
 {-|

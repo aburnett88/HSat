@@ -50,13 +50,13 @@ tests =
 mkClausesTest1 :: TestTree
 mkClausesTest1 =
   testCase "0 == numberOfClauses mkClause" $ assert (
-    0 == getSizeClauses mkClauses
+    0 == getSizeClauses emptyClauses
     )
 
 mkClausesTest2 :: TestTree
 mkClausesTest2 =
   testCase "[] == getVectOfClauses mkClauses" $ assert (
-    V.empty == getVectClause mkClauses
+    V.empty == getVectClause emptyClauses
     )
 
 mkClausesFromClauseTest1 :: TestTree
@@ -95,7 +95,7 @@ clausesToIntegersTest1 =
 clausesIsEmptyTest1 :: TestTree
 clausesIsEmptyTest1 =
   testCase "clausesIsEmpty []" $ assert (
-    clausesIsEmpty mkClauses
+    clausesIsEmpty emptyClauses
     )
 
 clausesIsEmptyTest2 :: TestTree
