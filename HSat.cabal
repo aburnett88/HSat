@@ -43,6 +43,7 @@ library
     HSat.Problem.BSP.Common.Literal
     HSat.Problem.BSP.Common.Sign
     HSat.Problem.BSP.Common.Variable
+    HSat.Problem.BSP.Common.Variable.Internal
     HSat.Make
     HSat.Make.Internal
     HSat.Make.Config

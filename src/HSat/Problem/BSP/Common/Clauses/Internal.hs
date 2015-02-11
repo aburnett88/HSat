@@ -10,7 +10,8 @@ This module exports the definition of 'Clauses', a data structure used to hold a
 -}
 
 module HSat.Problem.BSP.Common.Clauses.Internal (
-  Clauses(..)
+  Clauses(..),
+  validate
   ) where
 
 import           Data.Vector (Vector)
@@ -45,3 +46,6 @@ generalPrinter :: (Clause -> Doc) -> Clauses -> Doc
 generalPrinter func clauses =
   encloseSep lbracket rbracket comma (
     map func . V.toList $ getVectClause clauses)
+
+validate                  :: Clauses -> Bool
+validate (Clauses vect n) = n == (toEnum $ V.length vect)

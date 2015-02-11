@@ -18,7 +18,8 @@ values being created.
 -}
 
 module HSat.Problem.BSP.Common.Clause.Internal (
-  Clause(..)
+  Clause(..),
+  validate
   ) where
 
 import Data.Word
@@ -50,3 +51,6 @@ printLit                 :: (Literal -> Doc) -> Clause -> Doc
 printLit function clause =
   encloseSep lbracket rbracket comma $
   map function . V.toList . getVectLiteral $ clause
+
+validate                 :: Clause -> Bool
+validate (Clause vect n) = n == (toEnum $ V.length vect)

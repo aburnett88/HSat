@@ -12,7 +12,8 @@ a larger problem.
 -}
 module HSat.Problem.BSP.Common.Variable (
   -- * Data Type
-  Variable(..),
+  Variable,
+  getWord,               -- :: Variable -> Word
   -- * Constructors for Variable
   mkVariable,            -- :: Word -> Variable
   mkVariableFromInteger, -- :: Integer -> Variable
@@ -23,20 +24,10 @@ module HSat.Problem.BSP.Common.Variable (
 
 import Data.Word
 import HSat.Printer
+import HSat.Problem.BSP.Common.Variable.Internal
 
 name :: String
 name = "HSat.Problem.BSP.Common.Literal"
-
-{-|
-A 'Variable' represents a numerial representation of a variable wtihin a
-problem.
-
-Internally represented as a 'Word'
--}
-newtype Variable = Variable {
-  -- | The underlying 'Word' that is represented
-  getWord :: Word
-  } deriving (Eq,Show)
              
 {-|
 Constructs a 'Variabe' from a 'Word'.
@@ -88,13 +79,4 @@ Constructs an 'Integer' from a 'Variable'
 variableToInteger :: Variable -> Integer
 variableToInteger = toInteger . getWord
 
-instance Printer Variable where
-  compact   = text . show . variableToInteger
-  unicode   = compact
-  noUnicode = compact
 
-{-|
-Order is denoted by the underlying 'Word' in the 'Variable'
--}
-instance Ord Variable where
-  compare (Variable a) (Variable b) = compare a b

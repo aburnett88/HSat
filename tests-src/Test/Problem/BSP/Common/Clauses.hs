@@ -13,15 +13,15 @@ module Test.Problem.BSP.Common.Clauses (
   tests
   ) where
 
-import TestUtils
-import HSat.Problem.BSP.Common.Clauses
-import HSat.Problem.BSP.Common.Clause (emptyClause)
-import Control.Monad (replicateM)
-import qualified Data.Vector as V
-import HSat.Problem.BSP.Common.Sign
-import HSat.Problem.BSP.Common.Variable
-import HSat.Problem.BSP.Common.Literal
+import           Control.Monad (replicateM)
 import qualified Data.Set as S
+import qualified Data.Vector as V
+import           HSat.Problem.BSP.Common.Clause (emptyClause)
+import           HSat.Problem.BSP.Common.Clauses
+import           HSat.Problem.BSP.Common.Literal
+import           HSat.Problem.BSP.Common.Sign
+import           HSat.Problem.BSP.Common.Variable
+import           TestUtils
 
 name :: String
 name = "Clauses"

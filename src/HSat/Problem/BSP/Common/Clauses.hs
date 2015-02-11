@@ -59,7 +59,8 @@ mkClausesFromClause =
   foldl clausesAddClause emptyClauses
 
 {-|
-Append the 'Clause' argument to the end of the 'Clauses' and returns the new 'Clauses'
+Append the 'Clause' argument to the end of the 'Clauses' and returns the new
+'Clauses'
 -}
 clausesAddClause                  :: Clauses -> Clause -> Clauses
 clausesAddClause (Clauses cl n) c =
@@ -93,7 +94,9 @@ each 'Literal' in a 'Clauses'
 -}
 clFold                       :: (a -> Literal -> a) -> a -> Clauses -> a
 clFold function init clauses =
-  V.foldl (\o cl -> V.foldl function o $ getVectLiteral cl) init $ getVectClause clauses
+  V.foldl (\o cl ->
+            V.foldl function o $ getVectLiteral cl
+          ) init $ getVectClause clauses
 
 {-|
 Returns the maximum 'Word' represented in a 'Variab'e within the 'Clauses'
@@ -117,7 +120,8 @@ getSetOfVars =
            ) S.empty
 
 {-|
-Returns the 'Set' of all 'Variable's that appear with a positive 'Sign' in the argument
+Returns the 'Set' of all 'Variable's that appear with a positive 'Sign' in the
+argument
 -}
 getSetPos :: Clauses -> S.Set Variable
 getSetPos =
@@ -128,7 +132,8 @@ getSetPos =
          ) S.empty
 
 {-|
-Returns the 'Set' of all 'Variable's that appear with a negative 'Sign' in the argument
+Returns the 'Set' of all 'Variable's that appear with a negative 'Sign' in the
+argument
 -}
 getSetNeg :: Clauses -> S.Set Variable
 getSetNeg =
