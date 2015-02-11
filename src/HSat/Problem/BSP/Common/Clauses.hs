@@ -16,13 +16,13 @@ module HSat.Problem.BSP.Common.Clauses (
   -- * Construction
   mkClauses,               -- :: Vector Clause -> Clauses
   mkClausesFromClause,     -- :: [Clause] -> Clauses
-  emptyClauses,             -- :: Clauses
+  emptyClauses,            -- :: Clauses
   clausesAddClause,        -- :: Clauses -> Clause -> Clauses
   mkClausesFromIntegers,   -- :: [[Integer]] -> Clauses
   -- * Other Functions
   clausesToIntegers,       -- :: Clauses -> [[Integer]]
   clausesIsEmpty,          -- :: Clauses -> Bool
-  findMaxVarAndSizeClauses,-- :: Clauses -> (Word,Word)
+  findMaxVar,              -- :: Clauses -> Word
   getSetOfVars,            -- :: Clauses -> Set Variable
   getSetPos,               -- :: Clauses -> Set Variable
   getSetNeg                -- :: Clauses -> Set Variable
@@ -32,17 +32,16 @@ import qualified Data.Set as S
 import           Data.Vector                    (Vector)
 import qualified Data.Vector                    as V
 import           Data.Word
-import           HSat.Printer
 import           HSat.Problem.BSP.Common.Clause
-import HSat.Problem.BSP.Common.Literal
-import HSat.Problem.BSP.Common.Variable
-import HSat.Problem.BSP.Common.Sign
-import HSat.Problem.BSP.Common.Clauses.Internal
+import           HSat.Problem.BSP.Common.Clauses.Internal
+import           HSat.Problem.BSP.Common.Literal
+import           HSat.Problem.BSP.Common.Sign
+import           HSat.Problem.BSP.Common.Variable
 
 {-|
 Constructs 'Clauses' from a 'Vector' of 'Clause'
 -}
-mkClauses :: Vector Clause -> Clauses
+mkClauses      :: Vector Clause -> Clauses
 mkClauses vect =
   Clauses vect (toEnum $ V.length vect)
 
@@ -60,24 +59,21 @@ mkClausesFromClause =
   foldl clausesAddClause emptyClauses
 
 {-|
-Append the 'Clause' to the 'Clauses' to create a new 'Clauses'
+Append the 'Clause' argument to the end of the 'Clauses' and returns the new 'Clauses'
 -}
 clausesAddClause                  :: Clauses -> Clause -> Clauses
 clausesAddClause (Clauses cl n) c =
   Clauses (V.snoc cl c) (n+1)
 
 {-|
-Returns 'True' if the 'Clauses' has no elements within
+Returns 'True' if there are no 'Clause' within the argument
 -}
 clausesIsEmpty               :: Clauses -> Bool
 clausesIsEmpty (Clauses _ 0) = True
 clausesIsEmpty _             = False
 
 {-|
-Takes a list of list of 'Integer' and constructs a 'Clauses'.
-
-This will throw a runtime error if any of the 'Integer's are either zero, or outside the range of
-supported values, which is constrained by the 'Word' data type. 
+Takes a list of list of 'Integer' and constructs a 'Clauses'
 -}
 mkClausesFromIntegers :: [[Integer]] -> Clauses
 mkClausesFromIntegers =
@@ -85,54 +81,59 @@ mkClausesFromIntegers =
           clausesAddClause clauses (mkClauseFromIntegers ints)) emptyClauses
 
 {-|
-Constructs a list of list of 'Integer' that represents the 'Clauses' argument
+Constructs a list of lists of 'Integer's from a 'Clauses'
 -}
 clausesToIntegers :: Clauses -> [[Integer]]
 clausesToIntegers =
   V.toList . V.map clauseToIntegers . getVectClause
 
 {-|
-Returns a tuple containing the maximum 'Variabe' within a set of 'Clauses' and the
-length of those 'Clauses'
+A generic method for accumilating information from
+each 'Literal' in a 'Clauses'
 -}
-findMaxVarAndSizeClauses :: Clauses -> (Word,Word)
-findMaxVarAndSizeClauses =
-  --Fold over each clause
-  V.foldl computeVarPlusClause (0,0) . getVectClause
-  where
-    --Add one for each clause encoutered, find the maximum var as we proceed
-    computeVarPlusClause :: (Word,Word) -> Clause -> (Word,Word)
-    computeVarPlusClause (maxVar,clause) c = (maxVar',clause+1)
-      where
-        maxVar' = V.foldl (
-          \current newLit ->
-          let potentialMax = getWord . getVariable $ newLit
-          --compare current maxvar and potentially new max var
-          in case compare current potentialMax of
-            LT -> potentialMax
-            _ -> current
-            ) maxVar . getVectLiteral $ c
+clFold                       :: (a -> Literal -> a) -> a -> Clauses -> a
+clFold function init clauses =
+  V.foldl (\o cl -> V.foldl function o $ getVectLiteral cl) init $ getVectClause clauses
 
+{-|
+Returns the maximum 'Word' represented in a 'Variab'e within the 'Clauses'
+-}
+findMaxVar :: Clauses -> Word
+findMaxVar =
+  clFold (\w lit ->
+           let w' = getWord $ getVariable lit
+           in if w' > w then
+                w' else
+                w
+                ) 0
+
+{-|
+Returns the 'Set' of 'Variable's contained within the argument
+-}
 getSetOfVars :: Clauses -> S.Set Variable
-getSetOfVars = generalFold (\set l -> S.insert (getVariable l) set)
+getSetOfVars =
+  clFold (\set lit ->
+           S.insert (getVariable lit) set
+           ) S.empty
 
-generalFold :: (S.Set Variable -> Literal -> S.Set Variable) ->
-               Clauses -> S.Set Variable
-generalFold f (Clauses cl _) =
-  V.foldl (\set clause -> get set clause) S.empty cl
-  where
-    get s c = V.foldl f s (getVectLiteral c)
-
+{-|
+Returns the 'Set' of all 'Variable's that appear with a positive 'Sign' in the argument
+-}
 getSetPos :: Clauses -> S.Set Variable
-getSetPos = generalFold (
-  \set l -> if isPos . getSign $ l then
+getSetPos =
+  clFold (\set l ->
+           if isPos . getSign $ l then
               S.insert (getVariable l) set else
               set
-              )
+         ) S.empty
 
+{-|
+Returns the 'Set' of all 'Variable's that appear with a negative 'Sign' in the argument
+-}
 getSetNeg :: Clauses -> S.Set Variable
-getSetNeg = generalFold (
-  \set l -> if isNeg . getSign $ l then
-              S.insert (getVariable l) set else
-              set
-              )
+getSetNeg =
+  clFold (\set l ->
+           if isNeg . getSign $ l then
+             S.insert (getVariable l) set else
+             set
+         ) S.empty

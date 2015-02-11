@@ -31,8 +31,9 @@ Turns a 'Clauses' data type into a CNF datatype
 -}
 mkCNFFromClauses :: Clauses -> CNF
 mkCNFFromClauses cl =
-  let (v,n) = findMaxVarAndSizeClauses cl
-  in CNF v n cl
+  let v = findMaxVar cl
+      c = getSizeClauses cl
+  in CNF v c cl
      
 {-|
 Takes a 'CNF' data structure and converts it into a list of 'Integer's
@@ -49,9 +50,9 @@ mkCNFFromIntegers = mkCNFFromClauses . mkClausesFromIntegers
 
 validate :: CNF -> Bool
 validate cnf =
-  let (var,len) = findMaxVarAndSizeClauses . getClauses $ cnf
-  in
-   getNoVars cnf == var &&
-   getNoClauses cnf == len
+  let v = findMaxVar $ getClauses cnf
+      c = getSizeClauses $ getClauses cnf
+  in getNoVars cnf == v &&
+     getNoClauses cnf == c
 
   
