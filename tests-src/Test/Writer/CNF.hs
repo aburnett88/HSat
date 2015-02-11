@@ -36,7 +36,7 @@ mkCNFWriterTest1 =
   testProperty "mkCNFWriter returns correct values" $ property (
     \cnf ->
     let writer = mkCNFWriter cnf
-        expectedClauses = V.map (\c -> WCL c []) . getVectOfClauses . getClauses $ cnf
+        expectedClauses = V.map (\c -> WCL c []) . getVectClause . getClauses $ cnf
         gottenClauses = writeClauses writer
         expectedProblemLine = WPL (getNoVars cnf) (getNoClauses cnf) []
         gottenProblemLine = writeProblemLine writer

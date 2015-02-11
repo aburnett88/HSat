@@ -11,8 +11,8 @@ A 'Clauses' data type represents a collection of 'Clause'
 module HSat.Problem.BSP.Common.Clauses (
   -- * Clause
   Clauses(
-     getVectOfClauses,
-     numberOfClauses
+     getVectClause,
+     getSizeClauses
      ), -- :: Clause
   -- * Construction
   mkClauses,               -- :: Clauses
@@ -39,13 +39,20 @@ import HSat.Problem.BSP.Common.Variable
 import HSat.Problem.BSP.Common.Sign
 
 {-|
-The data type contains a collection of 'Clause'. It can be thought of as a list within a list
+A 'Clauses' represents a list of 'Clause', which in themselves represent
+'Literal's in a problem.
+
+This general data structure can be thought of as representing a Boolean formula
+in Conjuctive or Disjunctive Normal Form.
+
+Internally represented as a 'Vector' of 'Clause' and a cached 'Word' that
+represents the size of the 'Vector'
 -}
 data Clauses = Clauses {
   -- | Internally represented as a 'Vector' of 'Clause'
-  getVectOfClauses :: Vector Clause,
+  getVectClause :: Vector Clause,
   -- | A size variable describing how many 'Clause' are contained
-  numberOfClauses  :: Word
+  getSizeClauses  :: Word
   } deriving (Eq,Show)
 
 {-|
@@ -91,7 +98,7 @@ Constructs a list of list of 'Integer' that represents the 'Clauses' argument
 -}
 clausesToIntegers :: Clauses -> [[Integer]]
 clausesToIntegers =
-  V.toList . V.map clauseToIntegers . getVectOfClauses
+  V.toList . V.map clauseToIntegers . getVectClause
 
 instance Printer Clauses where
   compact   = generalPrinter compact
@@ -100,7 +107,7 @@ instance Printer Clauses where
 
 generalPrinter :: (Clause -> Doc) -> Clauses -> Doc
 generalPrinter f cl =
-  encloseSep lbracket rbracket comma $ map f . V.toList . getVectOfClauses $ cl
+  encloseSep lbracket rbracket comma $ map f . V.toList . getVectClause $ cl
 
 {-|
 Returns a tuple containing the maximum 'Variabe' within a set of 'Clauses' and the
@@ -109,7 +116,7 @@ length of those 'Clauses'
 findMaxVarAndSizeClauses :: Clauses -> (Word,Word)
 findMaxVarAndSizeClauses =
   --Fold over each clause
-  V.foldl computeVarPlusClause (0,0) . getVectOfClauses
+  V.foldl computeVarPlusClause (0,0) . getVectClause
   where
     --Add one for each clause encoutered, find the maximum var as we proceed
     computeVarPlusClause :: (Word,Word) -> Clause -> (Word,Word)
@@ -122,7 +129,7 @@ findMaxVarAndSizeClauses =
           in case compare current potentialMax of
             LT -> potentialMax
             _ -> current
-            ) maxVar . getLiterals $ c
+            ) maxVar . getVectLiteral $ c
 
 getSetOfVars :: Clauses -> S.Set Variable
 getSetOfVars = generalFold (\set l -> S.insert (getVariable l) set)
@@ -132,7 +139,7 @@ generalFold :: (S.Set Variable -> Literal -> S.Set Variable) ->
 generalFold f (Clauses cl _) =
   V.foldl (\set clause -> get set clause) S.empty cl
   where
-    get s c = V.foldl f s (getLiterals c)
+    get s c = V.foldl f s (getVectLiteral c)
 
 getSetPos :: Clauses -> S.Set Variable
 getSetPos = generalFold (

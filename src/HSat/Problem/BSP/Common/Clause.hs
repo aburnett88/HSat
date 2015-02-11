@@ -18,7 +18,7 @@ module HSat.Problem.BSP.Common.Clause (
   -- * Data Type
   Clause,
   getSizeClause,       -- :: Clause -> Word
-  getLiterals,         -- :: Clause -> Vector Literal
+  getVectLiteral,      -- :: Clause -> Vector Literal
   -- * Construction
   mkClause,            -- :: Vector Literal -> Clause
   emptyClause,         -- :: Clause

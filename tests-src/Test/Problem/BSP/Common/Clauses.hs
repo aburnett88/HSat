@@ -50,20 +50,20 @@ tests =
 mkClausesTest1 :: TestTree
 mkClausesTest1 =
   testCase "0 == numberOfClauses mkClause" $ assert (
-    0 == numberOfClauses mkClauses
+    0 == getSizeClauses mkClauses
     )
 
 mkClausesTest2 :: TestTree
 mkClausesTest2 =
   testCase "[] == getVectOfClauses mkClauses" $ assert (
-    V.empty == getVectOfClauses mkClauses
+    V.empty == getVectClause mkClauses
     )
 
 mkClausesFromClauseTest1 :: TestTree
 mkClausesFromClauseTest1 =
   testProperty "toList . getvect . mkClausesFromClause c == c" $ property (
     \cl ->
-    cl == (V.toList . getVectOfClauses . mkClausesFromClause $ cl)
+    cl == (V.toList . getVectClause . mkClausesFromClause $ cl)
     )
 
 clausesAddClauseTest1 :: TestTree
@@ -71,7 +71,7 @@ clausesAddClauseTest1 =
   testProperty "clausesAddClause cl c == cl ++c" $ property (
     \(clauses,clause) ->
     clausesAddClause clauses clause ==
-      mkClausesFromClause ((V.toList . getVectOfClauses $ clauses) ++ [clause]
+      mkClausesFromClause ((V.toList . getVectClause $ clauses) ++ [clause]
       )
     )
 

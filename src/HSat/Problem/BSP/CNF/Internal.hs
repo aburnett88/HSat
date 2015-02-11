@@ -61,7 +61,7 @@ writeClauses sepCl sepC vars f cl =
     --seprate by the separator
     clausesDoc = map (encloseSep lparen rparen sepC) . function $ literalList
     --get a list of list of literals
-    literalList = map (V.toList . getLiterals) .  V.toList . getVectOfClauses $ cl :: [[Literal]]
+    literalList = map (V.toList . getVectLiteral) .  V.toList . getVectClause $ cl :: [[Literal]]
     --The size that the greatest var will take up in the printed output
     vSize = (1+) . length . show $ vars
     --And finally convert a lit of list of literals to a list of list of docs

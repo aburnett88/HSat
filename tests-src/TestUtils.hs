@@ -101,14 +101,14 @@ instance Arbitrary Clauses where
     numb <- choose (0,testMaxClausesSize) :: Gen Int
     mkClausesFromClause `liftM` replicateM numb arbitrary
   shrink clauses =
-    map mkClausesFromClause $ shrink . V.toList . getVectOfClauses $ clauses
+    map mkClausesFromClause $ shrink . V.toList . getVectClause $ clauses
 
 instance Arbitrary Clause where
   arbitrary = do
     numb <- choose (0,testMaxClauseSize) :: Gen Int
     mkClauseFromLits `liftM` replicateM numb arbitrary
   shrink clause =
-    map mkClauseFromLits $ shrink . V.toList . getLiterals $ clause
+    map mkClauseFromLits $ shrink . V.toList . getVectLiteral $ clause
 
 instance Arbitrary Literal where
   arbitrary = liftM2 mkLiteral arbitrary arbitrary

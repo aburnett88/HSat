@@ -54,7 +54,7 @@ mkClauseTest1 =
   (\vectLiterals ->
     let clause        = mkClause vectLiterals
         expectedLits  = vectLiterals
-        gottenLits    = getLiterals clause
+        gottenLits    = getVectLiteral clause
         expectedSize  = toEnum . V.length $ vectLiterals
         gottenSize    = getSizeClause clause
     in (expectedSize  === gottenSize) .&&.
@@ -69,7 +69,7 @@ emptyClauseTest1 =
         expectedSize = 0
         gottenSize   = getSizeClause clause
         expectedLits = V.empty
-        gottenLits   = getLiterals clause        
+        gottenLits   = getVectLiteral clause        
     assertEqual "Clause size equal" expectedSize gottenSize
     assertEqual "getLiterals == []" expectedLits gottenLits
 
@@ -80,7 +80,7 @@ mkClauseFromLitsTest1 =
   (\lits ->
     let clause       = mkClauseFromLits lits
         expectedSize = toEnum $ length lits
-        gottenLits   = getLiterals clause
+        gottenLits   = getVectLiteral clause
         expectedLits = V.fromList lits
         gottenSize   = getSizeClause clause
     in (expectedSize === gottenSize) .&&.
@@ -99,7 +99,7 @@ clauseAddLitTest1 :: TestTree
 clauseAddLitTest1 =
   testProperty "addLit c l == mkClause c ++ [l]" $ property
   (\(clause,lit) ->
-    let listOfLits     = (V.toList . getLiterals $ clause) ++ [lit]
+    let listOfLits     = (V.toList . getVectLiteral $ clause) ++ [lit]
         expectedClause = mkClauseFromLits listOfLits
         gottenClause   = clauseAddLiteral clause lit
     in expectedClause  === gottenClause

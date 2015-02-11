@@ -207,7 +207,7 @@ parseClauseTest1 =
     )
   where
     cnf = CNFBuilder 10 10 0 mkClauses emptyClause
-    cnf' = V.foldl (flip addLiteral') cnf (getLiterals cl)
+    cnf' = V.foldl (flip addLiteral') cnf (getVectLiteral cl)
     cl = mkClauseFromLits $ map mkLiteralFromInteger [
       1,2,3,-4,-5,6,-7,8,9
                          ]

@@ -102,7 +102,7 @@ genCNFBuilder = do
                cnf
       v = getNoVars cnf'
       ex = getNoClauses cnf'
-  (cl,c) <- splitRandom emptyClause . getVectOfClauses . getClauses $ cnf'
+  (cl,c) <- splitRandom emptyClause . getVectClause . getClauses $ cnf'
   let curr = toEnum (V.length cl + 1)
   return $ CNFBuilder v ex curr (mkClausesFromClause . V.toList $ cl) c
 

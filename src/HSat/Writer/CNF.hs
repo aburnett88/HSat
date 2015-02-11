@@ -16,7 +16,7 @@ import HSat.Problem.BSP.Common
 mkCNFWriter :: CNF -> CNFWriter
 mkCNFWriter (CNF v c cl) =
   let problem = WPL v c []
-      clauses = V.map (flip WCL []) . getVectOfClauses $ cl
+      clauses = V.map (flip WCL []) . getVectClause $ cl
   in CNFWriter problem clauses
 
 addClauseComment :: Word -> Comment -> CNFWriter -> Maybe CNFWriter
@@ -51,7 +51,7 @@ runCNFWriter (CNFWriter p c) = T.unlines $
     runClauses (WCL clause comments) = (ls ++ [m] ++ rs)
       where
         (ls,rs) = runComment comments
-        m = runClauses' (getLiterals clause) empty
+        m = runClauses' (getVectLiteral clause) empty
 
 
 runClauses' :: V.Vector Literal -> Text -> Text

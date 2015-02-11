@@ -36,7 +36,7 @@ Internally a 'Clause' is represented as a 'Vector' of 'Literal's and a cached
 -}
 data Clause = Clause {
   -- | The underlying 'Vector' of 'Literal's that is represented
-  getLiterals   :: Vector Literal,
+  getVectLiteral   :: Vector Literal,
   -- | The cached size of the 'Clause' in 'Word' form
   getSizeClause :: Word
   } deriving (Eq,Show)
@@ -49,4 +49,4 @@ instance Printer Clause where
 printLit                 :: (Literal -> Doc) -> Clause -> Doc
 printLit function clause =
   encloseSep lbracket rbracket comma $
-  map function . V.toList . getLiterals $ clause
+  map function . V.toList . getVectLiteral $ clause

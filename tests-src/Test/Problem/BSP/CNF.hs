@@ -33,7 +33,7 @@ mkCNFFromClausesTest1 =
   \clauses ->
   -- First get a list of vectors of words of the CNF
   let words =  V.toList . V.map (V.map (getWord . getVariable)) .
-               V.map getLiterals . getVectOfClauses $ clauses :: [V.Vector Word]
+               V.map getVectLiteral . getVectClause $ clauses :: [V.Vector Word]
       --Find the length of the list
       l = toEnum $ length words
       --Find the max variable
