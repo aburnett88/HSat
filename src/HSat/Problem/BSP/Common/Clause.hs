@@ -45,7 +45,7 @@ emptyClause = Clause V.empty 0
 {-|
 Constructs a 'Clause' from a Vector of 'Literal's
 -}
-mkClause :: Vector Literal -> Clause
+mkClause      :: Vector Literal -> Clause
 mkClause vect =
   Clause vect (toEnum $ V.length vect)
 

@@ -38,7 +38,7 @@ Internally represented as a 'Bool'
 -}
 
 newtype Sign = Sign {
-  -- ^ The underlying 'Bool' that is represented
+  -- | The underlying 'Bool' that is represented
   getBool :: Bool
   }
   deriving (Eq,Show)

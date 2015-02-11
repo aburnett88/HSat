@@ -41,13 +41,13 @@ Invariants:
   sum 'getLitClSize' == getVarTotal
 -}
 data ClausesInit = ClausesInit {
-  -- ^ List containing the desired size of each 'Clause' to be created
+  -- | List containing the desired size of each 'Clause' to be created
   getListClSize :: [Word]           ,
-  -- ^ Total number of 'Variable's to be randomly generated
+  -- | Total number of 'Variable's to be randomly generated
   getVarTotal   :: Word             ,
-  -- ^ Maximum 'Word' representation that is legal when creating 'Variable's
+  -- | Maximum 'Word' representation that is legal when creating 'Variable's
   getVarNumb    :: Word             ,
-  -- ^ Predicate that should hold regarding occurences of 'Variable's
+  -- | Predicate that should hold regarding occurences of 'Variable's
   getVarPred    :: VariablePredicate
   } deriving (Eq,Show)
 
@@ -55,11 +55,11 @@ data ClausesInit = ClausesInit {
 Describes Error's that can be thrown when creating 'CNF' 'Problem's. 
 -}
 data CNFMakeError =
-  -- ^ Is thrown when the random creator wants to create more 'Literal's, but the number of remaining calls computed initially has reached zero
+  -- | Is thrown when the random creator wants to create more 'Literal's, but the number of remaining calls computed initially has reached zero
   CallsRemainingFinished    |
-  -- ^ Is thrown when the random creator is unable to choose a number of 'Variable's consistnat with the 'CNFConfig'
+  -- | Is thrown when the random creator is unable to choose a number of 'Variable's consistnat with the 'CNFConfig'
   UnableToChooseVariables   |
-  -- ^ Thrown when the random creator is unable to choose a set of sizes for 'Clause's that is consistant with the 'CNFConfig'
+  -- | Thrown when the random creator is unable to choose a set of sizes for 'Clause's that is consistant with the 'CNFConfig'
   UnableToChooseClauseSizes 
   deriving (Eq,Show)
 
@@ -80,11 +80,11 @@ chooseClauses clausesInit = do
 This data type describes the current Status of the Random creation.
 -}
 data CNFMakeStatus = CNFMakeStatus {
-  -- ^ The Set of Vars or Lit's which need to be used, but currently have not been used
+  -- | The Set of Vars or Lit's which need to be used, but currently have not been used
   getNotUsed   :: ToBeUsedSet,
-  -- ^ The number of calls remaining where a random Literal will be created
+  -- | The number of calls remaining where a random Literal will be created
   getCallsLeft :: Word       ,
-  -- ^ The maximum 'Variable' allowed to be created
+  -- | The maximum 'Variable' allowed to be created
   getMaxVar    :: Word
   } deriving (Show)
 
@@ -104,11 +104,11 @@ rmLiteral literal makeStatus =
 The ToBeUsed Set is a Set of what must be added to the Problem before generation is finished.
 -}
 data ToBeUsedSet =
-  -- ^ The 'Set' of 'Variable's that must be included
+  -- | The 'Set' of 'Variable's that must be included
   VariableSet (S.Set Variable) |
-  -- ^ The 'Set' of 'Literal's that must be included
+  -- | The 'Set' of 'Literal's that must be included
   LiteralSet  (S.Set Literal)  |
-  -- ^ When nothing must be included
+  -- | When nothing must be included
   NoSet
   deriving (Eq,Show)
 

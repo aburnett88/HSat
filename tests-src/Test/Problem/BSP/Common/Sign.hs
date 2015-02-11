@@ -53,8 +53,9 @@ mkSignTest1 :: TestTree
 mkSignTest1 =
   testProperty "getBool . mkSign == id" $ property
   (\bool ->
-    bool === (getBool . mkSign $ bool)
-    )
+    let gottenBool = getBool $ mkSign bool
+    in bool        === gottenBool
+       )
 
 posTest1 :: TestTree
 posTest1 =
@@ -83,8 +84,10 @@ mkSignFromIntegerTest2 =
   forAll
   mkIntegerNonZero
   (\int ->
-    compare 0 (signToInteger . mkSignFromInteger $ int) === compare 0 int
-  )
+    let expectedOrdVal = compare 0 int
+        gottenOrdVal   = compare 0 (signToInteger $ mkSignFromInteger int)
+    in expectedOrdVal  === gottenOrdVal
+       )
 
 mkSignFromIntegerTest3 :: TestTree
 mkSignFromIntegerTest3 =
@@ -105,19 +108,23 @@ signToIntegerTest3 :: TestTree
 signToIntegerTest3 =
   testProperty "mkSignFromInteger . signToInteger == id" $ property
   (\sign ->
-    mkSignFromInteger (signToInteger sign) === sign
-    )
+    let gottenVal = mkSignFromInteger $ signToInteger sign
+    in sign       === gottenVal
+       )
 
 isPosTest1 :: TestTree
 isPosTest1 =
   testProperty "isPos . mkSign $ x == x" $ property
   (\bool ->
-    isPos (mkSign bool) === bool
-    )
-  
+    let gottenVal = isPos $ mkSign bool
+    in bool       === gottenVal
+       )
+
 isNegTest1 :: TestTree
 isNegTest1 =
   testProperty "isNeg . mkSign $ x == (not x)" $ property
   (\bool ->
-    isNeg (mkSign bool) === not bool
-    )
+    let gottenVal   = isNeg $ mkSign bool
+        expectedVal = not bool
+    in expectedVal  === gottenVal
+       )

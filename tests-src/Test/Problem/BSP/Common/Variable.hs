@@ -47,8 +47,9 @@ mkVariableTest1 =
   forAll
   mkWordNonZero
   (\word ->
-    word === (getWord . mkVariable $ word)
-    )
+    let gottenVal = getWord $ mkVariable word
+    in word       === gottenVal
+       )
 
 mkVariableTest2 :: TestTree
 mkVariableTest2 =
@@ -61,8 +62,10 @@ mkVariableFromIntegerTest1 =
   forAll
   mkIntegerNonZero
   (\int ->
-    abs int === (toInteger . getWord . mkVariableFromInteger $ int)
-    )
+    let expectedVal = abs int
+        gottenVal   = toInteger . getWord . mkVariableFromInteger $ int
+    in expectedVal  === gottenVal
+       )
 
 mkVariableFromIntegerTest2 :: TestTree
 mkVariableFromIntegerTest2 =
@@ -71,17 +74,19 @@ mkVariableFromIntegerTest2 =
 
 mkVariableFromIntegerTest3 :: TestTree
 mkVariableFromIntegerTest3 =
-  testCase "mkVariableFromInteger (maxBound + 1) throws runtime error" $
-  forceError (
-    mkVariableFromInteger . (1+) . toInteger $ (maxBound :: Word)
-    ) (mkVariableFromInteger 1)
+  testCase "mkVariableFromInteger (maxBound + 1) throws runtime error" $ do
+    let throwErrorVal = mkVariableFromInteger . (1+) . toInteger $ (
+          maxBound :: Word)
+        dummyVal      = mkVariableFromInteger 1
+    forceError throwErrorVal dummyVal
 
 mkVariableFromIntegerTest4 :: TestTree
 mkVariableFromIntegerTest4 =
-  testCase "mkVarFromInteger (negate maxBound + 1) throws runtime error" $
-  forceError (
-    mkVariableFromInteger . negate . (1+) . toInteger $ (maxBound :: Word)
-    ) (mkVariableFromInteger 1)
+  testCase "mkVarFromInteger (negate maxBound + 1) throws runtime error" $ do
+    let throwErrorVal = mkVariableFromInteger . negate . (1+) . toInteger $ (
+          maxBound :: Word)
+        dummyVal      = mkVariableFromInteger 1
+    forceError throwErrorVal dummyVal
 
 varInRangeTest1 :: TestTree
 varInRangeTest1 =
@@ -99,5 +104,7 @@ variableToIntegerTest1 =
   forAll
   mkIntegerNonZero
   (\int ->
-    abs int === (variableToInteger . mkVariableFromInteger $ int)
-    )
+    let expectedVal = abs int
+        gottenVal   = variableToInteger $ mkVariableFromInteger int
+    in expectedVal  === gottenVal
+       )

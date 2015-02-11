@@ -34,7 +34,7 @@ problem.
 Internally represented as a 'Word'
 -}
 newtype Variable = Variable {
-  -- ^ The underlying 'Word' that is represented
+  -- | The underlying 'Word' that is represented
   getWord :: Word
   } deriving (Eq,Show)
              
