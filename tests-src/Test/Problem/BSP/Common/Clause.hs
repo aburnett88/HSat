@@ -15,6 +15,7 @@ module Test.Problem.BSP.Common.Clause (
 
 import qualified Data.Vector as V
 import           HSat.Problem.BSP.Common.Clause
+import qualified Test.Problem.BSP.Common.Clause.Internal as Internal
 import           TestUtils
 
 name :: String
@@ -23,6 +24,7 @@ name = "Clause"
 tests :: TestTree
 tests =
   testGroup name [
+    Internal.tests,
     testGroup "mkClause" [
        mkClauseTest1
        ],

@@ -12,7 +12,7 @@ cabal-version: >=1.10
 
 library
   Hs-Source-Dirs: src
-  GHC-Options: -O2 -Werror -fwarn-unused-binds
+  GHC-Options: -O2 -Werror -fwarn-unused-binds -fwarn-unused-imports
   default-language: Haskell2010
   Build-Depends:
     base >= 4.0,

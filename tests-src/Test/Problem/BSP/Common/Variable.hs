@@ -13,9 +13,10 @@ module Test.Problem.BSP.Common.Variable (
   tests
   ) where
 
-import Data.Word
-import HSat.Problem.BSP.Common.Variable
-import TestUtils
+import           Data.Word
+import           HSat.Problem.BSP.Common.Variable
+import qualified Test.Problem.BSP.Common.Variable.Internal as Internal
+import           TestUtils
 
 name :: String
 name = "Variable"
@@ -23,6 +24,7 @@ name = "Variable"
 tests :: TestTree
 tests =
   testGroup name [
+    Internal.tests,
     testGroup "mkVariable" [
        mkVariableTest1,
        mkVariableTest2
