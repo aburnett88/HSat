@@ -13,9 +13,10 @@ module Test.Problem.BSP.Common.Clauses.Internal (
   tests
   ) where
 
-import TestUtils
-import HSat.Problem.BSP.Common.Clauses.Internal
 import HSat.Problem.BSP.Common.Clauses
+import HSat.Problem.BSP.Common.Clauses.Internal
+import HSat.Validate
+import TestUtils
 
 name :: String
 name = "Internal"
@@ -29,8 +30,10 @@ tests =
 
 clausesTest1 :: TestTree
 clausesTest1 =
-  testProperty "validate arbitrary == True" $ property
-  (\clauses -> validate clauses)
+  testProperty "validate arbitrary == True" $ property testClauses
+  where
+    testClauses :: Clauses -> Bool
+    testClauses = validate
 
 clausesTest2 :: TestTree
 clausesTest2 =

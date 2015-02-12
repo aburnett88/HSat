@@ -10,12 +10,12 @@ This module exports the definition of 'Variable' which represents the part of
 a 'Literal' that denotes its numerical value within a larger problem.
 -}
 module HSat.Problem.BSP.Common.Variable.Internal (
-  Variable(..),
-  validate
+  Variable(..)
   ) where
 
 import Data.Word
 import HSat.Printer
+import HSat.Validate
 
 {-|
 A 'Variable' represents a numerial representation of a variable wtihin a
@@ -39,6 +39,6 @@ Order is denoted by the underlying 'Word' in the 'Variable'
 instance Ord Variable where
   compare (Variable a) (Variable b) = compare a b
 
-validate              :: Variable -> Bool
-validate (Variable 0) = False
-validate _            = True
+instance Validate Variable where
+  validate (Variable 0) = False
+  validate _            = True

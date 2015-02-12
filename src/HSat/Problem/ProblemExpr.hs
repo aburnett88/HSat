@@ -25,8 +25,9 @@ module HSat.Problem.ProblemExpr (
   ) where
 
 import HSat.Printer
-import qualified HSat.Problem.BSP.CNF as C (CNF,validate)
+import qualified HSat.Problem.BSP.CNF as C (CNF)
 import HSat.Problem.ProblemType
+import HSat.Validate
 
 {-|
 A simple sum of types containing each of the problem types
@@ -68,5 +69,5 @@ instance Printer ProblemExpr where
 
 --Validation
 
-validate :: ProblemExpr -> Bool
-validate (CNFExpr cnf) = C.validate cnf
+instance Validate ProblemExpr where
+  validate (CNFExpr cnf) = validate cnf

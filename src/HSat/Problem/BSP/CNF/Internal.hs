@@ -10,14 +10,14 @@ This module provides the 'CNF' internal representation
 -}
 
 module HSat.Problem.BSP.CNF.Internal (
-  CNF(..),
-  validate
+  CNF(..)
   ) where
 
-import           Data.Word
 import qualified Data.Vector as V
+import           Data.Word
 import           HSat.Printer
 import           HSat.Problem.BSP.Common
+import           HSat.Validate
 
 {-|
 The Conjunctive Normal Form type. It is much like a 'Clauses'
@@ -31,6 +31,14 @@ data CNF = CNF {
   -- | The problems 'Clauses' themselves
   getClauses    :: Clauses
   } deriving (Eq,Show)
+
+instance Validate CNF where
+  validate (CNF maxVar clauseNumb clauses) =
+    let actualClauseNumb = getSizeClauses clauses
+        actualMaxVar     = findMaxVar clauses
+    in (actualClauseNumb == clauseNumb) &&
+       (actualMaxVar     <= maxVar)     &&
+       (validate clauses)
 
 noUnicodeAnd,unicodeAnd,noUnicodeOr,unicodeOr :: String
 noUnicodeAnd                                  = "/\\"
@@ -95,15 +103,3 @@ writeClauses sepClauses sepClause maxVar function clauses =
     literalLists :: [[Literal]]
     literalLists = V.toList . V.map (V.toList . getVectLiteral) .
                    getVectClause $ clauses
-
-{-|
-Returns 'True' if the number of 'Clauses' is consistant with the number stated
-in the 'CNF' and the maximum 'Variab'e within the 'Clauses' is less than or
-equlal to getVarBound
--}
-validate :: CNF -> Bool
-validate cnf =
-  let v = findMaxVar $ getClauses cnf
-      c = getSizeClauses $ getClauses cnf
-  in getMaxVar cnf >= v &&
-     getClauseNumb cnf == c

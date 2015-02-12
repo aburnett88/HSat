@@ -18,15 +18,15 @@ values being created.
 -}
 
 module HSat.Problem.BSP.Common.Clause.Internal (
-  Clause(..),
-  validate
+  Clause(..)
   ) where
 
-import Data.Word
-import HSat.Printer
+import           Data.Vector (Vector)
 import qualified Data.Vector as V
-import Data.Vector (Vector)
-import HSat.Problem.BSP.Common.Literal
+import           Data.Word
+import           HSat.Printer
+import           HSat.Problem.BSP.Common.Literal
+import           HSat.Validate
 
 {-|
 A 'Clause' describes a finite number of 'Literal's to be used as a generic
@@ -52,5 +52,8 @@ printLit function clause =
   encloseSep lbracket rbracket comma $
   map function . V.toList . getVectLiteral $ clause
 
-validate                 :: Clause -> Bool
-validate (Clause vect n) = n == (toEnum $ V.length vect)
+instance Validate Clause where
+  validate (Clause vect n) =
+    let actualSize = toEnum $ V.length vect
+    in (actualSize == n) &&
+       (V.all validate vect)

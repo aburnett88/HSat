@@ -23,6 +23,7 @@ module HSat.Problem.BSP.Common.Literal (
 import HSat.Printer
 import HSat.Problem.BSP.Common.Sign
 import HSat.Problem.BSP.Common.Variable
+import HSat.Validate
 
 {-|
 A 'Literal' describes the pairing of a 'Sign' and 'Variable' and can be used
@@ -38,6 +39,10 @@ data Literal = Literal {
   -- | The underlying 'Variable' that is represented
   getVariable :: Variable
   } deriving (Eq,Show)
+
+instance Validate Literal where
+  validate (Literal _ v) =
+    validate v
 
 {-|
 Constructs a 'Literal' from a 'Sign' and 'Variable'

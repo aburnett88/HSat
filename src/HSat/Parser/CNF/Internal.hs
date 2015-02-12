@@ -8,7 +8,6 @@ module HSat.Parser.CNF.Internal (
   ) where
 
 import Data.Attoparsec.Text as P
-import Data.Attoparsec.Text (Parser)
 import HSat.Problem.BSP.CNF.Builder
 import Data.Word
 import Control.Monad (void)

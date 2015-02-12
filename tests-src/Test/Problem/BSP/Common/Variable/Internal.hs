@@ -13,8 +13,9 @@ module Test.Problem.BSP.Common.Variable.Internal (
   tests
   ) where
 
-import TestUtils
 import HSat.Problem.BSP.Common.Variable.Internal
+import HSat.Validate
+import TestUtils
 
 name :: String
 name = "Internal"
@@ -28,10 +29,10 @@ tests =
 
 variableTest1 :: TestTree
 variableTest1 =
-  testProperty "valiate variable == True" $ property
-  (\variable ->
-    validate variable
-    )
+  testProperty "valiate variable == True" $ property testVariable
+  where
+    testVariable :: Variable -> Bool
+    testVariable = validate
 
 variableTest2 :: TestTree
 variableTest2 =

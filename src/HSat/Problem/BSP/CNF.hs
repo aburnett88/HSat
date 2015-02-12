@@ -16,8 +16,7 @@ module HSat.Problem.BSP.CNF (
   mkCNFFromClauses,
   -- * Integer Constructors
   cnfToIntegers,
-  mkCNFFromIntegers,
-  validate
+  mkCNFFromIntegers
   ) where
 
 import HSat.Problem.BSP.CNF.Internal

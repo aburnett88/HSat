@@ -11,8 +11,7 @@ hold a collection of 'Clause'
 -}
 
 module HSat.Problem.BSP.Common.Clauses.Internal (
-  Clauses(..),
-  validate
+  Clauses(..)
   ) where
 
 import           Data.Vector (Vector)
@@ -20,6 +19,7 @@ import qualified Data.Vector as V
 import           Data.Word
 import           HSat.Printer
 import           HSat.Problem.BSP.Common.Clause
+import           HSat.Validate
 
 {-|
 A 'Clauses' represents a list of 'Clause', which in themselves represent
@@ -38,6 +38,12 @@ data Clauses = Clauses {
   getSizeClauses :: Word
   } deriving (Eq,Show)
 
+instance Validate Clauses where
+  validate (Clauses vector sizeClauses) =
+    let actualSize = toEnum $ V.length vector
+    in (actualSize == sizeClauses) &&
+       (V.all validate vector)
+
 instance Printer Clauses where
   compact   = generalPrinter compact
   noUnicode = generalPrinter noUnicode
@@ -47,6 +53,3 @@ generalPrinter :: (Clause -> Doc) -> Clauses -> Doc
 generalPrinter func clauses =
   encloseSep lbracket rbracket comma (
     map func . V.toList $ getVectClause clauses)
-
-validate                  :: Clauses -> Bool
-validate (Clauses vect n) = n == (toEnum $ V.length vect)

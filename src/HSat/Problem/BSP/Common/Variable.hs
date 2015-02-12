@@ -23,7 +23,6 @@ module HSat.Problem.BSP.Common.Variable (
   ) where
 
 import Data.Word
-import HSat.Printer
 import HSat.Problem.BSP.Common.Variable.Internal
 
 name :: String
