@@ -14,6 +14,9 @@ module HSat.Problem.BSP.Common.Variable.Internal (
   validate
   ) where
 
+import Data.Word
+import HSat.Printer
+
 {-|
 A 'Variable' represents a numerial representation of a variable wtihin a
 problem.
@@ -26,7 +29,7 @@ newtype Variable = Variable {
   } deriving (Eq,Show)
 
 instance Printer Variable where
-  compact   = text . show . variableToInteger
+  compact   = text . show . getWord
   unicode   = compact
   noUnicode = compact
 
