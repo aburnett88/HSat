@@ -24,10 +24,10 @@ module HSat.Problem.ProblemExpr (
   validate
   ) where
 
-import HSat.Printer
+import           HSat.Printer
 import qualified HSat.Problem.BSP.CNF as C (CNF)
-import HSat.Problem.ProblemType
-import HSat.Validate
+import           HSat.Problem.ProblemType
+import           HSat.Validate
 
 {-|
 A simple sum of types containing each of the problem types
