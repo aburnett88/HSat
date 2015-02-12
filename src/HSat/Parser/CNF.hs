@@ -13,7 +13,6 @@ module HSat.Parser.CNF (
   cnfParser
   ) where
 
-import Data.Attoparsec.Text as P
 import Data.Attoparsec.Text (Parser)
 import HSat.Problem.BSP.CNF.Builder
 import HSat.Problem.BSP.CNF

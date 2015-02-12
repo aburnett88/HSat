@@ -21,17 +21,13 @@ module HSat.Make.CNF.Internal (
   CNFMakeError(..)
   ) where
 
-import           Control.Monad (replicateM,liftM,unless)
 import           Control.Monad.Random
-import           Control.Monad.Random.Class
 import           Control.Monad.State
 import           Control.Monad.Trans.Either
 import qualified Data.Set as S
 import           Data.Word
 import           HSat.Make.Config as Config
 import           HSat.Make.Internal
-import           HSat.Problem.BSP.CNF
-import           HSat.Problem.BSP.CNF.Builder
 import           HSat.Problem.BSP.Common
 
 {-|

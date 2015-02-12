@@ -97,11 +97,11 @@ genCNFBuilder = do
   cnf <- arbitrary
   --We can't add any literals to this CNFBuilder, so this test is pointless.
   --We make the closest possible thing - containing a single 1
-  let cnf' = if (getNoVars cnf) == 0 then
+  let cnf' = if (getMaxVar cnf) == 0 then
                mkCNFFromClauses . mkClausesFromIntegers $ [[1]] else
                cnf
-      v = getNoVars cnf'
-      ex = getNoClauses cnf'
+      v = getMaxVar cnf'
+      ex = getClauseNumb cnf'
   (cl,c) <- splitRandom emptyClause . getVectClause . getClauses $ cnf'
   let curr = toEnum (V.length cl + 1)
   return $ CNFBuilder v ex curr (mkClausesFromClause . V.toList $ cl) c
@@ -244,8 +244,8 @@ generalTest1 =
   testProperty "Take a list (of list) of ints and apply functions to create same cnf" $
   property
   (\cnf ->
-    let v = getNoVars cnf
-        c = getNoClauses cnf
+    let v = getMaxVar cnf
+        c = getClauseNumb cnf
         lits = map (map mkLiteralFromInteger) . cnfToIntegers $ cnf
         cnf' = evaluate (cnfBuilder v c) lits
     in (return cnf) == cnf'
@@ -256,8 +256,8 @@ generalTest2 =
   testProperty "take list of list of ints and apply functions to create same cnf" $
   property
   (\cnf ->
-    let v = getNoVars cnf
-        c = getNoClauses cnf
+    let v = getMaxVar cnf
+        c = getClauseNumb cnf
         lits = map (map mkLiteralFromInteger) . cnfToIntegers $ cnf
         cnf' = evaluate' (cnfBuilder' v c) lits
     in cnf == cnf'

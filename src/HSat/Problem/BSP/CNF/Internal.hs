@@ -10,66 +10,100 @@ This module provides the 'CNF' internal representation
 -}
 
 module HSat.Problem.BSP.CNF.Internal (
-  CNF(..)
+  CNF(..),
+  validate
   ) where
 
-import Data.Word
-import HSat.Problem.BSP.Common
-import HSat.Printer
+import           Data.Word
 import qualified Data.Vector as V
+import           HSat.Printer
+import           HSat.Problem.BSP.Common
 
 {-|
 The Conjunctive Normal Form type. It is much like a 'Clauses'
-type but with additional information.
+type but with additional information
 -}
 data CNF = CNF {
-  -- | The range of 'Variable's within the CNF Problem
-  getNoVars :: Word,
+  -- | The maximum 'Word' allowed in a 'Variable' in 'getClauses'
+  getMaxVar     :: Word   ,
   -- | The number of 'Clause's in the problem
-  getNoClauses :: Word,
+  getClauseNumb :: Word   ,
   -- | The problems 'Clauses' themselves
-  getClauses :: Clauses
+  getClauses    :: Clauses
   } deriving (Eq,Show)
 
+noUnicodeAnd,unicodeAnd,noUnicodeOr,unicodeOr :: String
+noUnicodeAnd                                  = "/\\"
+unicodeAnd                                    = "/\\"
+noUnicodeOr                                   = "\\/"
+unicodeOr                                     = "\\/"
+
+compactCNF,noUnicodeCNF,unicodeCNF :: String
+compactCNF                         = "CNF"
+noUnicodeCNF                       = ""
+unicodeCNF                         = ""
+
+compactVariable,noUnicodeVariable,unicodeVariable :: String
+compactVariable                                   = "V"
+noUnicodeVariable                                 = "Variables"
+unicodeVariable                                   = "Variables"
+
+compactClNumb,noUnicodeClNumb,unicodeClNumb :: String
+compactClNumb                               = "C"
+noUnicodeClNumb                             = "Clauses"
+unicodeClNumb                               = "Clauses"
+
 instance Printer CNF where
-  compact (CNF v c cl) =
-    text "CNF V:" <+>
-    (text . show $ v) <+>
-    text "C:" <+>
-    (text . show $ c) <>
-    line <>
-    compact cl
-  noUnicode (CNF v c cl) =
-    text "Variables:" <+>
-    (text . show $ v) <+>
-    text "Clauses:" <+>
-    (text . show $ c) <>
-    line <>
-    writeClauses (text " /\\ ") (text " \\/ ") v noUnicode cl
-  unicode (CNF v c cl) =
-    text "Variable:" <+>
-    (green . text . show $ v) <+>
-    text "Clauses:" <+>
-    (text . show $ c) <>
-    line <>
-    writeClauses (text " /\\ ") (text " \\/ ") v unicode cl
+  compact (CNF maxVar clauseNumb clauses)   =
+    text compactCNF                  <+>
+    text compactVariable <> colon    <+>
+    (text $ show maxVar)             <+>
+    text compactClNumb <> colon      <+>
+    (text $ show clauseNumb) <> line <>
+    compact clauses
+  noUnicode (CNF maxVar clauseNumb clauses) =
+    text noUnicodeCNF                 <+>
+    text noUnicodeVariable   <> colon <+>
+    (text $ show maxVar)     <> line  <>
+    text noUnicodeClNumb     <> colon <+>
+    (text $ show clauseNumb) <> line  <>
+    writeClauses noUnicodeAnd noUnicodeOr maxVar noUnicode clauses
+  unicode (CNF maxVar clauseNumb clauses)   =
+    text unicodeCNF                   <+>
+    text unicodeVariable     <> colon <+>
+    (text $ show maxVar)     <> line  <>
+    text unicodeClNumb       <> colon <+>
+    (text $ show clauseNumb) <> line  <>
+    writeClauses unicodeAnd unicodeOr maxVar unicode clauses
 
-writeClauses :: Doc -> Doc -> Word -> (Literal -> Doc) -> Clauses -> Doc
-writeClauses sepCl sepC vars f cl =
-  encloseSep empty empty sepCl clausesDoc
+writeClauses :: String -> String -> Word -> (Literal -> Doc) -> Clauses -> Doc
+writeClauses sepClauses sepClause maxVar function clauses =
+  encloseSep empty empty (text sepClauses) clausesDoc
   where
-    --seprate by the separator
-    clausesDoc = map (encloseSep lparen rparen sepC) . function $ literalList
-    --get a list of list of literals
-    literalList = map (V.toList . getVectLiteral) .  V.toList . getVectClause $ cl :: [[Literal]]
-    --The size that the greatest var will take up in the printed output
-    vSize = (1+) . length . show $ vars
-    --And finally convert a lit of list of literals to a list of list of docs
-    function =
-      map (map (
-              \lit -> (text . replicate (
-                          vSize - (
-                             length . show . literalToInteger $ lit)) $ ' ')
-                      <>
-                      f lit))
+    --Padding takes a Literal and deicdes how much spacing it needs to line up
+    padding :: Literal -> Doc
+    padding lit =
+      let maxVarLen  = length $ show maxVar
+          varLen     = length . show . getWord $ getVariable lit
+          difference = maxVarLen - varLen
+      in (text $ replicate difference ' ') <> (function lit)
+    --the [Doc] of [Clause]
+    clausesDoc :: [Doc]
+    clausesDoc = map (encloseSep lparen rparen (text sepClause)) literalDocs
+    literalDocs :: [[Doc]]
+    literalDocs = map (map padding) literalLists
+    literalLists :: [[Literal]]
+    literalLists = V.toList . V.map (V.toList . getVectLiteral) .
+                   getVectClause $ clauses
 
+{-|
+Returns 'True' if the number of 'Clauses' is consistant with the number stated
+in the 'CNF' and the maximum 'Variab'e within the 'Clauses' is less than or
+equlal to getVarBound
+-}
+validate :: CNF -> Bool
+validate cnf =
+  let v = findMaxVar $ getClauses cnf
+      c = getSizeClauses $ getClauses cnf
+  in getMaxVar cnf >= v &&
+     getClauseNumb cnf == c

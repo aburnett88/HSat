@@ -14,20 +14,12 @@ module HSat.Make.CNF (
   evaluateCNFConfigErr
   ) where
 
-import           Control.Monad (liftM2,liftM)
-import           Control.Monad.Identity
-import           Control.Monad.Random
-import           Control.Monad.Random.Class
-import           Control.Monad.State
-import           Control.Monad.Trans.Either
-import           Data.Maybe (fromJust)
-import qualified Data.Vector as V
-import           Data.Word
-import           HSat.Make.CNF.Internal
-import           HSat.Make.Config
-import           HSat.Make.Internal
-import           HSat.Problem.BSP.CNF.Internal
-import           HSat.Problem.BSP.Common
+import Control.Monad.Random
+import Control.Monad.State
+import Control.Monad.Trans.Either
+import HSat.Make.CNF.Internal
+import HSat.Make.Config
+import HSat.Problem.BSP.CNF.Internal
 
 {-|
 A 'CNFConfig' is evaluated. No concern is given to whether it is computable

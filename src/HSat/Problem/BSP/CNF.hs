@@ -12,7 +12,7 @@ functions
 
 module HSat.Problem.BSP.CNF (
   -- * CNF
-  CNF(getNoVars,getNoClauses,getClauses),
+  CNF(getMaxVar,getClauseNumb,getClauses),
   mkCNFFromClauses,
   -- * Integer Constructors
   cnfToIntegers,
@@ -20,11 +20,8 @@ module HSat.Problem.BSP.CNF (
   validate
   ) where
 
-import qualified Data.Vector as V
-import           Data.Word
-import           HSat.Printer
-import           HSat.Problem.BSP.Common
 import HSat.Problem.BSP.CNF.Internal
+import HSat.Problem.BSP.Common
 
 {-|
 Turns a 'Clauses' data type into a CNF datatype
@@ -48,11 +45,5 @@ mkCNFFromIntegers :: [[Integer]] -> CNF
 mkCNFFromIntegers = mkCNFFromClauses . mkClausesFromIntegers
 
 
-validate :: CNF -> Bool
-validate cnf =
-  let v = findMaxVar $ getClauses cnf
-      c = getSizeClauses $ getClauses cnf
-  in getNoVars cnf == v &&
-     getNoClauses cnf == c
 
   

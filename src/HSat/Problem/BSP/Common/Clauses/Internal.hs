@@ -6,7 +6,8 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-This module exports the definition of 'Clauses', a data structure used to hold a collection of 'Clause'
+This module exports the definition of 'Clauses', a data structure used to
+hold a collection of 'Clause'
 -}
 
 module HSat.Problem.BSP.Common.Clauses.Internal (

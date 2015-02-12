@@ -41,8 +41,8 @@ mkCNFFromClausesTest1 =
       cnf = mkCNFFromClauses clauses
   in
    --Compare these values to make sure this is correct
-   (maxV == getNoVars cnf) &&
-   (l == getNoClauses cnf) &&
+   (maxV == getMaxVar cnf) &&
+   (l == getClauseNumb cnf) &&
    (clauses == getClauses cnf)
    )
 

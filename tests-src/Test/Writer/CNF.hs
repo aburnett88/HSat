@@ -38,7 +38,7 @@ mkCNFWriterTest1 =
     let writer = mkCNFWriter cnf
         expectedClauses = V.map (\c -> WCL c []) . getVectClause . getClauses $ cnf
         gottenClauses = writeClauses writer
-        expectedProblemLine = WPL (getNoVars cnf) (getNoClauses cnf) []
+        expectedProblemLine = WPL (getMaxVar cnf) (getClauseNumb cnf) []
         gottenProblemLine = writeProblemLine writer
     in (testEq "" expectedClauses gottenClauses) .&&.
        (testEq "" expectedProblemLine gottenProblemLine)

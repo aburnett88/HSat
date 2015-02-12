@@ -251,7 +251,7 @@ instance Arbitrary CNFWriter where
     noNormalCommentsToAdd <- choose (0,100) :: Gen Int
     commentsClauses <- replicateM noNormalCommentsToAdd (
       do
-        choose (0,getNoClauses cnf)
+        choose (0,getClauseNumb cnf)
         )
     comments2 <- replicateM noNormalCommentsToAdd arbitrary
     let writer2 = foldl (flip addPreambleComment) writer commentsPreamble
