@@ -73,21 +73,21 @@ gencnfBuilderTest2 m =
 cnfBuilderTest1,cnfBuilder'Test1 :: TestTree
 cnfBuilderTest1 = gencnfBuilderTest1 (
   \(var,clause) ->
-  (varNumb `liftM` cnfBuilder var clause) == (return var)
+  (getExptdMaxVar `liftM` cnfBuilder var clause) == (return var)
   )
 cnfBuilder'Test1 = gencnfBuilderTest1 (
   \(var,clause) ->
-  (varNumb . cnfBuilder' var $ clause) == var
+  (getExptdMaxVar . cnfBuilder' var $ clause) == var
   )
 
 cnfBuilderTest2,cnfBuilder'Test2 :: TestTree
 cnfBuilderTest2 = gencnfBuilderTest2 (
   \(var,clause) ->
-    (expectedClauseNumb `liftM` cnfBuilder var clause) == (return clause)
+    (getExptdClNumb `liftM` cnfBuilder var clause) == (return clause)
     )
 cnfBuilder'Test2 = gencnfBuilderTest2 (
   \(var,clause) ->
-   (expectedClauseNumb . cnfBuilder' var $ clause) == clause
+   (getExptdClNumb . cnfBuilder' var $ clause) == clause
    )
 
 --Add literal tests
@@ -126,7 +126,7 @@ genAddLiteralTest1 f =
     (do
       b <- genCNFBuilder
       sign <- arbitrary
-      lit <- (mkLiteral sign . mkVariable) `liftM` choose (1,varNumb b)
+      lit <- (mkLiteral sign . mkVariable) `liftM` choose (1,getExptdMaxVar b)
       return (b,lit)
       )
     f
@@ -138,7 +138,7 @@ genAddLiteralTest2 f =
       --generate a lit outside the range of the builder
       b <- genCNFBuilder
       sign <- arbitrary
-      lit <- (mkLiteral sign . mkVariable) `liftM` choose (varNumb b+1,maxBound :: Word)
+      lit <- (mkLiteral sign . mkVariable) `liftM` choose (getExptdMaxVar b+1,maxBound :: Word)
       return (b,lit)
       )
     f
@@ -150,9 +150,9 @@ addLiteralTest1 = genAddLiteralTest1 (
   \(b,lit) ->
   let build = (return b) >>= addLiteral lit
   in build == (return $ b {
-                  currentClause = clauseAddLiteral (currentClause b) lit,
-                  currentClauseNumb = (+) (currentClauseNumb b) (
-                    if clauseIsEmpty . currentClause $ b then
+                  getCurrClause = clauseAddLiteral (getCurrClause b) lit,
+                  getExptdClNumb = (+) (getExptdClNumb b) (
+                    if clauseIsEmpty . getCurrClause $ b then
                       1 else
                       0
                       )
@@ -163,9 +163,9 @@ addLiteral'Test1 = genAddLiteralTest1 (
   \(b,lit) ->
   let build = addLiteral' lit b
   in build == b {
-    currentClause = clauseAddLiteral (currentClause b) lit,
-    currentClauseNumb = (+) (currentClauseNumb b) (
-      if clauseIsEmpty . currentClause $ b then
+    getCurrClause = clauseAddLiteral (getCurrClause b) lit,
+    getExptdClNumb = (+) (getExptdClNumb b) (
+      if clauseIsEmpty . getCurrClause $ b then
         1 else
         0
         )
@@ -176,7 +176,7 @@ addLiteralTest2 :: TestTree
 addLiteralTest2 = genAddLiteralTest2 (
   \(b,lit) ->
   let build = (return b) >>= addLiteral lit
-  in build == (Left $ LitOutsideRange (getWord . getVariable $ lit) (varNumb b))
+  in build == (Left $ LitOutsideRange (getWord . getVariable $ lit) (getExptdMaxVar b))
      )
 
 addLiteral'Test2 :: TestTree
@@ -184,9 +184,9 @@ addLiteral'Test2 = genAddLiteralTest2 (
   \(b,lit) ->
   let build = addLiteral' lit b
   in build == b {
-    currentClause = clauseAddLiteral (currentClause b) lit,
-    currentClauseNumb = (+) (currentClauseNumb b) (
-      if clauseIsEmpty . currentClause $ b then
+    getCurrClause = clauseAddLiteral (getCurrClause b) lit,
+    getCurrClNumb = (+) (getCurrClNumb b) (
+      if clauseIsEmpty . getCurrClause $ b then
         1 else
         0
         )
@@ -200,13 +200,13 @@ finishClause'Test1 =
   genCNFBuilder
   (\builder ->
     let built = finishClause' builder
-        newClauses' = clausesAddClause (clauses builder) (currentClause builder)
-        size = (+) (currentClauseNumb builder) (
-          if clauseIsEmpty . currentClause $ builder then
+        newClauses' = clausesAddClause (getCurrClauses builder) (getCurrClause builder)
+        size = (+) (getCurrClNumb builder) (
+          if clauseIsEmpty . getCurrClause $ builder then
             1 else 0
                    )
-    in newClauses' == (clauses built) &&
-       size == (currentClauseNumb built)
+    in newClauses' == (getCurrClauses built) &&
+       size == (getCurrClNumb built)
               )
 
 finishClauseTest1 :: TestTree
@@ -216,11 +216,11 @@ finishClauseTest1 =
   genCNFBuilder
   (\builder ->
     let built = finishClause builder
-        newClauses' = return $ clausesAddClause (clauses builder) (currentClause builder)
-        size = return $ (+) (currentClauseNumb builder) (
-          if clauseIsEmpty . currentClause $ builder then 1 else 0)
-    in newClauses' == (clauses `liftM` built) &&
-       size == (currentClauseNumb `liftM` built)
+        newClauses' = return $ clausesAddClause (getCurrClauses builder) (getCurrClause builder)
+        size = return $ (+) (getCurrClNumb builder) (
+          if clauseIsEmpty . getCurrClause $ builder then 1 else 0)
+    in newClauses' == (getCurrClauses `liftM` built) &&
+       size == (getCurrClNumb `liftM` built)
        )
 
 finaliseTest1 :: TestTree

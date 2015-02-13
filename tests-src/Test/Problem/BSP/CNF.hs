@@ -1,3 +1,14 @@
+{-|
+Module      : Test.Problen.BSP.CNF
+Description : The CNF TestTree Node
+Copyright   : (c) Andrew Burnett 2014-2015
+Maintainer  : andyburnett88@gmail.com
+Stability   : experimental
+Portability : Unknown
+
+The TestTree Node for the CNF module
+-}
+
 module Test.Problem.BSP.CNF (
   tests
   ) where
@@ -33,8 +44,8 @@ mkCNFFromClausesTest1 :: TestTree
 mkCNFFromClausesTest1 =
   testProperty "mkCNFFromClauses has correct values" $ property
   (\clauses ->
-    let gottenClauses = getClauses $ mkCNFFromClauses cnf
-    in gottenClauses === clauses
+    let gottenClauses = getClauses $ mkCNFFromClauses clauses
+    in gottenClauses  === clauses
   )
 
 cnfToIntegersTest1 :: TestTree
@@ -48,7 +59,7 @@ cnfToIntegersTest1 =
         gottenClauses      = getClauses cnf'
         expectedVarNumb    = getMaxVar cnf
         gottenVarNumb      = getMaxVar cnf'
-    in (epxectedClauseNumb === gottenClauseNumb) .&&.
+    in (expectedClauseNumb === gottenClauseNumb) .&&.
        (expectedClauses    === gottenClauses   ) .&&.
        (expectedVarNumb    >=  gottenVarNumb   )
   )
@@ -57,7 +68,7 @@ mkCNFFromIntegersTest1 :: TestTree
 mkCNFFromIntegersTest1 =
   testProperty "cnfToIntegers . mkCNFFromIntegers $ ints == ints" $
   forAll
-  (genList $ genList mkIntegerNonZero)
+  (listOf $ listOf mkIntegerNonZero)
   (\ints ->
     ints === (cnfToIntegers $ mkCNFFromIntegers ints)
     )

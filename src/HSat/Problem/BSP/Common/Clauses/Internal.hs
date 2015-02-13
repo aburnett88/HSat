@@ -11,7 +11,8 @@ hold a collection of 'Clause'
 -}
 
 module HSat.Problem.BSP.Common.Clauses.Internal (
-  Clauses(..)
+  Clauses(..),
+  printClausesWithContext
   ) where
 
 import           Data.Vector (Vector)
@@ -19,6 +20,9 @@ import qualified Data.Vector as V
 import           Data.Word
 import           HSat.Printer
 import           HSat.Problem.BSP.Common.Clause
+import           HSat.Problem.BSP.Common.Clause.Internal (
+  printClauseWithContext)
+import           HSat.Problem.BSP.Common.Literal
 import           HSat.Validate
 
 {-|
@@ -53,3 +57,12 @@ generalPrinter :: (Clause -> Doc) -> Clauses -> Doc
 generalPrinter func clauses =
   encloseSep lbracket rbracket comma (
     map func . V.toList $ getVectClause clauses)
+
+printClausesWithContext :: String -> String -> Word -> (Literal -> Doc) ->
+                           Clauses -> Doc
+printClausesWithContext sepClauses sepClause maxVar function clauses =
+  encloseSep empty empty (text sepClauses) clausesDoc
+  where
+    clausesDoc :: [Doc]
+    clausesDoc = V.toList . V.map (printClauseWithContext sepClause maxVar function) $
+                 getVectClause clauses

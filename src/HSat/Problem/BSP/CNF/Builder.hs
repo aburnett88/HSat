@@ -45,19 +45,19 @@ finishClause cnf = return . finishClause' $ cnf
 finishClause' :: CNFBuilder -> CNFBuilder
 finishClause' cnf = f $ 
   cnf {
-     clauses = clausesAddClause (clauses cnf) (currentClause cnf),
-     currentClause = emptyClause
+     getCurrClauses = clausesAddClause (getCurrClauses cnf) (getCurrClause cnf),
+     getCurrClause = emptyClause
                      }
   where
-    f = if clauseIsEmpty . currentClause $ cnf then
+    f = if clauseIsEmpty . getCurrClause $ cnf then
           incrClause else
           id
 
 finalise :: CNFBuilder -> Either CNFBuilderError CNF
 finalise cnf =
-  if (currentClauseNumb cnf) == (expectedClauseNumb cnf) then
+  if (getCurrClNumb cnf) == (getExptdClNumb cnf) then
     return . finalise' $ cnf else
-    Left $ IncorrectClauseNumber (currentClauseNumb cnf) (expectedClauseNumb cnf)
+    Left $ IncorrectClauseNumber (getCurrClNumb cnf) (getExptdClNumb cnf)
 
 finalise' :: CNFBuilder -> CNF
 finalise' (CNFBuilder v max _ cl c) =
@@ -66,23 +66,23 @@ finalise' (CNFBuilder v max _ cl c) =
     CNF v max $ clausesAddClause cl c
 
 incrClause :: CNFBuilder -> CNFBuilder
-incrClause cnf = cnf {currentClauseNumb = (1+) (currentClauseNumb cnf) }
+incrClause cnf = cnf {getCurrClNumb = (1+) (getCurrClNumb cnf) }
 
 addLiteral :: Literal -> CNFBuilder -> CNFBuildErr
 addLiteral l cnf =
   let l' = getWord . getVariable $ l
   in
-   if l' == 0 || l' > varNumb cnf then
-     Left $ LitOutsideRange l' (varNumb cnf) else
+   if l' == 0 || l' > getExptdMaxVar cnf then
+     Left $ LitOutsideRange l' (getExptdMaxVar cnf) else
      return . addLiteral' l $ cnf 
 
 addLiteral' :: Literal -> CNFBuilder -> CNFBuilder
 addLiteral' l cnf =
   (\cnf' -> cnf' {
-    currentClause = clauseAddLiteral (currentClause cnf) l
+    getCurrClause = clauseAddLiteral (getCurrClause cnf) l
                     }
             )
-  $ if clauseIsEmpty . currentClause $ cnf then
+  $ if clauseIsEmpty . getCurrClause $ cnf then
       incrClause cnf else
       cnf
     

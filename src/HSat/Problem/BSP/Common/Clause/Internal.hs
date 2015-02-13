@@ -18,7 +18,8 @@ values being created.
 -}
 
 module HSat.Problem.BSP.Common.Clause.Internal (
-  Clause(..)
+  Clause(..),
+  printClauseWithContext
   ) where
 
 import           Data.Vector (Vector)
@@ -26,6 +27,7 @@ import qualified Data.Vector as V
 import           Data.Word
 import           HSat.Printer
 import           HSat.Problem.BSP.Common.Literal
+import           HSat.Problem.BSP.Common.Variable (getWord)
 import           HSat.Validate
 
 {-|
@@ -57,3 +59,16 @@ instance Validate Clause where
     let actualSize = toEnum $ V.length vect
     in (actualSize == n) &&
        (V.all validate vect)
+
+printClauseWithContext :: String -> Word -> (Literal -> Doc) -> Clause -> Doc
+printClauseWithContext sepClause maxVar function clause =
+  encloseSep lparen rparen (text sepClause) literals
+  where
+    literals :: [Doc]
+    literals = V.toList . V.map padding $ getVectLiteral clause
+    padding :: Literal -> Doc
+    padding literal =
+      let maxVarLen  = length $ show maxVar
+          varLen     = length . show . getWord $ getVariable literal
+          difference = maxVarLen - varLen
+      in (text $ replicate difference ' ') <> function literal

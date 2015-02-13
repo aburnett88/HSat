@@ -13,11 +13,11 @@ module HSat.Problem.BSP.CNF.Internal (
   CNF(..)
   ) where
 
-import qualified Data.Vector as V
-import           Data.Word
-import           HSat.Printer
-import           HSat.Problem.BSP.Common
-import           HSat.Validate
+import Data.Word
+import HSat.Printer
+import HSat.Problem.BSP.Common
+import HSat.Problem.BSP.Common.Clauses.Internal (printClausesWithContext)
+import HSat.Validate
 
 {-|
 The Conjunctive Normal Form type. It is much like a 'Clauses'
@@ -75,31 +75,11 @@ instance Printer CNF where
     (text $ show maxVar)     <> line  <>
     text noUnicodeClNumb     <> colon <+>
     (text $ show clauseNumb) <> line  <>
-    writeClauses noUnicodeAnd noUnicodeOr maxVar noUnicode clauses
+    printClausesWithContext noUnicodeAnd noUnicodeOr maxVar noUnicode clauses
   unicode (CNF maxVar clauseNumb clauses)   =
     text unicodeCNF                   <+>
     text unicodeVariable     <> colon <+>
     (text $ show maxVar)     <> line  <>
     text unicodeClNumb       <> colon <+>
     (text $ show clauseNumb) <> line  <>
-    writeClauses unicodeAnd unicodeOr maxVar unicode clauses
-
-writeClauses :: String -> String -> Word -> (Literal -> Doc) -> Clauses -> Doc
-writeClauses sepClauses sepClause maxVar function clauses =
-  encloseSep empty empty (text sepClauses) clausesDoc
-  where
-    --Padding takes a Literal and deicdes how much spacing it needs to line up
-    padding :: Literal -> Doc
-    padding lit =
-      let maxVarLen  = length $ show maxVar
-          varLen     = length . show . getWord $ getVariable lit
-          difference = maxVarLen - varLen
-      in (text $ replicate difference ' ') <> (function lit)
-    --the [Doc] of [Clause]
-    clausesDoc :: [Doc]
-    clausesDoc = map (encloseSep lparen rparen (text sepClause)) literalDocs
-    literalDocs :: [[Doc]]
-    literalDocs = map (map padding) literalLists
-    literalLists :: [[Literal]]
-    literalLists = V.toList . V.map (V.toList . getVectLiteral) .
-                   getVectClause $ clauses
+    printClausesWithContext unicodeAnd unicodeOr maxVar unicode clauses
