@@ -62,7 +62,9 @@ instance Validate Clause where
 
 printClauseWithContext :: String -> Word -> (Literal -> Doc) -> Clause -> Doc
 printClauseWithContext sepClause maxVar function clause =
-  encloseSep lparen rparen (text sepClause) literals
+  lparen <>
+  (hsep $ punctuate (text sepClause) literals) <>
+  rparen
   where
     literals :: [Doc]
     literals = V.toList . V.map padding $ getVectLiteral clause

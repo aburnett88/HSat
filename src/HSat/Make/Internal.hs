@@ -10,7 +10,6 @@ module HSat.Make.Internal (
   mkNoBounds
   ) where
 
-import Data.Word
 import Control.Monad.Random.Class
 import Control.Monad.Random
 

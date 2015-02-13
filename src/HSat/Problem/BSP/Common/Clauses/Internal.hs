@@ -61,7 +61,7 @@ generalPrinter func clauses =
 printClausesWithContext :: String -> String -> Word -> (Literal -> Doc) ->
                            Clauses -> Doc
 printClausesWithContext sepClauses sepClause maxVar function clauses =
-  encloseSep empty empty (text sepClauses) clausesDoc
+  vsep $ punctuate (text sepClauses) clausesDoc
   where
     clausesDoc :: [Doc]
     clausesDoc = V.toList . V.map (printClauseWithContext sepClause maxVar function) $
