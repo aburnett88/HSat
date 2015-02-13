@@ -10,7 +10,8 @@ The TestTree Node for the CNF module
 -}
 
 module Test.Problem.BSP.CNF (
-  tests
+  tests,
+  printer
   ) where
 
 import           Control.Monad (replicateM)
@@ -39,6 +40,18 @@ tests = testGroup name [
     mkCNFFromIntegersTest1
     ]
   ]
+
+printer :: TestTree
+printer =
+  testGroup name [
+    printCNFArbitrary,
+    CNFBuilder.printer
+    ]
+
+printCNFArbitrary :: TestTree
+printCNFArbitrary =
+  printTest "CNF" (
+    (generate arbitrary) :: IO CNF)
 
 mkCNFFromClausesTest1 :: TestTree
 mkCNFFromClausesTest1 =

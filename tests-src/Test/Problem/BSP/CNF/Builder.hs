@@ -10,7 +10,8 @@ This module provides tests for the CNFBuilder type
 -}
 
 module Test.Problem.BSP.CNF.Builder (
-  tests
+  tests,
+  printer
   ) where
 
 import           Control.Monad (liftM)
@@ -61,6 +62,23 @@ tests =
       generalTest2
       ]
     ]
+
+printer :: TestTree
+printer =
+  testGroup name [
+    printCNFBuilderArbitrary,
+    printCNFBuilderErrorArbitrary
+    ]
+
+printCNFBuilderArbitrary :: TestTree
+printCNFBuilderArbitrary =
+  printTest "CNFBuilder" (
+    (generate arbitrary) :: IO CNFBuilder)
+
+printCNFBuilderErrorArbitrary :: TestTree
+printCNFBuilderErrorArbitrary =
+  printTest "CNFBuilderError" (
+    (generate arbitrary) :: IO CNFBuilderError)
 
 --cnfBuilder Tests
 gencnfBuilderTest1,

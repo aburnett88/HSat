@@ -38,9 +38,10 @@ tests =
 printer :: TestTree
 printer =
   testGroup name [
-    testGroup "mkProblem" [
-       printProblemArbitrary
-       ]
+    printProblemArbitrary,
+    ProblemExpr.printer,
+    ProblemType.printer,
+    Source.printer
     ]
 
 printProblemArbitrary :: TestTree

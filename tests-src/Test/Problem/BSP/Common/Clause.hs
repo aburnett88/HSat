@@ -10,7 +10,8 @@ The TestTree Leaf for the Clause module
 -}
 
 module Test.Problem.BSP.Common.Clause (
-  tests
+  tests,
+  printer
   ) where
 
 import qualified Data.Vector as V
@@ -48,6 +49,17 @@ tests =
       clauseIsEmptyTest2
       ]
     ]
+
+printer :: TestTree
+printer =
+  testGroup name [
+    printClauseArbitrary
+    ]
+
+printClauseArbitrary :: TestTree
+printClauseArbitrary =
+  printTest "Clause" (
+    (generate arbitrary) :: IO Clause)
 
 mkClauseTest1 :: TestTree
 mkClauseTest1 =

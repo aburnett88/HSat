@@ -10,7 +10,8 @@ The TestTree Leaf for the Literal module
 -}
 
 module Test.Problem.BSP.Common.Literal (
-  tests
+  tests,
+  printer
   ) where
 
 import HSat.Problem.BSP.Common.Literal
@@ -32,6 +33,17 @@ tests =
       literalToIntegerTest1
       ]
     ]
+
+printer :: TestTree
+printer =
+  testGroup name [
+    printLiteralArbitrary
+    ]
+
+printLiteralArbitrary :: TestTree
+printLiteralArbitrary =
+  printTest "Literal" (
+    (generate arbitrary) :: IO Literal)
 
 mkLiteralTest1 :: TestTree
 mkLiteralTest1 =

@@ -49,6 +49,7 @@ import HSat.Printer
 import           Test.Tasty.Golden as Test.Extended
 import           Test.Tasty.HUnit as Test.Extended
 import           Test.Tasty.QuickCheck as Test.Extended
+import HSat.Problem.BSP.CNF.Builder.Internal
 
 --The maximum size a clause is able to be in this configuration
 testMaxClauseSize :: Int
@@ -303,13 +304,40 @@ instance Arbitrary a => Arbitrary (V.Vector a) where
 
 printTest :: (Printer a) => String -> IO a -> TestTree
 printTest str getElem =
-  testCase ("Print " ++ str) $ do
-    elem <- getElem
-    putStrLn "Compact"
-    putDoc (compact elem)
-    putStrLn "NoUnicode"
-    putDoc (noUnicode elem)
-    putStrLn "Unicode"
-    putDoc (unicode elem)
-    assertBool "Not going to fail" True
-    
+  testGroup str [
+    testCase "Compact" $ do
+       elem <- getElem
+       putStrLn ""
+       putDoc $ compact elem
+       putStrLn ""
+       assertBool "" True,
+    testCase "Non unicode" $ do
+      putStrLn ""
+      elem <- getElem
+      putStrLn ""
+      putDoc $ noUnicode elem
+      assertBool "" True,
+    testCase "Unicode" $ do
+      putStrLn ""
+      elem <- getElem
+      putDoc $ unicode elem
+      putStrLn ""
+      assertBool "" True
+      ]
+
+instance Arbitrary CNFBuilder where
+  arbitrary = do
+    clauses <- arbitrary
+    clause <- arbitrary
+    return $ CNFBuilder 0 0 0 clauses clause
+
+instance Arbitrary CNFBuilderError where
+  arbitrary = do
+    index <- choose (0,1) :: Gen Int
+    case index of
+      0 -> do
+        expected <- choose (0,500)
+        return $ IncorrectClauseNumber (expected + 5) expected
+      _ -> do
+        expected <- choose (0,500)
+        return $ LitOutsideRange (expected+5) expected

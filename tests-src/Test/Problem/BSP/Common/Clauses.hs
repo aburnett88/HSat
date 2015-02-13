@@ -10,7 +10,8 @@ The TestTree Leaf for the Clauses module
 -}
 
 module Test.Problem.BSP.Common.Clauses (
-  tests
+  tests,
+  printer
   ) where
 
 import           Control.Monad (replicateM)
@@ -67,6 +68,17 @@ tests =
       getSetNegTest1
       ]
     ]
+
+printer :: TestTree
+printer =
+  testGroup name [
+    printClausesArbitrary
+    ]
+
+printClausesArbitrary :: TestTree
+printClausesArbitrary =
+  printTest "Clauses" (
+    (generate arbitrary) :: IO Clauses)
 
 mkClausesTest1 :: TestTree
 mkClausesTest1 =

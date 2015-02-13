@@ -1,5 +1,6 @@
 module Test.Problem.Source (
-  tests
+  tests,
+  printer
   ) where
 
 import TestUtils
@@ -15,6 +16,16 @@ tests = testGroup name [
   testGroup "mkFileSource" [
     mkFileSourceTest1]
   ]
+
+printer :: TestTree
+printer = testGroup name [
+  printSourceArbitrary
+  ]
+
+printSourceArbitrary :: TestTree
+printSourceArbitrary =
+  printTest "Source" (
+    (generate arbitrary) :: IO Source)
 
 mkStaticTest1 :: TestTree
 mkStaticTest1 =

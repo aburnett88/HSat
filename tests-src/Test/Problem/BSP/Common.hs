@@ -11,7 +11,8 @@ module
 -}
 
 module Test.Problem.BSP.Common (
-  tests
+  tests,
+  printer
   ) where
 
 import qualified Test.Problem.BSP.Common.Clause as Clause
@@ -32,4 +33,14 @@ tests =
     Literal.tests ,
     Variable.tests,
     Sign.tests
+    ]
+
+printer :: TestTree
+printer =
+  testGroup name [
+    Clauses.printer,
+    Clause.printer,
+    Literal.printer,
+    Variable.printer,
+    Sign.printer
     ]
