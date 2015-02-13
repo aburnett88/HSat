@@ -10,7 +10,8 @@ Contains the node for the tests of the Problem type and its children
 -}
 
 module Test.Problem (
-  tests
+  tests,
+  printer
   ) where
 
 import           HSat.Problem
@@ -33,6 +34,19 @@ tests =
     ProblemType.tests,
     Source.tests
     ]
+
+printer :: TestTree
+printer =
+  testGroup name [
+    testGroup "mkProblem" [
+       printProblemArbitrary
+       ]
+    ]
+
+printProblemArbitrary :: TestTree
+printProblemArbitrary =
+  printTest "Problem" (
+    (generate arbitrary) :: IO Problem)
 
 mkProblemTest1 :: TestTree
 mkProblemTest1 =

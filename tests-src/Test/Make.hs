@@ -1,7 +1,8 @@
 
 
 module Test.Make (
-  tests
+  tests,
+  printer
   ) where
 
 import TestUtils
@@ -28,6 +29,10 @@ tests =
     Internal.tests,
     CNF.tests
     ]
+
+printer :: TestTree
+printer =
+  testGroup name []
 
 makeTest1 :: TestTree
 makeTest1 =

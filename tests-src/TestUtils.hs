@@ -20,7 +20,8 @@ module TestUtils (
   testList,
   testEq,
   testAllEq,
-  forceError
+  forceError,
+  printTest
   ) where
 
 import           Control.Monad (when)
@@ -44,6 +45,7 @@ import           System.Random
 import           HSat.Writer.CNF
 import           HSat.Writer.CNF.Internal
 import           Test.Tasty as Test.Extended
+import HSat.Printer
 import           Test.Tasty.Golden as Test.Extended
 import           Test.Tasty.HUnit as Test.Extended
 import           Test.Tasty.QuickCheck as Test.Extended
@@ -298,3 +300,16 @@ instance Arbitrary a => Arbitrary (V.Vector a) where
     return $ V.fromList list
   shrink vect =
     map V.fromList $ shrink . V.toList $ vect
+
+printTest :: (Printer a) => String -> IO a -> TestTree
+printTest str getElem =
+  testCase ("Print " ++ str) $ do
+    elem <- getElem
+    putStrLn "Compact"
+    putDoc (compact elem)
+    putStrLn "NoUnicode"
+    putDoc (noUnicode elem)
+    putStrLn "Unicode"
+    putDoc (unicode elem)
+    assertBool "Not going to fail" True
+    

@@ -1,5 +1,6 @@
 module Test.Parser (
-  tests
+  tests,
+  printer
   ) where
 
 import TestUtils
@@ -13,3 +14,7 @@ tests =
   testGroup name [
     CNF.tests
     ]
+
+printer :: TestTree
+printer =
+  testGroup name []

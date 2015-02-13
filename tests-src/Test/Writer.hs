@@ -1,6 +1,7 @@
 
 module Test.Writer (
-  tests
+  tests,
+  printer
   ) where
 
 import TestUtils
@@ -16,3 +17,7 @@ tests =
     Internal.tests,
     CNF.tests
     ]
+
+printer :: TestTree
+printer =
+  testGroup name []
