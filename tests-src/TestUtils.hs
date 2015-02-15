@@ -11,11 +11,11 @@ from this file.
 -}
 
 module TestUtils (
+  module Test.Extended,
   testMaxClauseSize,   -- :: Int
   testMaxClausesSize,  -- :: Int
   mkIntegerNonZero,    -- :: Gen Integer
   mkWordNonZero,       -- :: Gen Word
-  module Test.Extended,-- module export,
   checkBounds,         -- :: (Ord a) => a -> Bounds a -> Bool
   testList,
   testEq,
@@ -24,6 +24,7 @@ module TestUtils (
   printTest
   ) where
 
+import TestUtils.Problem
 import           Control.Monad (when)
 import           Data.Maybe (isNothing)
 import qualified Control.Exception as E (catch)
@@ -58,77 +59,6 @@ testMaxClauseSize = 100
 --The maximum size a set of clauses can be in this configuration
 testMaxClausesSize :: Int
 testMaxClausesSize = 100
-
-instance Arbitrary Problem where
-  arbitrary = liftM2 mkProblem arbitrary arbitrary
-  shrink problem =
-    let source = getSource problem
-        expr   = getProblemExpr problem
-    in map (uncurry mkProblem) $ shrink (source,expr)
-
-instance Arbitrary Source where
-  arbitrary = do
-    --Choose out of the two choises that we have
-    index <- choose (0,1) :: Gen Int
-    case index of
-     0 -> return StaticSource
-     1 -> mkFileSource `liftM` arbitrary
-  shrink StaticSource    = []
-  shrink (FileSource fp) =
-    map mkFileSource $ shrink fp
-
-instance Arbitrary ProblemExpr where
-  arbitrary = do
-    --Choose out of the single problemExpr type there currently is
-    index <- choose (0,0) :: Gen Int
-    case index of
-     0 -> mkCNFProblem `liftM` arbitrary
-  shrink (CNFExpr cnf) =
-    map mkCNFProblem $ shrink cnf
-
-instance Arbitrary P.ProblemType where
-  arbitrary = do
-    --Choose uot of the single problemType there currently is
-    index <- choose (0,0) :: Gen Int
-    case index of
-     0 -> return P.CNF
-  shrink P.CNF = []
-
-instance Arbitrary CNF where
-  arbitrary = mkCNFFromClauses `liftM` arbitrary
-  shrink cnf =
-    map mkCNFFromClauses $ shrink . getClauses $ cnf
-
-instance Arbitrary Clauses where
-  arbitrary = do
-    numb <- choose (0,testMaxClausesSize) :: Gen Int
-    mkClausesFromClause `liftM` replicateM numb arbitrary
-  shrink clauses =
-    map mkClausesFromClause $ shrink . V.toList . getVectClause $ clauses
-
-instance Arbitrary Clause where
-  arbitrary = do
-    numb <- choose (0,testMaxClauseSize) :: Gen Int
-    mkClauseFromLits `liftM` replicateM numb arbitrary
-  shrink clause =
-    map mkClauseFromLits $ shrink . V.toList . getVectLiteral $ clause
-
-instance Arbitrary Literal where
-  arbitrary = liftM2 mkLiteral arbitrary arbitrary
-  shrink l =
-    let s = getSign l
-        v = getVariable l
-    in map (uncurry mkLiteral) $ shrink (s,v)
-
-instance Arbitrary Sign where
-  arbitrary = mkSign `liftM` arbitrary
-  shrink (Sign b) =
-    map mkSign $ shrink b
-
-instance Arbitrary Variable where
-  arbitrary = mkVariable `liftM` choose (1,maxBound)
-  shrink var =
-    map mkVariable . filter (/=0) $ shrink . getWord $ var
 
 genBounds :: (Ord a, Bounded a) => Gen a -> Gen (Bounds a)
 genBounds f = do
@@ -295,13 +225,6 @@ forceError correct dummyVal = do
                ((\_ -> return Nothing) :: ErrorCall -> IO (Maybe a))
   assertBool "Did not throw error" (isNothing $ maybValue)
 
-instance Arbitrary a => Arbitrary (V.Vector a) where
-  arbitrary = do
-    list <- arbitrary
-    return $ V.fromList list
-  shrink vect =
-    map V.fromList $ shrink . V.toList $ vect
-
 printTest :: (Printer a) => String -> IO a -> TestTree
 printTest str getElem =
   testGroup str [
@@ -341,3 +264,4 @@ instance Arbitrary CNFBuilderError where
       _ -> do
         expected <- choose (0,500)
         return $ LitOutsideRange (expected+5) expected
+--348 - 267

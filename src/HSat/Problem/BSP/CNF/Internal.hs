@@ -42,14 +42,14 @@ instance Validate CNF where
 
 noUnicodeAnd,unicodeAnd,noUnicodeOr,unicodeOr :: String
 noUnicodeAnd                                  = "/\\"
-unicodeAnd                                    = "/\\"
+unicodeAnd                                    = "∧"
 noUnicodeOr                                   = "\\/"
-unicodeOr                                     = "\\/"
+unicodeOr                                     = "∨"
 
 compactCNF,noUnicodeCNF,unicodeCNF :: String
 compactCNF                         = "CNF"
 noUnicodeCNF                       = ""
-unicodeCNF                         = ""
+unicodeCNF                         = "CNF"
 
 compactVariable,noUnicodeVariable,unicodeVariable :: String
 compactVariable                                   = "V"
@@ -77,7 +77,7 @@ instance Printer CNF where
     (text $ show clauseNumb) <> line  <>
     printClausesWithContext noUnicodeAnd noUnicodeOr maxVar noUnicode clauses
   unicode (CNF maxVar clauseNumb clauses)   =
-    text unicodeCNF                   <+>
+    text unicodeCNF          <> line  <>
     text unicodeVariable     <> colon <+>
     (text $ show maxVar)     <> line  <>
     text unicodeClNumb       <> colon <+>

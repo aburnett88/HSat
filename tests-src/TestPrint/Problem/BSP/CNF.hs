@@ -16,6 +16,7 @@ module TestPrint.Problem.BSP.CNF (
 import HSat.Problem.BSP.CNF
 import qualified TestPrint.Problem.BSP.CNF.Builder as CNFBuilder
 import TestUtils
+import TestUtils.Problem.BSP.CNF
 
 name :: String
 name = "CNF"
@@ -24,10 +25,16 @@ printer :: TestTree
 printer =
   testGroup name [
     printCNFArbitrary,
+    printCNFSmall,
     CNFBuilder.printer
     ]
 
 printCNFArbitrary :: TestTree
 printCNFArbitrary =
-  printTest "CNF" (
+  printTest "Arbitrary" (
     (generate arbitrary) :: IO CNF)
+
+printCNFSmall :: TestTree
+printCNFSmall =
+  printTest "Small" (
+    (generate mkSmallCNF) :: IO CNF)
