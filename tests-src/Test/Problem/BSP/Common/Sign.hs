@@ -10,8 +10,7 @@ The TestTree Leaf for the Sign module
 -}
 
 module Test.Problem.BSP.Common.Sign (
-  tests,
-  printer
+  tests
   ) where
 
 import HSat.Problem.BSP.Common.Sign
@@ -50,16 +49,7 @@ tests =
       ]
     ]
 
-printer :: TestTree
-printer =
-  testGroup name [
-    printSignArbitrary
-    ]
 
-printSignArbitrary :: TestTree
-printSignArbitrary =
-  printTest "Sign" (
-    (generate arbitrary) :: IO Sign)
 
 mkSignTest1 :: TestTree
 mkSignTest1 =

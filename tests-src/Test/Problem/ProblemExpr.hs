@@ -10,8 +10,7 @@ Provides the tests for the ProblemExpr type and its children types
 -}
 
 module Test.Problem.ProblemExpr (
-  tests,
-  printer
+  tests
   ) where
 
 import           HSat.Problem.ProblemExpr
@@ -41,19 +40,6 @@ tests =
     CNF.tests,
     Common.tests
     ]
-
-printer :: TestTree
-printer =
-  testGroup name [
-    printProblemExprArbitrary,
-    Common.printer,
-    CNF.printer
-    ]
-
-printProblemExprArbitrary :: TestTree
-printProblemExprArbitrary =
-  printTest "ProblemExpr" (
-    (generate arbitrary) :: IO ProblemExpr)
 
 problemTypeTest1 :: TestTree
 problemTypeTest1 =

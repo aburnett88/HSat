@@ -14,10 +14,10 @@ module Main (
   ) where
 
 import TestUtils
-import qualified Test.Problem as Problem
-import qualified Test.Make as Make
-import qualified Test.Writer as Writer
-import qualified Test.Parser as Parser
+import qualified TestPrint.Problem as Problem
+import qualified TestPrint.Make as Make
+import qualified TestPrint.Writer as Writer
+import qualified TestPrint.Parser as Parser
 
 main :: IO ()
 main = defaultMain printer

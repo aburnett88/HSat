@@ -28,8 +28,8 @@ name = "HSat Tests"
 tests :: TestTree
 tests =
   testGroup name [
-    Problem.printer,
-    Make.printer,
-    Writer.printer,
-    Parser.printer
+    Problem.tests,
+    Make.tests,
+    Writer.tests,
+    Parser.tests
     ]
