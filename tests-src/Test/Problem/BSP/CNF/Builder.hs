@@ -21,6 +21,7 @@ import           HSat.Problem.BSP.CNF.Builder
 import           HSat.Problem.BSP.CNF.Builder.Internal
 import           HSat.Problem.BSP.Common
 import           TestUtils
+import qualified Test.Problem.BSP.CNF.Builder.Internal as Internal
 
 name :: String
 name = "Builder"
@@ -28,6 +29,7 @@ name = "Builder"
 tests :: TestTree
 tests =
   testGroup name [
+    Internal.tests,
     testGroup "cnfBuilder" [
        cnfBuilderTest1,
        cnfBuilderTest2

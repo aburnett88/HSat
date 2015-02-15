@@ -3,6 +3,7 @@ module TestUtils.Problem.BSP.CNF (
   mkSmallCNF
   ) where
 
+import TestUtils.Problem.BSP.CNF.Builder
 import TestUtils.Test
 import HSat.Problem.BSP.CNF
 import HSat.Problem.BSP.Common.Clauses

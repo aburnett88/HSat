@@ -247,21 +247,4 @@ printTest str getElem =
       putStrLn ""
       assertBool "" True
       ]
-
-instance Arbitrary CNFBuilder where
-  arbitrary = do
-    clauses <- arbitrary
-    clause <- arbitrary
-    return $ CNFBuilder 0 0 0 clauses clause
-
-instance Arbitrary CNFBuilderError where
-  arbitrary = do
-    index <- choose (0,1) :: Gen Int
-    case index of
-      0 -> do
-        expected <- choose (0,500)
-        return $ IncorrectClauseNumber (expected + 5) expected
-      _ -> do
-        expected <- choose (0,500)
-        return $ LitOutsideRange (expected+5) expected
---348 - 267
+--348 - 267--250

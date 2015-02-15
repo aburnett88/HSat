@@ -16,7 +16,8 @@ instance Arbitrary Clauses where
     map mkClauses $ shrink . getVectClause $ clauses
 
 mkArbClauses :: Gen Clause -> Int -> Gen Clauses
-mkArbClauses genClause size = do
+mkArbClauses genClause sizeBound = do
+  size <- choose (0,sizeBound)
   liftM mkClauses (V.replicateM size genClause)
 
 mkSmallClauses :: Gen Clauses

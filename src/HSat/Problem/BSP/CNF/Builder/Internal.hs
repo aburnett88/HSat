@@ -1,6 +1,9 @@
 module HSat.Problem.BSP.CNF.Builder.Internal (
   CNFBuilder(..),
-  CNFBuilderError(..)
+  CNFBuilderError(..),
+  canAddLiteral,
+  canFinishClause,
+  canFinalise
   ) where
 
 import HSat.Problem.BSP.Common

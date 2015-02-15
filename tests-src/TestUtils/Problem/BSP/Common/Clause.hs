@@ -11,7 +11,8 @@ import TestUtils.Problem.BSP.Common.Literal
 import TestUtils.Limits
 
 mkArbClause :: Gen Literal -> Int -> Gen Clause
-mkArbClause genLit size = do
+mkArbClause genLit sizeBound = do
+  size <- choose (0,sizeBound)
   liftM mkClause (V.replicateM size genLit)
 
 instance Arbitrary Clause where
