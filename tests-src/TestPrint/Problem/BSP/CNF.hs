@@ -37,7 +37,4 @@ printCNFArbitrary =
 printCNFSmall :: TestTree
 printCNFSmall =
   printTest "Small CNF" (
-    (generate genSmallCNF) :: IO CNF)
-
-genSmallCNF :: Gen CNF
-genSmallCNF = genCNFValid (1,100) (5,5) (5,5)
+    (generate arbitrary) :: IO CNF)

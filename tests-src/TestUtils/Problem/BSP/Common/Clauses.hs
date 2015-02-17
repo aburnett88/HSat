@@ -1,7 +1,5 @@
 module TestUtils.Problem.BSP.Common.Clauses (
-  genClauses,
-  genClausesValid,
-  genClausesInvalid
+  genClauses
   ) where
 
 import TestUtils.Test
@@ -14,21 +12,13 @@ import HSat.Problem.BSP.Common.Clause
 import Data.Word
 import Data.Vector (Vector)
 
-genClauses :: Gen (Vector Clause) -> Gen Word -> Gen Clauses
-genClauses = liftM2 Clauses
-
-genClausesValid :: (Word,Word) -> Gen Clause -> Gen Clauses
-genClausesValid bounds genClause = do
-  size <- choose bounds
-  genClauses (V.replicateM (fromEnum size) genClause) (return size)
-
-genClausesInvalid :: (Word,Word) -> Gen Clause -> Gen Clauses
-genClausesInvalid bounds genClause = do
-  size <- choose bounds
-  offSet <- choose (1,maxBound)
-  genClauses (V.replicateM (fromEnum size) genClause) (return $ size + offSet)
+genClauses :: Word -> Word -> Word -> Gen Clauses
+genClauses sizeBound sizeClause maxVar = do
+  size <- choose (0,sizeBound)
+  vector <- V.replicateM (fromEnum size) (genClause sizeClause maxVar)
+  return $ mkClauses vector
 
 instance Arbitrary Clauses where
-  arbitrary = genClausesValid (0,5) arbitrary
+  arbitrary = genClauses 5 5 100
   shrink clauses =
     map mkClauses $ shrink . getVectClause $ clauses

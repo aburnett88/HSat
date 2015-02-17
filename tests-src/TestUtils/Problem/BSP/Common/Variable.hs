@@ -10,50 +10,22 @@ Exports generic functions for generating 'Variable's
 -}
 
 module TestUtils.Problem.BSP.Common.Variable (
-  genVariable, -- :: Gen Word -> Gen Variable
-  genVariableValid, -- :: Gen Variable
-  genVariableValidContext, -- Word -> Gen Variable
-  genVariableInvalidContext, -- :: Word -> Gen Variable
-  genVariableInvalid -- :: Gen Variable
+  genVariable, -- :: Gen Variable
+  genVariableContext -- :: Word -> Gen Variable
   ) where
 
 import Data.Word
-import HSat.Problem.BSP.Common.Variable.Internal
+import HSat.Problem.BSP.Common.Variable
 import TestUtils.Limits
 import TestUtils.Test
 
-{-|
-Generates a 'Variable' from a 'Word' generator
--}
-genVariable :: Gen Word -> Gen Variable
-genVariable = liftM Variable
+genVariable :: Gen Variable
+genVariable = liftM mkVariable $ choose (1,maxBound)
 
-{-|
-Generates a 'Valid' 'Variable'
--}
-genVariableValid :: Gen Variable
-genVariableValid = genVariable $ choose (1,maxBound)
-
-{-|
-Generates an invalid 'Variabl'e
--}
-genVariableInvalid :: Gen Variable
-genVariableInvalid = genVariable $ return 0
-
-{-|
-Generates a valid 'Variable' in a context
--}
-genVariableValidContext :: Word -> Gen Variable
-genVariableValidContext 0 = error ("impossible")
-genVariableValidContext maxVar = genVariable $ choose (1,maxVar)
-
-genVariableInvalidContext :: Word -> Gen Variable
-genVariableInvalidContext n =
-  oneof [genVariableInvalid,
-         genVariable $ choose (n+1,maxBound)
-         ]
+genVariableContext :: Word -> Gen Variable
+genVariableContext max = liftM mkVariable $ choose (1,max) 
 
 instance Arbitrary Variable where
-  arbitrary = genVariableValid
+  arbitrary = genVariable
   shrink v =
-    map Variable $ filter (/=0) . shrink . getWord $ v
+    map mkVariable $ filter (/=0) . shrink . getWord $ v

@@ -1,3 +1,15 @@
+{-|
+Module      : HSat.Problem.BSP.CNF.Builder.Internal
+Description : The Internal CNFBuilder module
+Copyright   : (c) Andrew Burnett 2014-2015
+Maintainer  : andyburnett88@gmail.com
+Stability   : experimental
+Portability : Unknown
+
+This module provides the definition for the CNFBuidler and CNFBuilderError
+types
+-}
+
 module HSat.Problem.BSP.CNF.Builder.Internal (
   CNFBuilder(..),
   CNFBuilderError(..),
@@ -6,13 +18,13 @@ module HSat.Problem.BSP.CNF.Builder.Internal (
   canFinalise
   ) where
 
-import HSat.Problem.BSP.Common
-import HSat.Printer
-import Data.Word
-import HSat.Validate
 import qualified Data.Vector as V
-import HSat.Problem.BSP.Common.Clauses.Internal (printClausesWithContext)
-import HSat.Problem.BSP.Common.Clause.Internal (printClauseWithContext)
+import           Data.Word
+import           HSat.Printer
+import           HSat.Problem.BSP.Common
+import           HSat.Problem.BSP.Common.Clause.Internal (printClauseWithContext)
+import           HSat.Problem.BSP.Common.Clauses.Internal (printClausesWithContext)
+import           HSat.Validate
 
 {-|
 A 'CNFBuilder' represents a 'CNF' as it is being constructed. This data type
@@ -34,23 +46,34 @@ data CNFBuilder = CNFBuilder {
   }
   deriving (Eq,Show)
 
+{-|
+Denotes whether a 'Literal' can be added to the 'CNFBuilder' and it
+remains a valid 'CNFBuilder'
+-}
 canAddLiteral :: CNFBuilder -> Bool
 canAddLiteral builder =
-  let curr  = getCurrClNumb builder
-      exptd = getExptdClNumb builder
-  in (curr  <= exptd)
+  let curr       = getCurrClNumb builder
+      exptd      = getExptdClNumb builder
+      currClause = getCurrClause builder
+  in (curr <  exptd) || (
+     (curr == exptd) &&
+     (not $ clauseIsEmpty currClause)
+     )
 
-canFinalise :: CNFBuilder -> Bool
+{-|
+Returns 'True' if the CNFBuilder can be finalised (turned into a 'CNF')
+-}
+canFinalise         :: CNFBuilder -> Bool
 canFinalise builder =
   let curr  = getCurrClNumb builder
       exptd = getExptdClNumb builder
   in (curr  == exptd)
 
+{-|
+Returns 'True' if a 'Clause' can be finished. Empty clauses can also be added to the 'CNFBuilder'
+-}
 canFinishClause         :: CNFBuilder -> Bool
-canFinishClause builder =
-  let curr  = getCurrClNumb builder
-      exptd = getExptdClNumb builder
-  in (curr  <= exptd)
+canFinishClause builder = canAddLiteral builder
 
 instance Validate CNFBuilder where
   validate (CNFBuilder
@@ -69,123 +92,61 @@ instance Validate CNFBuilder where
       testVarInRange cl = V.all (varInRange exptdMaxVar) .
                           V.map getVariable $ getVectLiteral $ cl
 
-cTitle,nTitle,uTitle :: String
-cTitle               = "CNFBuild"
-nTitle               = "CNF Builder"
-uTitle               = "CNF Builder"
-
-cMaxVar,nMaxVar,uMaxVar :: String
-cMaxVar                 = "Max var"
-nMaxVar                 = ""
-uMaxVar                 = ""
-
-cEClSize,nEClSize,uEClSize :: String
-cEClSize                   = ""
-nEClSize                   = ""
-uEClSize                   = ""
-
-cCClSize,nCClSize,uCClSize :: String
-cCClSize                   = ""
-nCClSize                   = ""
-uCClSize                   = ""
-
-cClauses,nClauses,uClauses :: String
-cClauses                   = ""
-nClauses                   = ""
-uClauses                   = ""
-
-cClause,nClause,uClause :: String
-cClause                 = ""
-nClause                 = ""
-uClause                 = ""
-
-nOr,uOr :: String
-nOr     = "OR"
-uOr     = "OR"
-
-nAnd,uAnd :: String
-nAnd      = "AND"
-uAnd      = "AND"
-
-docClSize                          :: String -> String -> CNFBuilder -> Doc
-docClSize strExptd strCurr builder =
-  (text strExptd) <> colon               <+>
-  (text . show $ getExptdClNumb builder)  <>
-  (text strCurr) <> colon                <+>
-  (text . show $ getCurrClNumb builder)
-
-docClauses                  :: String -> (Clauses -> Doc) -> CNFBuilder -> Doc
-docClauses str func builder =
-  (text str)                      <>
-  (func $ getCurrClauses builder)
-
-docClause                  :: String -> (Clause -> Doc) -> CNFBuilder -> Doc
-docClause str func builder =
-  (text str)                     <>
-  (func $ getCurrClause builder)
-
-nBoolToQ,uBoolToQ :: Bool -> Doc
-nBoolToQ True     = yes
-nBoolToQ False    = no
-uBoolToQ True     = green yes
-uBoolToQ False    = red no
-
-yes,no :: Doc
-yes    = text "Yes"
-no     = text "No"
-
-printFacts :: CNFBuilder -> (Bool -> Doc) -> Doc
-printFacts builder f =
-  (text "addLiteral") <> colon <+> f (canAddLiteral builder) <>
-  line <>
-  (text "canFinalise") <> colon <+> f (canFinalise builder)  <>
-  line <>
-  (text "canFinishClause") <> colon <+> f (canFinishClause builder)
-
 instance Printer CNFBuilder where
-  compact builder =
-    (text cTitle)                                        <+>
-    docVar cMaxVar builder                               <+>
-    docClSize cEClSize cCClSize builder                   <>
-    (text "/") <> (text . show $ getExptdClNumb builder)  <>
-    line                                                  <>
-    docClauses cClauses compact builder                   <>
-    line                                                  <>
-    docClause cClause compact builder
-  noUnicode builder =
-    (text nTitle) <>
-    docVar nMaxVar builder <>
-    docClSize nEClSize nCClSize builder <>
-    line <>
-    docClauses nClauses (verboseClauses nAnd nOr builder noUnicode) builder <>
-    line <>
-    docClause nClause (verboseClause nOr builder noUnicode) builder <>
-    line <>
-    printFacts builder nBoolToQ
-  unicode builder =
-    (text uTitle) <>
-    docVar uMaxVar builder <>
-    docClSize uEClSize uCClSize builder <>
-    line <>
-    docClauses uClauses (verboseClauses uAnd uOr builder unicode) builder <>
-    line <>
-    docClause uClause (verboseClause uOr builder unicode) builder <>
-    line <>
-    printFacts builder uBoolToQ
+  compact builder   = printCNFBuilder builder   Compact
+  noUnicode builder = printCNFBuilder builder NoUnicode
+  unicode builder   = printCNFBuilder builder   Unicode
 
-verboseClause :: String -> CNFBuilder -> (Literal -> Doc) -> (Clause -> Doc)
-verboseClause str builder func =
-  printClauseWithContext str (getExptdMaxVar builder) func
-
-verboseClauses :: String -> String -> CNFBuilder -> (Literal -> Doc) -> (Clauses -> Doc)
-verboseClauses strAnd strOr builder func =
-  printClausesWithContext strAnd strOr (getExptdMaxVar builder) func
-
-docVar             :: String -> CNFBuilder -> Doc
-docVar str builder =
-  (text str) <> colon                    <+>
-  (text . show $ getExptdMaxVar builder)
-
+{-|
+Prints the CNFBuilder with a given 'PrinterType'
+-}
+printCNFBuilder :: CNFBuilder -> PrinterType -> Doc
+printCNFBuilder (CNFBuilder
+                 exptdMaxVar
+                 exptdClNumb
+                 currClNumb
+                 currClauses
+                 currClause) pType =
+  title          <> line <>
+  maxVar         <> line <>
+  clauses        <> line <>
+  currentClauses <> line <>
+  currentClause  <> line <>
+  facts 
+  where
+    title :: Doc
+    title = (text "CNFBuilder")
+    maxVar :: Doc
+    maxVar =
+      case pType of
+        Compact -> (text "Max Var")
+        _       -> (text "Maximum Variable")
+      <> colon <+> (word exptdMaxVar)
+    clauses :: Doc
+    clauses =
+      case pType of
+        Compact -> (text "Clauses") <> colon               <+>
+                   (word currClNumb)                        <>
+                   (text "/")                               <>
+                   (word exptdClNumb)
+        _       -> (text "Clauses")   <> colon             <+>
+                   (word exptdClNumb) <> line               <>
+                   (text "Current Clause Counnt") <> colon <+>
+                   (word currClNumb)
+    currentClauses :: Doc
+    currentClauses =
+      printClausesWithContext "and" "or" exptdMaxVar func currClauses
+    currentClause :: Doc
+    currentClause =
+      printClauseWithContext "OR" exptdMaxVar func currClause
+    func :: Literal -> Doc
+    func = case pType of
+      Compact -> compact
+      NoUnicode -> noUnicode
+      Unicode -> unicode
+    facts :: Doc
+    facts = empty
+    
 {-|
 CNFBuilderError describes the errors that can be thrown by a CNFBuidler.
 -}
@@ -203,39 +164,43 @@ instance Validate CNFBuilderError where
     (expected < gotten) ||
     (gotten == 0)
 
-unicodeLe,noUnicodeLe :: String
-unicodeLe = "<="
-noUnicodeLe = "<="
-
-bf :: Doc
-bf = text $ "CNF Build Error:\t"
-
-msg1,msg2 :: Doc
-msg1 = text "Incorrect Clause number\t"
-msg2 = text "Literal outside range\t"
- 
 instance Printer CNFBuilderError where
-  compact (IncorrectClauseNumber gotten expected) =
-    text ("ERR - Clause size expected " ++ show expected ++
-     "but got " ++ show gotten)
-  compact (LitOutsideRange gotten expected) =
-    text ("ERR - Literal outside range 0 < " ++ show gotten ++
-          " <= " ++ show expected)
-  noUnicode (IncorrectClauseNumber gotten expected) =
-    bf <+>
-    msg1 <>
-    (text $ "Expected: " ++ show expected ++
-     " Got: " ++ show gotten)
-  noUnicode (LitOutsideRange gotten expected) =
-    verboseLitOutsideRange noUnicodeLe gotten expected
-  unicode i@(IncorrectClauseNumber _ _) =
-    red $ noUnicode i
-  unicode (LitOutsideRange gotten expected) =
-    red $ verboseLitOutsideRange unicodeLe gotten expected
-    
-verboseLitOutsideRange :: String -> Word -> Word -> Doc
-verboseLitOutsideRange lessThan gotten expected =
-  bf <+>
-  msg2 <>
-  text ("0 <" ++ show gotten ++
-   lessThan ++ " " ++ show expected)
+  compact err   = printBuildErr err   Compact
+  noUnicode err = printBuildErr err NoUnicode
+  unicode err   = printBuildErr err   Unicode
+
+{-|
+Prints the given 'CNFBuilderError' with a gien 'PrinterType'
+-}
+printBuildErr :: CNFBuilderError -> PrinterType -> Doc
+printBuildErr (IncorrectClauseNumber
+               gotten
+               expected) pType =
+  errorDoc pType $ (
+    (text "Incorrect Number of Clauses")               <+>
+    (text "Expected")     <> colon <+> (word expected) <+>
+    (text "Actual Value") <> colon                     <+>
+    (word gotten)
+    )
+printBuildErr (LitOutsideRange gotten expected) pType =
+  errorDoc pType $ (
+    text ("Variable outside range")    <> colon  <+>
+    (word 0) <+> le <+> (word gotten) <+>   leq  <+>
+    (word expected)
+    )
+  where
+    le :: Doc
+    le = text "<"
+    leq :: Doc
+    leq = text $
+      case pType of
+        Unicode -> "≤"
+        _       -> "<="
+
+word :: Word -> Doc
+word w = text . show $ w
+
+errorDoc :: PrinterType -> Doc -> Doc
+errorDoc Compact reason   = (text "ERR")   <> colon <+> reason
+errorDoc NoUnicode reason = (text "Error") <> colon <+> reason
+errorDoc Unicode reason   = red $ errorDoc NoUnicode reason

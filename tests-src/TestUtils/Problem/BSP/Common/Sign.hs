@@ -10,26 +10,19 @@ Exports generic functions for generating 'Sign's
 -}
 
 module TestUtils.Problem.BSP.Common.Sign (
-  genSign, -- :: Gen Bool -> Gen Sign
-  genSignValid -- :: Gen Sign
+  genSign, -- :: Gen Sign
   ) where
 
 import TestUtils.Test
 import HSat.Problem.BSP.Common.Sign
 
 {-|
-Creates a 'Sign' from a generator for 'Bool'
--}
-genSign :: Gen Bool -> Gen Sign
-genSign = liftM mkSign
-
-{-|
 Generates a valid 'Sign'
 -}
-genSignValid :: Gen Sign
-genSignValid = genSign arbitrary
+genSign :: Gen Sign
+genSign = liftM mkSign arbitrary
 
 instance Arbitrary Sign where
-  arbitrary = genSignValid
+  arbitrary = genSign
   shrink sign =
     map mkSign $ shrink . getBool $ sign
