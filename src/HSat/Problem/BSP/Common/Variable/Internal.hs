@@ -26,7 +26,10 @@ Internally represented as a 'Word'
 newtype Variable = Variable {
   -- | The underlying 'Word' that is represented
   getWord :: Word
-  } deriving (Eq,Show)
+  } deriving (Eq)
+
+instance Show Variable where
+  showsPrec = show'
 
 instance Printer Variable where
   compact   = text . show . getWord

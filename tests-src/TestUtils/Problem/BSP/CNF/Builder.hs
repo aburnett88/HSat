@@ -16,6 +16,7 @@ import Data.Word
 import HSat.Problem.BSP.Common
 import qualified Data.Vector as V
 import HSat.Validate
+import Debug.Trace
 
 genCNFBuilder :: Word -> Word -> Word -> Word -> Gen CNFBuilder
 genCNFBuilder maxV clauseSize clausesSize maxVarOffset =
@@ -42,6 +43,8 @@ instance Arbitrary CNFBuilderError where
   arbitrary = genCNFBuilderError
   shrink (IncorrectClauseNumber gotten expected) =
     filter validate . map (uncurry IncorrectClauseNumber) $ shrink (gotten,expected)
+  shrink (LitOutsideRange gotten expected) =
+    filter validate . map (uncurry LitOutsideRange) $ shrink (gotten,expected)
 
 
 
@@ -56,7 +59,7 @@ genCNFBuilderFinalise maxV clauseSize clausesSize maxVarOffset = do
 genCNFBuilderEmptyClause :: Word -> Word -> Word -> Word -> Gen CNFBuilder
 genCNFBuilderEmptyClause maxV clauseSize clausesSize maxVarOffset = do
   clauses <- genClauses maxV clauseSize clausesSize
-  targetSize <- choose (getSizeClauses clauses +1, clausesSize)
+  targetSize <- choose (getSizeClauses clauses +1, clausesSize+1)
   let maxVar = findMaxVar clauses
   maxVar' <- choose (maxVar,maxVarOffset + maxVar)
   return $ CNFBuilder maxVar' targetSize (getSizeClauses clauses) clauses emptyClause
@@ -64,27 +67,39 @@ genCNFBuilderEmptyClause maxV clauseSize clausesSize maxVarOffset = do
 genCNFBuilderLitInClause :: Word -> Word -> Word -> Word -> Gen CNFBuilder
 genCNFBuilderLitInClause maxV clauseSize clausesSize maxVarOffset = do
   clauses <- genClauses maxV clauseSize clausesSize
-  targetSize <- choose (getSizeClauses clauses + 1, clausesSize)
+  targetSize <- choose (getSizeClauses clauses + 1, clausesSize+1)
   let maxVar = findMaxVar clauses
   maxVar' <- choose (maxVar, maxVarOffset + maxVar)
-  clause <- genClause maxV clauseSize
+  clause <- genClause clauseSize maxVar
   let actualSize = if clauseIsEmpty clause then
                      (getSizeClauses clauses) else
                      (getSizeClauses clauses) + 1
-  return $ CNFBuilder maxVar' targetSize actualSize clauses clause
+      targetSize' = if clauseIsEmpty clause then
+                      targetSize else
+                      targetSize +1
+  return $ CNFBuilder maxVar' targetSize' actualSize clauses clause
 
 genCNFBuilderError :: Gen CNFBuilderError
 genCNFBuilderError = do
   typeOf <- choose (0,1) :: Gen Int
   case typeOf of
     0 -> do
-      expected <- choose (0,100)
-      gotten <- choose (0,expected)
-      return $ IncorrectClauseNumber gotten expected
+      expected <- choose (0,maxBound)
+      gotten <- choose (1,maxBound)
+      return $ IncorrectClauseNumber (expected+gotten) expected
     1 -> do
       expected <- choose (0,100)
-      gotten <- choose (0,100)
+      gotten <- choose (expected+1,maxBound)
       return $ LitOutsideRange gotten expected
 
 genCNFInvalidBuilder :: Word -> Word -> Word -> Word -> Gen CNFBuilder
-genCNFInvalidBuilder = genCNFBuilder
+genCNFInvalidBuilder =
+  genCNFInvalidBuilderCount
+
+genCNFInvalidBuilderCount :: Word -> Word -> Word -> Word -> Gen CNFBuilder
+genCNFInvalidBuilderCount var sizeClause sizeClauses offset = do
+  builder <- genCNFBuilder var sizeClause sizeClauses offset
+  x <- choose (1,maxBound)
+  return $ builder {
+    getCurrClNumb = (getCurrClNumb builder) + x
+    }

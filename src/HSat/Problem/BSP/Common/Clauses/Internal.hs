@@ -40,7 +40,10 @@ data Clauses = Clauses {
   getVectClause  :: Vector Clause,
   -- | A size variable describing how many 'Clause' are contained
   getSizeClauses :: Word
-  } deriving (Eq,Show)
+  } deriving (Eq)
+
+instance Show Clauses where
+  showsPrec = show'
 
 instance Validate Clauses where
   validate (Clauses vector sizeClauses) =

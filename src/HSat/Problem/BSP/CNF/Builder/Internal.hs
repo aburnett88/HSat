@@ -44,7 +44,14 @@ data CNFBuilder = CNFBuilder {
   -- | The current 'Clause' 'Literal's are added to
   getCurrClause :: Clause
   }
-  deriving (Eq,Show)
+  deriving (Eq)
+
+instance Show CNFBuilder where
+  showsPrec = show'
+
+
+--instance (Printer a) => Show a where
+  --showsPrec _ x = _ --displayS (renderCompact . compact $ a)
 
 {-|
 Denotes whether a 'Literal' can be added to the 'CNFBuilder' and it
@@ -82,11 +89,17 @@ instance Validate CNFBuilder where
             currClNumb
             currClauses
             currClause) =
-    (exptdClNumb >= currClNumb)                        &&
-    (V.all testVarInRange $ getVectClause currClauses) &&
-    (testVarInRange currClause)                        &&
-    (validate currClauses)                             &&
-    (validate currClause)
+    let computedSize = (getSizeClauses currClauses + (
+                           if clauseIsEmpty currClause then
+                             0 else
+                             1)
+                        )
+    in (exptdClNumb >= currClNumb)                        &&
+       (V.all testVarInRange $ getVectClause currClauses) &&
+       (computedSize == currClNumb)                       &&
+       (testVarInRange currClause)                        &&
+       (validate currClauses)                             &&
+       (validate currClause)
     where
       testVarInRange :: Clause -> Bool
       testVarInRange cl = V.all (varInRange exptdMaxVar) .
@@ -134,11 +147,13 @@ printCNFBuilder (CNFBuilder
                    (text "Current Clause Counnt") <> colon <+>
                    (word currClNumb)
     currentClauses :: Doc
-    currentClauses =
-      printClausesWithContext "and" "or" exptdMaxVar func currClauses
+    currentClauses = case pType of
+      Compact -> compact currClauses
+      _ -> printClausesWithContext "and" "or" exptdMaxVar func currClauses
     currentClause :: Doc
-    currentClause =
-      printClauseWithContext "OR" exptdMaxVar func currClause
+    currentClause = case pType of
+      Compact -> compact currClause
+      _ -> printClauseWithContext "OR" exptdMaxVar func currClause
     func :: Literal -> Doc
     func = case pType of
       Compact -> compact
@@ -155,7 +170,10 @@ data CNFBuilderError =
   IncorrectClauseNumber Word Word |
   -- | When a 'Literal' is constructed outside the range specified
   LitOutsideRange Word Word
-  deriving (Eq,Show)
+  deriving (Eq)
+
+instance Show CNFBuilderError where
+  showsPrec = show'
 
 instance Validate CNFBuilderError where
   validate (IncorrectClauseNumber gotten expected) =
@@ -197,10 +215,4 @@ printBuildErr (LitOutsideRange gotten expected) pType =
         Unicode -> "≤"
         _       -> "<="
 
-word :: Word -> Doc
-word w = text . show $ w
 
-errorDoc :: PrinterType -> Doc -> Doc
-errorDoc Compact reason   = (text "ERR")   <> colon <+> reason
-errorDoc NoUnicode reason = (text "Error") <> colon <+> reason
-errorDoc Unicode reason   = red $ errorDoc NoUnicode reason

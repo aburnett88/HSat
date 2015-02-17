@@ -42,7 +42,10 @@ data Clause = Clause {
   getVectLiteral   :: Vector Literal,
   -- | The cached size of the 'Clause' in 'Word' form
   getSizeClause :: Word
-  } deriving (Eq,Show)
+  } deriving (Eq)
+
+instance Show Clause where
+  showsPrec = show'
 
 instance Printer Clause where
   compact   = printLit compact
@@ -51,8 +54,9 @@ instance Printer Clause where
 
 printLit                 :: (Literal -> Doc) -> Clause -> Doc
 printLit function clause =
-  encloseSep lbracket rbracket comma $
-  map function . V.toList . getVectLiteral $ clause
+  lbracket <>
+  (hsep $ punctuate comma (map function . V.toList . getVectLiteral $ clause)) <>
+  rbracket
 
 instance Validate Clause where
   validate (Clause vect n) =

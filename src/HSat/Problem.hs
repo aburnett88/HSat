@@ -29,7 +29,10 @@ data Problem = Problem {
   getSource :: Source          ,
   -- | The expression 'ProblemExpr' of the problem itself
   getProblemExpr :: ProblemExpr
-  } deriving (Eq,Show)
+  } deriving (Eq)
+
+instance Show Problem where
+  showsPrec = show'
 
 {-|
 Constructs a problem from the 'Source' and 'ProblemExpr' parts
@@ -40,20 +43,27 @@ mkProblem = Problem
 -- Printer instance
 
 instance Printer Problem where
-  compact (Problem s p) =
-    text ("Problem -") <+>
-    compact s <>
-    line <>
-    compact p
-  noUnicode             = printVerbose noUnicode noUnicode
-  unicode               = printVerbose unicode unicode
+  compact = printProblem Compact
+  noUnicode = printProblem NoUnicode
+  unicode = printProblem Unicode
 
-printVerbose                   :: (Source -> Doc) ->
-                                  (ProblemExpr -> Doc) ->
-                                  Problem ->
-                                  Doc
-printVerbose f g (Problem s p) =
-  text ("Problem:") <>
-  indent 2 (f s) <>
+printProblem :: PrinterType -> Problem -> Doc
+printProblem pType (Problem source expr) =
+  preamble <>
+  space' <>
+  printSource <>
   line <>
-  indent 2 ( g p)
+  printExpr
+  where
+    preamble :: Doc
+    preamble = text $ case pType of
+      Compact -> "Problem -"
+      _ -> "Problem:"
+    space' :: Doc
+    space' = case pType of
+      Compact -> space
+      _ -> line
+    printSource :: Doc
+    printSource = pTypeToDoc pType source
+    printExpr :: Doc
+    printExpr = pTypeToDoc pType expr

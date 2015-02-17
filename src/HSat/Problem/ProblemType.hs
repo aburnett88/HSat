@@ -24,4 +24,10 @@ data ProblemType =
   CNF
   deriving (Eq,Show)
 
-instance Printer ProblemType
+cnfDoc :: Doc
+cnfDoc = text "CNF"
+
+instance Printer ProblemType where
+  compact CNF = cnfDoc
+  noUnicode CNF = cnfDoc
+  unicode CNF = cnfDoc

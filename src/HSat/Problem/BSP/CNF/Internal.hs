@@ -30,7 +30,10 @@ data CNF = CNF {
   getClauseNumb :: Word   ,
   -- | The problems 'Clauses' themselves
   getClauses    :: Clauses
-  } deriving (Eq,Show)
+  } deriving (Eq)
+
+instance Show CNF where
+  showsPrec = show'
 
 instance Validate CNF where
   validate (CNF maxVar clauseNumb clauses) =
@@ -46,40 +49,34 @@ unicodeAnd                                    = "∧"
 noUnicodeOr                                   = "\\/"
 unicodeOr                                     = "∨"
 
-compactCNF,noUnicodeCNF,unicodeCNF :: String
-compactCNF                         = "CNF"
-noUnicodeCNF                       = ""
-unicodeCNF                         = "CNF"
-
-compactVariable,noUnicodeVariable,unicodeVariable :: String
-compactVariable                                   = "V"
-noUnicodeVariable                                 = "Variables"
-unicodeVariable                                   = "Variables"
-
-compactClNumb,noUnicodeClNumb,unicodeClNumb :: String
-compactClNumb                               = "C"
-noUnicodeClNumb                             = "Clauses"
-unicodeClNumb                               = "Clauses"
-
 instance Printer CNF where
-  compact (CNF maxVar clauseNumb clauses)   =
-    text compactCNF                  <+>
-    text compactVariable <> colon    <+>
-    (text $ show maxVar)             <+>
-    text compactClNumb <> colon      <+>
-    (text $ show clauseNumb) <> line <>
-    compact clauses
-  noUnicode (CNF maxVar clauseNumb clauses) =
-    text noUnicodeCNF                 <+>
-    text noUnicodeVariable   <> colon <+>
-    (text $ show maxVar)     <> line  <>
-    text noUnicodeClNumb     <> colon <+>
-    (text $ show clauseNumb) <> line  <>
-    printClausesWithContext noUnicodeAnd noUnicodeOr maxVar noUnicode clauses
-  unicode (CNF maxVar clauseNumb clauses)   =
-    text unicodeCNF          <> line  <>
-    text unicodeVariable     <> colon <+>
-    (text $ show maxVar)     <> line  <>
-    text unicodeClNumb       <> colon <+>
-    (text $ show clauseNumb) <> line  <>
-    printClausesWithContext unicodeAnd unicodeOr maxVar unicode clauses
+  compact = docCNF Compact
+  noUnicode = docCNF NoUnicode
+  unicode = docCNF Unicode
+
+docCNF :: PrinterType -> CNF -> Doc
+docCNF pType (CNF maxVar clNumb cl) =
+  title <+>
+  variable <+> (word maxVar) <> space' <>
+  clause <+> (word clNumb) <> line <>
+  clauses
+  where
+    title :: Doc
+    title = (text "CNF")
+    variable :: Doc
+    variable = text $ case pType of
+      Compact -> "V"
+      _ -> "Variables"
+    space' :: Doc
+    space' = case pType of
+      Compact -> space
+      _ -> line
+    clause :: Doc
+    clause = text $ case pType of
+      Compact -> "C"
+      _ -> "Clauses"
+    clauses :: Doc
+    clauses = case pType of
+      Compact -> compact cl
+      NoUnicode -> printClausesWithContext noUnicodeAnd noUnicodeOr maxVar noUnicode cl
+      Unicode -> printClausesWithContext unicodeAnd unicodeOr maxVar unicode cl

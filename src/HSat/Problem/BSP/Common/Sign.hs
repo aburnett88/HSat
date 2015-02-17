@@ -41,7 +41,10 @@ newtype Sign = Sign {
   -- | The underlying 'Bool' that is represented
   getBool :: Bool
   }
-  deriving (Eq,Show)
+  deriving (Eq)
+
+instance Show Sign where
+  showsPrec = show'
 
 {-|
 Constructs a 'Sign' from a 'Bool'

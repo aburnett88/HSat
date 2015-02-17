@@ -38,7 +38,10 @@ data Literal = Literal {
   getSign     :: Sign    ,
   -- | The underlying 'Variable' that is represented
   getVariable :: Variable
-  } deriving (Eq,Show)
+  } deriving (Eq)
+
+instance Show Literal where
+  showsPrec = show'
 
 instance Validate Literal where
   validate (Literal _ v) =
