@@ -37,7 +37,7 @@ data CNFBuilder = CNFBuilder {
   getExptdMaxVar :: Word   ,
   -- | The expected number of 'Clauses'
   getExptdClNumb :: Word   ,
-  -- | The current number of 'Clauses'
+  -- | The current number of 'Clauses'genCNFBuilderFinalise 10 10 10 10)
   getCurrClNumb  :: Word   ,
   -- | The current 'Clauses'
   getCurrClauses :: Clauses,
@@ -48,10 +48,6 @@ data CNFBuilder = CNFBuilder {
 
 instance Show CNFBuilder where
   showsPrec = show'
-
-
---instance (Printer a) => Show a where
-  --showsPrec _ x = _ --displayS (renderCompact . compact $ a)
 
 {-|
 Denotes whether a 'Literal' can be added to the 'CNFBuilder' and it
