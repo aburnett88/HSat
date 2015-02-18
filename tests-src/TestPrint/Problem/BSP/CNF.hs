@@ -32,9 +32,9 @@ printer =
 printCNFArbitrary :: TestTree
 printCNFArbitrary =
   printTest "Arbitrary" (
-    (generate arbitrary) :: IO CNF)
+    generate arbitrary :: IO CNF)
 
 printCNFSmall :: TestTree
 printCNFSmall =
   printTest "Small CNF" (
-    (generate arbitrary) :: IO CNF)
+    generate arbitrary :: IO CNF)

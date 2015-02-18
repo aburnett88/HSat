@@ -37,7 +37,7 @@ instance Arbitrary CNFBuilder where
     map (\vect ->
           let currClNumb' = getSizeClauses vect
           in CNFBuilder maxVar setClNumb currClNumb' vect currClause) $
-    shrink $ currClauses
+    shrink currClauses
     
 instance Arbitrary CNFBuilderError where
   arbitrary = genCNFBuilderError
@@ -56,24 +56,26 @@ genCNFBuilderFinalise maxV clauseSize clausesSize maxVarOffset = do
   maxVar' <- choose (maxVar,maxVarOffset+maxVar)
   return $ CNFBuilder maxVar' clNumb clNumb clauses emptyClause
 
+combined :: Word -> Word -> Word -> Word -> Gen (Clauses,Word,Word,Word)
+combined maxV clauseSize clausesSize maxVarOffset = do
+  clauses <- genClauses maxV clauseSize clausesSize
+  targetSize <- choose (getSizeClauses clauses + 1, clausesSize + 1)
+  let maxVar = findMaxVar clauses
+  maxVar' <- choose (maxVar, maxVarOffset + maxVar)
+  return (clauses,targetSize,maxVar,maxVar')
+
 genCNFBuilderEmptyClause :: Word -> Word -> Word -> Word -> Gen CNFBuilder
 genCNFBuilderEmptyClause maxV clauseSize clausesSize maxVarOffset = do
-  clauses <- genClauses maxV clauseSize clausesSize
-  targetSize <- choose (getSizeClauses clauses +1, clausesSize+1)
-  let maxVar = findMaxVar clauses
-  maxVar' <- choose (maxVar,maxVarOffset + maxVar)
+  (clauses,targetSize,maxVar,maxVar') <- combined maxV clauseSize clausesSize maxVarOffset
   return $ CNFBuilder maxVar' targetSize (getSizeClauses clauses) clauses emptyClause
 
 genCNFBuilderLitInClause :: Word -> Word -> Word -> Word -> Gen CNFBuilder
 genCNFBuilderLitInClause maxV clauseSize clausesSize maxVarOffset = do
-  clauses <- genClauses maxV clauseSize clausesSize
-  targetSize <- choose (getSizeClauses clauses + 1, clausesSize+1)
-  let maxVar = findMaxVar clauses
-  maxVar' <- choose (maxVar, maxVarOffset + maxVar)
+  (clauses,targetSize,maxVar,maxVar') <- combined maxV clauseSize clausesSize maxVarOffset
   clause <- genClause clauseSize maxVar
-  let actualSize = if clauseIsEmpty clause then
-                     (getSizeClauses clauses) else
-                     (getSizeClauses clauses) + 1
+  let actualSize = getSizeClauses clauses + if clauseIsEmpty clause then
+                                              0 else
+                                              1
       targetSize' = if clauseIsEmpty clause then
                       targetSize else
                       targetSize +1
@@ -101,5 +103,5 @@ genCNFInvalidBuilderCount var sizeClause sizeClauses offset = do
   builder <- genCNFBuilder var sizeClause sizeClauses offset
   x <- choose (1,maxBound)
   return $ builder {
-    getCurrClNumb = (getCurrClNumb builder) + x
+    getCurrClNumb = getCurrClNumb builder + x
     }

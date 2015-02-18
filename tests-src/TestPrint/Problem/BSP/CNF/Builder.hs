@@ -35,9 +35,9 @@ printer =
 printCNFBuilderArbitrary :: TestTree
 printCNFBuilderArbitrary =
   printTest "CNFBuilder" (
-    (generate arbitrary) :: IO CNFBuilder)
+    generate arbitrary :: IO CNFBuilder)
 
 printCNFBuilderErrorArbitrary :: TestTree
 printCNFBuilderErrorArbitrary =
   printTest "CNFBuilderError" (
-    (generate arbitrary) :: IO CNFBuilderError)
+    generate arbitrary :: IO CNFBuilderError)

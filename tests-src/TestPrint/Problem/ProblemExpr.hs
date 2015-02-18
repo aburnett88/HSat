@@ -33,4 +33,4 @@ printer =
 printProblemExprArbitrary :: TestTree
 printProblemExprArbitrary =
   printTest "ProblemExpr" (
-    (generate arbitrary) :: IO ProblemExpr)
+    generate arbitrary :: IO ProblemExpr)

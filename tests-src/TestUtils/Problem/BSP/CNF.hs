@@ -30,7 +30,7 @@ genCNFIncorrectClauses maxVar clauseSize clausesSize varOffset = do
   cnf <- genCNF maxVar clauseSize clausesSize varOffset
   clauseOffset <- choose (1,maxBound)
   return $ cnf {
-    getClauseNumb = clauseOffset + (getClauseNumb cnf)
+    getClauseNumb = clauseOffset + getClauseNumb cnf
   }
 
 genCNFIncorrectVarNumb :: Word -> Word -> Word -> Word -> Gen CNF

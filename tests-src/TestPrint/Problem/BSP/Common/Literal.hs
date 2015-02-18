@@ -28,4 +28,4 @@ printer =
 printLiteralArbitrary :: TestTree
 printLiteralArbitrary =
   printTest "Literal" (
-    (generate arbitrary) :: IO Literal)
+    generate arbitrary :: IO Literal)

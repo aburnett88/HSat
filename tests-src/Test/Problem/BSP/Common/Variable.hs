@@ -10,8 +10,7 @@ The TestTree Leaf for the Variable module
 -}
 
 module Test.Problem.BSP.Common.Variable (
-  tests,
-  printer
+  tests
   ) where
 
 import           Data.Word
@@ -43,17 +42,6 @@ tests =
       variableToIntegerTest1
       ]
     ]
-
-printer :: TestTree
-printer =
-  testGroup name [
-    printVariableArbitrary
-    ]
-
-printVariableArbitrary :: TestTree
-printVariableArbitrary =
-  printTest "Variable" (
-    (generate arbitrary) :: IO Variable)
 
 mkVariableTest1 :: TestTree
 mkVariableTest1 =

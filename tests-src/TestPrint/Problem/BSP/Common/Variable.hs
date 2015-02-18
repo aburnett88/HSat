@@ -28,4 +28,4 @@ printer =
 printVariableArbitrary :: TestTree
 printVariableArbitrary =
   printTest "Variable" (
-    (generate arbitrary) :: IO Variable)
+    generate arbitrary :: IO Variable)

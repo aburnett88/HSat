@@ -178,7 +178,7 @@ addLiteral'Test1 =
       )
   (\(builder,literal') ->
     case literal' of
-      Nothing -> property $ True
+      Nothing -> property True
       Just literal -> addLiteralTest1Generic builder (addLiteral' literal builder) literal
     )
 
@@ -215,7 +215,7 @@ finishClauseTest1 =
       ])
   (\cnfbuilder ->
     case (return cnfbuilder) >>= finishClause of
-      Left _ -> property $ False
+      Left _ -> property False
       Right builder ->
         finishClauseTest1Generic builder cnfbuilder
         )
@@ -225,12 +225,12 @@ finishClauseTest1Generic builder oldbuilder =
   let currClause = getCurrClause oldbuilder
       exptdClauses = clausesAddClause (getCurrClauses oldbuilder) currClause
       gottenClauses = getCurrClauses builder
-      exptdCount    = (getCurrClNumb oldbuilder) +
-        if (clauseIsEmpty currClause) then
+      exptdCount    = getCurrClNumb oldbuilder +
+        if clauseIsEmpty currClause then
           1 else
           0
       gottenCount   = getCurrClNumb builder
-  in (clauseIsEmpty $ getCurrClause builder) .&&.
+  in clauseIsEmpty (getCurrClause builder) .&&.
      (exptdClauses === gottenClauses)        .&&.
      (exptdCount   === gottenCount)
   
@@ -241,13 +241,13 @@ finishClauseTest2 =
   forAll
   (genCNFBuilderFinalise 10 10 10 10)
   (\builder ->
-    case (return builder) >>= finishClause of
+    case finishClause builder of
       Left (IncorrectClauseNumber gotten expected) ->
         let expected' = getExptdClNumb builder
             gotten'    = expected'+1
-        in (counterexample "Expected: " (expected' === expected)) .&&.
-           (counterexample "Gotten: " (gotten === gotten'))
-      Right _ -> property $ False
+        in counterexample "Expected: " (expected' === expected) .&&.
+           counterexample "Gotten: " (gotten === gotten')
+      Right _ -> property False
       )
 
 finishClause'Test1 :: TestTree
@@ -268,7 +268,7 @@ finishClause'Test2 =
   (genCNFBuilderFinalise 10 10 10 10)
   (\builder ->
     let builder' = finishClause' builder
-        exptdClNumb = (getCurrClNumb builder) +
+        exptdClNumb = getCurrClNumb builder +
                         if clauseIsEmpty (getCurrClause builder) then
                           1 else
                           0
@@ -286,7 +286,7 @@ finaliseTest1 =
   (genCNFBuilderFinalise 10 10 10 10)
   (\builder ->
     case finalise builder of
-      Left _ -> property $ False
+      Left _ -> property False
       Right cnf -> genFinaliseTest1 builder cnf
       )
 
@@ -305,7 +305,7 @@ finaliseTest2 =
             expected' = getExptdClNumb builder
         in (gotten' === gotten) .&&.
            (expected' === expected)
-      _ -> property $ False
+      _ -> property False
       )
 
 finalise'Test1 :: TestTree
@@ -322,7 +322,7 @@ genFinaliseTest1 builder cnf =
   let exptdMaxVar = getExptdMaxVar builder
       clNumb      = getCurrClNumb builder
       newClauses = if clauseIsEmpty (getCurrClause builder) then
-                     (getCurrClauses builder) else
+                     getCurrClauses builder else
                      clausesAddClause (getCurrClauses builder) (getCurrClause builder)
       cnf' = CNF exptdMaxVar clNumb newClauses
   in (cnf === cnf')
@@ -341,12 +341,12 @@ finalise'Test2 =
         exptdClNumb = getExptdClNumb builder
         maxVar = getExptdMaxVar builder
         newClauses = if clauseIsEmpty (getCurrClause builder) then
-                       (getCurrClauses builder) else
+                       getCurrClauses builder else
                        clausesAddClause (getCurrClauses builder) (getCurrClause builder)
         cnf = CNF maxVar currClNumb newClauses
     in (currClNumb < exptdClNumb) .&&.
        (cnf' === cnf) .&&.
-       (validate cnf')
+       validate cnf'
        )
 
 generalTest1 :: TestTree
@@ -354,11 +354,9 @@ generalTest1 =
   testProperty ("Run the Either methods on a list of Integer's and check " ++
                 "the value recovered is what was expected") $ property
   (\cnf ->
-    let maxVar     = getMaxVar cnf
-        clauseNumb = getClauseNumb cnf
-        literals   = map (map mkLiteralFromInteger) $ cnfToIntegers cnf
+    let (maxVar,clauseNumb,literals) = combined cnf
         exptdCNF   = evaluate (cnfBuilder maxVar clauseNumb) literals
-    in  (return cnf) === exptdCNF
+    in  return cnf === exptdCNF
   )
 
 generalTest'1 :: TestTree
@@ -366,12 +364,17 @@ generalTest'1 =
   testProperty ("Run the Pure methods on a list of Integer's and check " ++
                 "the value recovered is what we expected")
   (\cnf ->
-    let maxVar  = getMaxVar cnf
-        clauseNumb = getClauseNumb cnf
-        literals = map (map mkLiteralFromInteger) $ cnfToIntegers cnf
+    let (maxVar,clauseNumb,literals) = combined cnf
         exptdCNF = evaluate' (cnfBuilder' maxVar clauseNumb) literals
     in cnf === exptdCNF
        )
+
+combined :: CNF -> (Word,Word,[[Literal]])
+combined cnf =
+  let maxVar = getMaxVar cnf
+      clauseNumb = getClauseNumb cnf
+      literals = map (map mkLiteralFromInteger) $ cnfToIntegers cnf
+  in (maxVar,clauseNumb,literals)
 
 evaluate :: CNFBuildErr -> [[Literal]] -> Either CNFBuilderError CNF
 evaluate cnf [] = cnf >>= finalise

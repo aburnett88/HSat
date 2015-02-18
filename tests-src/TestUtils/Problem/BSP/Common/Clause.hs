@@ -20,8 +20,7 @@ genClauseFixedSize sizeBound maxVar = do
   return $ mkClause vector
 
 genClause :: Word -> Word -> Gen Clause
-genClause sizeBound 0 = do
-  return $ mkClause V.empty
+genClause sizeBound 0 = return $ mkClause V.empty
 genClause sizeBound maxVar = do
   size <- choose (0,sizeBound)
   genClauseFixedSize size maxVar

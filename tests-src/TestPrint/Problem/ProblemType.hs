@@ -28,4 +28,4 @@ printer =
 printProblemTypeArbitrary :: TestTree
 printProblemTypeArbitrary =
   printTest "ProblemType" (
-    (generate arbitrary) :: IO ProblemType)
+    generate arbitrary :: IO ProblemType)

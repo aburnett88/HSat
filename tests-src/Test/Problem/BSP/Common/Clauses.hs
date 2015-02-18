@@ -10,8 +10,7 @@ The TestTree Leaf for the Clauses module
 -}
 
 module Test.Problem.BSP.Common.Clauses (
-  tests,
-  printer
+  tests
   ) where
 
 import           Control.Monad (replicateM)
@@ -24,6 +23,7 @@ import           HSat.Problem.BSP.Common.Sign
 import           HSat.Problem.BSP.Common.Variable
 import qualified Test.Problem.BSP.Common.Clauses.Internal as Internal
 import           TestUtils
+import Debug.Trace
 
 name :: String
 name = "Clauses"
@@ -68,17 +68,6 @@ tests =
       getSetNegTest1
       ]
     ]
-
-printer :: TestTree
-printer =
-  testGroup name [
-    printClausesArbitrary
-    ]
-
-printClausesArbitrary :: TestTree
-printClausesArbitrary =
-  printTest "Clauses" (
-    (generate arbitrary) :: IO Clauses)
 
 mkClausesTest1 :: TestTree
 mkClausesTest1 =
@@ -165,7 +154,9 @@ findMaxVarTest2 =
     let expectedVal =
           if null litlist then
             0 else
-            maximum . map (getWord . getVariable) $ concat litlist
+            if null $ concat litlist then
+              0 else
+              maximum . map (getWord . getVariable) $ concat litlist
         actualVal   = findMaxVar . mkClausesFromIntegers $
                       map (map literalToInteger) litlist
     in expectedVal  === actualVal

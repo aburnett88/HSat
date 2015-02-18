@@ -28,4 +28,4 @@ printer =
 printSourceArbitrary :: TestTree
 printSourceArbitrary =
   printTest "Source" (
-    (generate arbitrary) :: IO Source)
+    generate arbitrary :: IO Source)

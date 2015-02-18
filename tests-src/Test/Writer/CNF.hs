@@ -40,8 +40,8 @@ mkCNFWriterTest1 =
         gottenClauses = writeClauses writer
         expectedProblemLine = WPL (getMaxVar cnf) (getClauseNumb cnf) []
         gottenProblemLine = writeProblemLine writer
-    in (testEq "" expectedClauses gottenClauses) .&&.
-       (testEq "" expectedProblemLine gottenProblemLine)
+    in testEq "" expectedClauses gottenClauses .&&.
+       testEq "" expectedProblemLine gottenProblemLine
        )
 
 addClauseCommentTest1 :: TestTree
@@ -52,8 +52,8 @@ addClauseCommentTest1 =
       comment <- arbitrary
       writer <- arbitrary
       w <- case wplClauses . writeProblemLine $ writer of
-        0 -> return $ Nothing
-        n -> Just `liftM` (choose (0,n-1))
+        0 -> return Nothing
+        n -> Just `liftM` choose (0,n-1)
       return (comment,writer,w)
       )
   (\(comment,writer,w) ->
@@ -65,8 +65,8 @@ addClauseCommentTest1 =
             let x = True
                 y = False
             in property $ x===y
-          Nothing -> property $ False
-      Nothing -> property $ True
+          Nothing -> property False
+      Nothing -> property True
       )
 
 addClauseCommentTest2 :: TestTree
@@ -82,8 +82,8 @@ addClauseCommentTest2 =
   (\(comment,writer,w) ->
     let writer' = addClauseComment w comment writer
     in case writer' of
-          Nothing -> property $ True
-          Just writer'' -> property $ False
+          Nothing -> property True
+          Just writer'' -> property False
           )
 
 addPreambleCommentTest1 :: TestTree
@@ -94,11 +94,11 @@ addPreambleCommentTest1 =
         expectedClauses = writeClauses writer
         gottenClauses = writeClauses writer'
         p = writeProblemLine writer
-        expectedPreamble = (WPL (wplVariables p) (wplClauses p) (
-                               wplComments p ++ [comment]))
+        expectedPreamble = WPL (wplVariables p) (wplClauses p) (
+                               wplComments p ++ [comment])
         gottenPreamble = writeProblemLine writer'
-    in (testEq "" expectedClauses gottenClauses) .&&.
-       (testEq "" expectedPreamble gottenPreamble)
+    in testEq "" expectedClauses gottenClauses .&&.
+       testEq "" expectedPreamble gottenPreamble
        )
 
 runCNFWriterTest1 :: TestTree

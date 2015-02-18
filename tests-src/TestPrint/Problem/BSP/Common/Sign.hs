@@ -27,5 +27,5 @@ printer =
 
 printSignArbitrary :: TestTree
 printSignArbitrary =
-  printTest "Sign" (
-    (generate arbitrary) :: IO Sign)
+  printTest "Sign"  (
+    generate arbitrary :: IO Sign)

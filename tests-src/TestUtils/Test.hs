@@ -11,8 +11,7 @@ import Control.Monad (liftM,liftM2)
 import qualified Data.Vector as V
 
 instance Arbitrary a => Arbitrary (V.Vector a) where
-  arbitrary = do
-    V.fromList `liftM` listOf arbitrary
+  arbitrary = V.fromList `liftM` listOf arbitrary
   shrink v =
     map V.fromList $ shrink . V.toList $ v
 

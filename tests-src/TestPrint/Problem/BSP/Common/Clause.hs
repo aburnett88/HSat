@@ -28,4 +28,4 @@ printer =
 printClauseArbitrary :: TestTree
 printClauseArbitrary =
   printTest "Clause" (
-    (generate arbitrary) :: IO Clause)
+    generate arbitrary :: IO Clause)
