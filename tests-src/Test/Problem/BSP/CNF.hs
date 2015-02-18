@@ -21,6 +21,7 @@ import           HSat.Problem.BSP.Common
 import qualified Test.Problem.BSP.CNF.Builder as CNFBuilder
 import qualified Test.Problem.BSP.CNF.Internal as Internal
 import           TestUtils
+import HSat.Validate
 
 name :: String
 name = "CNF"
@@ -29,6 +30,7 @@ tests :: TestTree
 tests = testGroup name [
   Internal.tests,
   CNFBuilder.tests,
+  testCNF,
   testGroup "mkCNFFromClauses" [
      mkCNFFromClausesTest1
      ],
@@ -39,6 +41,13 @@ tests = testGroup name [
     mkCNFFromIntegersTest1
     ]
   ]
+
+testCNF :: TestTree
+testCNF =
+  testProperty "Arbitrary CNF are valid" $ property testCNF'
+  where
+    testCNF' :: CNF -> Bool
+    testCNF' = validate 
 
 mkCNFFromClausesTest1 :: TestTree
 mkCNFFromClausesTest1 =
