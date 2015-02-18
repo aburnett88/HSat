@@ -1,56 +1,54 @@
 {-|
 Module      : TestUtils
-Description : Commonly used testing functions
+Description : Module node for TestUtils functions
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-Every commonly used function within the testing framework is exported
-from this file. 
+Exports commonly used Generator's for testing functions
 -}
 
 module TestUtils (
-  module Test.Extended,
-  testMaxClauseSize,   -- :: Int
-  testMaxClausesSize,  -- :: Int
-  mkIntegerNonZero,    -- :: Gen Integer
-  mkWordNonZero,       -- :: Gen Word
-  checkBounds,         -- :: (Ord a) => a -> Bounds a -> Bool
-  testList,
-  testEq,
-  testAllEq,
-  forceError,
-  printTest
+  module Test.Extended, -- Module Export
+  testMaxClauseSize,    -- :: Int
+  testMaxClausesSize,   -- :: Int
+  mkIntegerNonZero,     -- :: Gen Integer
+  mkWordNonZero,        -- :: Gen Word
+  checkBounds,          -- :: (Ord a) => a -> Bounds a -> Bool
+  testList,             -- ::
+  testEq,               -- ::
+  testAllEq,            -- ::
+  forceError,           -- ::
+  printTest             -- :: 
   ) where
 
-import TestUtils.Problem
-import           Control.Monad (when)
-import           Data.Maybe (isNothing)
 import qualified Control.Exception as E (catch)
 import           Control.Exception.Base (ErrorCall)
-import           Control.Monad (replicateM,liftM,liftM2)
+import           Control.Monad (replicateM,liftM,liftM2,when)
+import           Data.Maybe (isNothing,fromMaybe)
 import           Data.Text (Text,pack,unpack)
 import qualified Data.Vector as V
 import           Data.Word
-import HSat.Make.Config
-import HSat.Make.Internal
+import           HSat.Make.Config
+import           HSat.Make.Internal
+import           HSat.Printer
 import           HSat.Problem
 import           HSat.Problem.BSP.CNF
+import           HSat.Problem.BSP.CNF.Builder.Internal
 import           HSat.Problem.BSP.Common
 import           HSat.Problem.ProblemExpr
 import qualified HSat.Problem.ProblemType as P
 import           HSat.Problem.Source
-import           HSat.Writer.Internal
-import           System.Random
 import           HSat.Writer.CNF
 import           HSat.Writer.CNF.Internal
+import           HSat.Writer.Internal
+import           System.Random
 import           Test.Tasty as Test.Extended
-import HSat.Printer
 import           Test.Tasty.Golden as Test.Extended
 import           Test.Tasty.HUnit as Test.Extended
 import           Test.Tasty.QuickCheck as Test.Extended
-import HSat.Problem.BSP.CNF.Builder.Internal
+import           TestUtils.Problem
 
 --The maximum size a clause is able to be in this configuration
 testMaxClauseSize :: Int
@@ -90,8 +88,7 @@ instance (Arbitrary a, Ord a, Bounded a) => Arbitrary (Bounds a) where
   shrink bounds = []
 
 instance Arbitrary PosDouble where
-  arbitrary = do
-    choose (minBound,maxBound)
+  arbitrary = choose (minBound,maxBound)
   shrink d =
     map mkPosDouble . filter (>0.0) $ shrink . getDouble $ d
 
@@ -120,7 +117,7 @@ instance Arbitrary Config where
     return (Config output input)
   shrink (Config output input) =
     let xs = shrink (output,input)
-    in map (\(a,b) -> Config a b) xs
+    in map (uncurry Config) xs
 
 instance Arbitrary ConfigProblemType where
   arbitrary = do
@@ -152,15 +149,15 @@ instance Arbitrary CNFConfig where
  --   in map (\(a,b,c,d) -> CNFConfig a b c d) xs
 
 testList :: (Show a, Ord a) => Bounds a -> [a] -> Property
-testList _ [] = property $ True
+testList _ [] = property True
 testList a (x:xs) = checkBounds x a .&&. testList a xs
 
 testEq :: (Eq a, Show a) => String -> a -> a -> Property
-testEq s a b = counterexample (s ++ ": " ++ (show a) ++ " /= " ++ (show b) ++ " ") (a==b)
+testEq s a b = counterexample (s ++ ": " ++ show a ++ " /= " ++ show b ++ " ") (a==b)
 
 testAllEq :: (Show a, Eq a) => String -> [a] -> [a] -> Property
-testAllEq _ [] [] = property $ True
-testAllEq s (x:xs) (y:ys) = (testEq s x y) .&&. testAllEq s xs ys
+testAllEq _ [] [] = property True
+testAllEq s (x:xs) (y:ys) = testEq s x y .&&. testAllEq s xs ys
 
 instance Arbitrary Comment where
   arbitrary = do
@@ -183,23 +180,17 @@ instance Arbitrary CNFWriter where
     commentsPreamble <- replicateM noPreCommentsToAdd arbitrary
     noNormalCommentsToAdd <- choose (0,100) :: Gen Int
     commentsClauses <- replicateM noNormalCommentsToAdd (
-      do
-        choose (0,getClauseNumb cnf)
-        )
+      choose (0,getClauseNumb cnf))
     comments2 <- replicateM noNormalCommentsToAdd arbitrary
     let writer2 = foldl (flip addPreambleComment) writer commentsPreamble
         writer3 = foldl (\aaa (a,b) -> retain aaa a b) writer2 (
           zip commentsClauses comments2)
     return writer3
     
-
-
 retain :: CNFWriter -> Word -> Comment -> CNFWriter
 retain cnf w c =
   let cnf' = addClauseComment w c cnf
-  in case cnf' of
-    Just res -> res
-    Nothing -> cnf
+  in fromMaybe cnf cnf'
 
 instance Arbitrary Text where
   arbitrary = do
@@ -223,7 +214,7 @@ forceError correct dummyVal = do
       when (dv==ans) (print ans) >> return ans
       )
                ((\_ -> return Nothing) :: ErrorCall -> IO (Maybe a))
-  assertBool "Did not throw error" (isNothing $ maybValue)
+  assertBool "Did not throw error" (isNothing maybValue)
 
 printTest :: (Printer a) => String -> IO a -> TestTree
 printTest str getElem =
