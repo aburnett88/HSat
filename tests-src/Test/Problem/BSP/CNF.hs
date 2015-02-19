@@ -79,7 +79,7 @@ mkCNFFromIntegersTest1 =
   forAll
   (listOf $ listOf mkIntegerNonZero)
   (\ints ->
-    ints === (cnfToIntegers $ mkCNFFromIntegers ints)
+    ints === cnfToIntegers (mkCNFFromIntegers ints)
     )
 
 

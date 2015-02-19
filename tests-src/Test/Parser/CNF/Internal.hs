@@ -57,7 +57,7 @@ genComment = do
 parseCommentTest1 :: TestTree
 parseCommentTest1 =
   testCase ("parseComment \"" ++ testStr ++ "\"") $ assert (
-    parseOnly parseComment (pack testStr) == (Right ())
+    parseOnly parseComment (pack testStr) == Right ()
     )
   where
     testStr = "c hello world"
@@ -65,7 +65,7 @@ parseCommentTest1 =
 parseCommentTest2 :: TestTree
 parseCommentTest2 =
   testCase ("parseComment \"" ++ testStr ++ "\"") $ assert (
-    parseOnly parseComment (pack testStr) == (Right ())
+    parseOnly parseComment (pack testStr) == Right ()
     )
   where
     testStr = "   c hello world"
@@ -83,24 +83,24 @@ parseCommentTest4 =
   testProperty "Parse random comments" $ forAll
   genComment
   (\text ->
-    parseOnly parseComment text == (Right ())
+    parseOnly parseComment text == Right ()
     )
 
 parseCommentsTest1 :: TestTree
 parseCommentsTest1 =
   testCase ("parseComments \"" ++ testStr ++ "\"") $ assert (
-    parseOnly parseComments (pack testStr) == (Right ())
+    parseOnly parseComments (pack testStr) == Right ()
     )
   where
     testStr = "c hello world\nc goodbye world"
 
 parseCommentsTest2 :: TestTree
 parseCommentsTest2 =
-  testProperty ("parseComments randomly generated") $ forAll
+  testProperty "parseComments randomly generated" $ forAll
   (do
       x <- choose (1,50)
       y <- replicateM x genComment
-      return $ (T.unlines y)
+      return $ T.unlines y
       )
   (\text ->
     parseOnly parseComments text === Right ()
@@ -146,18 +146,19 @@ parseProblemLineTest3 =
       return (xs,v,c)
       )
   (\(xs,v,c) ->
-    let text = pack $ ((xs !! 0) ++ "p" ++ (xs !! 1) ++ "cnf" ++
-                       (xs !! 2) ++ (show v) ++ (xs !! 3) ++ (show c) ++
+    let text = pack (Prelude.head xs ++ "p" ++ (xs !! 1) ++ "cnf" ++
+                       (xs !! 2) ++ show v ++ (xs !! 3) ++ show c ++
                        (xs !! 4)
                        )
         cnf' = CNFBuilder v c 0 emptyClauses emptyClause
-    in (parseOnly parseProblemLine text) === (Right . Right $ cnf')
+    in parseOnly parseProblemLine text === (Right . Right $ cnf')
        )
        
 parseLiteralTest1 :: TestTree
 parseLiteralTest1 =
   testCase ("parseLiteral \"" ++ testStr ++ "\"") $ assert (
-    (parseOnly parseLiteral (pack testStr)) == (Right $ mkLiteralFromInteger word)
+    parseOnly parseLiteral (pack testStr) ==
+    (Right $ mkLiteralFromInteger word)
     )
   where
     testStr = show word
@@ -192,18 +193,19 @@ parseLiteralTest4 =
 
 parseLiteralTest5 :: TestTree
 parseLiteralTest5 =
-  testProperty ("parseLiteral sucessful") $ property (
+  testProperty "parseLiteral sucessful" $ property (
     \word ->
     let res = parseOnly parseLiteral (pack $ show word)
     in case res of
-      Left _ -> property $ False
+      Left _ -> property False
       Right w -> w===word
       )
 
 parseClauseTest1 :: TestTree
 parseClauseTest1 =
   testCase ("parseClause \"" ++ testStr ++ "\"") $ assert (
-    parseOnly (parseClause $ return cnf) (pack testStr) == (Right . Right $ cnf')
+    parseOnly (parseClause $ return cnf) (pack testStr) ==
+    (Right . Right $ cnf')
     )
   where
     cnf = CNFBuilder 10 10 0 emptyClauses emptyClause

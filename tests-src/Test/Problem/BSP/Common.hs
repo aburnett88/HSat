@@ -6,7 +6,8 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The node within the test tree containing the tests of the children of the 'Common'
+The node within the test tree containing the tests of the children of the
+'Common'
 module
 -}
 

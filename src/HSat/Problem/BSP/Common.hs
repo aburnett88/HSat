@@ -11,15 +11,11 @@ the 'Common' subfolder
 -}
 
 module HSat.Problem.BSP.Common (
-  module HSat.Problem.BSP.Common.Clause,
-  module HSat.Problem.BSP.Common.Clauses,
-  module HSat.Problem.BSP.Common.Literal,
-  module HSat.Problem.BSP.Common.Sign,
-  module HSat.Problem.BSP.Common.Variable
+  module Common
   ) where
 
-import HSat.Problem.BSP.Common.Clause
-import HSat.Problem.BSP.Common.Clauses
-import HSat.Problem.BSP.Common.Literal
-import HSat.Problem.BSP.Common.Sign
-import HSat.Problem.BSP.Common.Variable
+import HSat.Problem.BSP.Common.Clause as Common
+import HSat.Problem.BSP.Common.Clauses as Common
+import HSat.Problem.BSP.Common.Literal as Common
+import HSat.Problem.BSP.Common.Sign as Common
+import HSat.Problem.BSP.Common.Variable as Common

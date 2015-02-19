@@ -6,8 +6,8 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The general 'Problem' type describes all types of 'Problem', there 'Source' and
-accompanying 'ProblemExpr'
+The general 'Problem' type describes all types of 'Problem', there 'Source'
+and accompanying 'ProblemExpr'
 -}
 
 module HSat.Problem (
@@ -21,8 +21,8 @@ import HSat.Problem.ProblemExpr
 import HSat.Problem.Source
 
 {-|
-The general 'Problem' type describes all the types of 'ProblemExpr' and provides
-an accompanying 'Source'
+The general 'Problem' type describes all the types of 'ProblemExpr' and
+provides an accompanying 'Source'
 -}
 data Problem = Problem {
   -- | The 'Source' of the 'Problem'

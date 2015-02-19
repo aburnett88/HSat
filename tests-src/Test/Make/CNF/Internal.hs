@@ -51,7 +51,8 @@ fillClausesTest1 =
       replicateM (fromEnum clausesSize) $ choose (2,10)
     let totalVars = sum clauseSizes
     trueOrFalse <- generate arbitrary
-    --only generate the variables that can actually produce things that work - for now
+    --only generate the variables that can actually produce things that work -
+for now
     vars <- generate $ choose (1,if trueOrFalse then
                                    totalVars `div` 2 else
                                    totalVars)
@@ -64,24 +65,30 @@ fillClausesTest1 =
           setOfVars = S.fromList . map mkVariable $ [1..vars]
           actualLen = V.length . getVectOfClauses $ clauses
           expectedLen = fromEnum clausesSize
-          actualSizes = (V.toList . V.map clauseLength . getVectOfClauses $ clauses)
+          actualSizes = (V.toList . V.map clauseLength . getVectOfClauses $
+clauses)
           varsNotInClauses = S.difference setOfVars $ getSetOfVars clauses
           posVarsNotInClauses = S.difference setOfVars $ getSetPos clauses
           negVarsNotInClauses = S.difference setOfVars $ getSetNeg clauses
         return . property $ (
           (testEq "Length of Clauses incorrect" actualLen expectedLen) .&&.
-          (testAllEq "Length of individual clause incorrect" actualSizes clauseSizes) .&&.
+          (testAllEq "Length of individual clause incorrect" actualSizes
+clauseSizes) .&&.
           (if trueOrFalse then
-             (testEq "Positive Variables in Clauses incorrect" posVarsNotInClauses S.empty) .&&.
-             (testEq "Negative Variables in Clauses incorrect" negVarsNotInClauses S.empty) else
-             (testEq "Variables in Clauses incorrect" varsNotInClauses S.empty))
+             (testEq "Positive Variables in Clauses incorrect"
+posVarsNotInClauses S.empty) .&&.
+             (testEq "Negative Variables in Clauses incorrect"
+negVarsNotInClauses S.empty) else
+             (testEq "Variables in Clauses incorrect" varsNotInClauses
+S.empty))
           )
 
 
       
 chooseClausesTest1 :: TestTree
 chooseClausesTest1 =
-  testProperty "ChooseClauses non-relaion returns correct values" $ ioProperty $ do
+  testProperty "ChooseClauses non-relaion returns correct values" $ ioProperty
+$ do
     c <- generate arbitrary
     c' <- chooseClauses c
     return $ property $ (checkBounds c' c)

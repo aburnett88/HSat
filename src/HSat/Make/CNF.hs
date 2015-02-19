@@ -6,7 +6,8 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-Provides the ability to create 'Config'urations for randomly generated 'CNF' problems
+Provides the ability to create 'Config'urations for randomly generated 'CNF'
+problems
 -}
 
 module HSat.Make.CNF (
@@ -24,7 +25,8 @@ import HSat.Problem.BSP.CNF.Internal
 {-|
 A 'CNFConfig' is evaluated. No concern is given to whether it is computable
 -}
-evaluateCNFConfigErr :: (MonadRandom m) => CNFConfig -> m (Either CNFMakeError CNF)
+evaluateCNFConfigErr :: (MonadRandom m) => CNFConfig ->
+                        m (Either CNFMakeError CNF)
 evaluateCNFConfigErr config =
   runEitherT evaluateConfig'
   where
@@ -37,8 +39,7 @@ evaluateCNFConfigErr config =
       return $ CNF nVars nClauses clauses
 
 evaluateCNFConfig :: (MonadRandom m) => CNFConfig -> m (CNF,CNFConfig)
-evaluateCNFConfig config =
-  runStateT evaluateConfig' config
+evaluateCNFConfig = runStateT evaluateConfig'
   where
     evaluateConfig' :: (MonadRandom m) => StateT CNFConfig m CNF
     evaluateConfig' = do
@@ -58,15 +59,17 @@ evaluateInit = do
   pred <- gets HSat.Make.Config.getVarPred
   return $ ClausesInit clauseSizes total vars pred
 
-evaluateInitErr :: (MonadRandom m) => CNFConfig -> EitherT CNFMakeError m ClausesInit
+evaluateInitErr :: (MonadRandom m) => CNFConfig ->
+                   EitherT CNFMakeError m ClausesInit
 evaluateInitErr config = do
   (clausesInit,newConfig) <- runStateT evaluateInit config
   decideUponError config newConfig clausesInit
 
-decideUponError :: (Monad m) => CNFConfig -> CNFConfig -> ClausesInit -> EitherT CNFMakeError m ClausesInit
+decideUponError :: (Monad m) => CNFConfig -> CNFConfig -> ClausesInit ->
+                   EitherT CNFMakeError m ClausesInit
 decideUponError (CNFConfig _ vN vpcN _) (CNFConfig _ vN' vpcN' _) init =
   if vpcN == vpcN' then
     if vN == vN' then
-      return $ init else
-      left $ UnableToChooseVariables else
-    left $ UnableToChooseClauseSizes
+      return init else
+      left UnableToChooseVariables else
+    left UnableToChooseClauseSizes

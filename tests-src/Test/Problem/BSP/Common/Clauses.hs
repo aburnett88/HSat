@@ -152,11 +152,9 @@ findMaxVarTest2 =
   testProperty "max litlist == findmaxVar . toClauses $ litlist" $ property
   (\litlist ->
     let expectedVal =
-          if null litlist then
+          if null $ concat litlist then
             0 else
-            if null $ concat litlist then
-              0 else
-              maximum . map (getWord . getVariable) $ concat litlist
+            maximum . map (getWord . getVariable) $ concat litlist
         actualVal   = findMaxVar . mkClausesFromIntegers $
                       map (map literalToInteger) litlist
     in expectedVal  === actualVal

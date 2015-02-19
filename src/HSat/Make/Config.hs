@@ -6,7 +6,8 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-Provides the ability to create 'Config'urations for randomly generated 'Problem's
+Provides the ability to create 'Config'urations for randomly generated
+'Problem's
 -}
 
 module HSat.Make.Config (
@@ -78,7 +79,7 @@ instance Random PosDouble where
   randomR (PosDouble l,PosDouble r) g =
     let (p,g') = randomR (l,r) g
     in (PosDouble p,g')
-  random g = randomR (minBound,maxBound) g
+  random = randomR (minBound,maxBound)
 
 instance Ord PosDouble where
   compare (PosDouble l) (PosDouble r) = compare l r

@@ -49,7 +49,7 @@ instance Validate Clauses where
   validate (Clauses vector sizeClauses) =
     let actualSize = toEnum $ V.length vector
     in (actualSize == sizeClauses) &&
-       (V.all validate vector)
+       V.all validate vector
 
 instance Printer Clauses where
   compact   = generalPrinter compact
@@ -67,5 +67,6 @@ printClausesWithContext sepClauses sepClause maxVar function clauses =
   vsep $ punctuate (text sepClauses) clausesDoc
   where
     clausesDoc :: [Doc]
-    clausesDoc = V.toList . V.map (printClauseWithContext sepClause maxVar function) $
+    clausesDoc =
+      V.toList . V.map (printClauseWithContext sepClause maxVar function) $
                  getVectClause clauses

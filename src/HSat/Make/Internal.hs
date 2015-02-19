@@ -31,7 +31,7 @@ mkMinimum :: (Ord a, Bounded a) => a -> Bounds a
 mkMinimum a = Bounds a maxBound
 
 mkMaximum :: (Ord a, Bounded a) => a -> Bounds a
-mkMaximum a = Bounds minBound a
+mkMaximum = Bounds minBound
 
 mkNoBounds :: (Ord a, Bounded a) => Bounds a
 mkNoBounds = Bounds minBound maxBound

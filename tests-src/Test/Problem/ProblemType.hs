@@ -11,8 +11,7 @@ Provides the tests for the ProblemExpr type
 
 
 module Test.Problem.ProblemType (
-  tests,
-  printer
+  tests
   ) where
 
 import TestUtils
@@ -23,14 +22,3 @@ name = "ProblemType"
 
 tests :: TestTree
 tests = testGroup name []
-
-printer :: TestTree
-printer =
-  testGroup name [
-    printProblemTypeArbitrary
-    ]
-
-printProblemTypeArbitrary :: TestTree
-printProblemTypeArbitrary =
-  printTest "ProblemType" (
-    (generate arbitrary) :: IO ProblemType)

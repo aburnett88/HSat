@@ -51,12 +51,15 @@ cnfBuilder' v c =
   CNFBuilder v c 0 emptyClauses emptyClause
 
 {-|
-Moves the current clause to the set of 'Clauses' and replaces this with an empty 'Clause'
+Moves the current clause to the set of 'Clauses' and replaces this with an
+empty 'Clause'
 -}
 finishClause     :: CNFBuilder -> CNFBuildErr
 finishClause cnf =
-  if clauseIsEmpty (getCurrClause cnf) && (getExptdClNumb cnf == getCurrClNumb cnf) then
-    Left $ IncorrectClauseNumber (getCurrClNumb cnf+1) (getExptdClNumb cnf) else
+  if clauseIsEmpty (getCurrClause cnf) && (
+    getExptdClNumb cnf == getCurrClNumb cnf) then
+    Left $
+    IncorrectClauseNumber (getCurrClNumb cnf+1) (getExptdClNumb cnf) else
     return $ finishClause' cnf
 
 {-|
@@ -72,11 +75,11 @@ finishClause' cnf = g . f $
     f          = if clauseIsEmpty currClause then
                    incrClause else
                    id
-    g          = \cnfd -> if getCurrClNumb cnfd > getExptdClNumb cnfd then
-                            cnfd {
-                              getExptdClNumb = getCurrClNumb cnfd
-                                              } else
-                            cnfd
+    g cnfd     = if getCurrClNumb cnfd > getExptdClNumb cnfd then
+                   cnfd {
+                     getExptdClNumb = getCurrClNumb cnfd
+                     } else
+                   cnfd
     newClauses = clausesAddClause (getCurrClauses cnf) currClause
     currClause = getCurrClause cnf
 
@@ -110,7 +113,8 @@ incrClause cnf = cnf {
   }
 
 {-|
-Checks the literal to make sure that it is within range and, if ti is, create the new CNFBuilder.
+Checks the literal to make sure that it is within range and, if ti is, create
+the new CNFBuilder.
 
 Else, throw an error
 -}

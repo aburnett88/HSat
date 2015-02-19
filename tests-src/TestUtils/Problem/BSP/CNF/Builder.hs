@@ -42,7 +42,8 @@ instance Arbitrary CNFBuilder where
 instance Arbitrary CNFBuilderError where
   arbitrary = genCNFBuilderError
   shrink (IncorrectClauseNumber gotten expected) =
-    filter validate . map (uncurry IncorrectClauseNumber) $ shrink (gotten,expected)
+    filter validate . map (uncurry IncorrectClauseNumber) $
+    shrink (gotten,expected)
   shrink (LitOutsideRange gotten expected) =
     filter validate . map (uncurry LitOutsideRange) $ shrink (gotten,expected)
 
@@ -66,12 +67,15 @@ combined maxV clauseSize clausesSize maxVarOffset = do
 
 genCNFBuilderEmptyClause :: Word -> Word -> Word -> Word -> Gen CNFBuilder
 genCNFBuilderEmptyClause maxV clauseSize clausesSize maxVarOffset = do
-  (clauses,targetSize,maxVar,maxVar') <- combined maxV clauseSize clausesSize maxVarOffset
-  return $ CNFBuilder maxVar' targetSize (getSizeClauses clauses) clauses emptyClause
+  (clauses,targetSize,maxVar,maxVar') <-
+    combined maxV clauseSize clausesSize maxVarOffset
+  return $
+    CNFBuilder maxVar' targetSize (getSizeClauses clauses) clauses emptyClause
 
 genCNFBuilderLitInClause :: Word -> Word -> Word -> Word -> Gen CNFBuilder
 genCNFBuilderLitInClause maxV clauseSize clausesSize maxVarOffset = do
-  (clauses,targetSize,maxVar,maxVar') <- combined maxV clauseSize clausesSize maxVarOffset
+  (clauses,targetSize,maxVar,maxVar') <-
+    combined maxV clauseSize clausesSize maxVarOffset
   clause <- genClause clauseSize maxVar
   let actualSize = getSizeClauses clauses + if clauseIsEmpty clause then
                                               0 else

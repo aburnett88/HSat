@@ -41,7 +41,7 @@ instance Validate CNF where
         actualMaxVar     = findMaxVar clauses
     in (actualClauseNumb == clauseNumb) &&
        (actualMaxVar     <= maxVar)     &&
-       (validate clauses)
+       validate clauses
 
 noUnicodeAnd,unicodeAnd,noUnicodeOr,unicodeOr :: String
 noUnicodeAnd                                  = "/\\"
@@ -57,12 +57,12 @@ instance Printer CNF where
 docCNF :: PrinterType -> CNF -> Doc
 docCNF pType (CNF maxVar clNumb cl) =
   title <+>
-  variable <+> (word maxVar) <> space' <>
-  clause <+> (word clNumb) <> line <>
+  variable <+> word maxVar <> space' <>
+  clause <+> word clNumb <> line <>
   clauses
   where
     title :: Doc
-    title = (text "CNF")
+    title = text "CNF"
     variable :: Doc
     variable = text $ case pType of
       Compact -> "V"
@@ -78,5 +78,6 @@ docCNF pType (CNF maxVar clNumb cl) =
     clauses :: Doc
     clauses = case pType of
       Compact -> compact cl
-      NoUnicode -> printClausesWithContext noUnicodeAnd noUnicodeOr maxVar noUnicode cl
+      NoUnicode ->
+        printClausesWithContext noUnicodeAnd noUnicodeOr maxVar noUnicode cl
       Unicode -> printClausesWithContext unicodeAnd unicodeOr maxVar unicode cl

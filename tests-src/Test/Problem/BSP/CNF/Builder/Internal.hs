@@ -47,7 +47,8 @@ cnfBuilderTest2 =
 
 cnfBuilderError1 :: TestTree
 cnfBuilderError1 =
-  testProperty "validate arbitrary CNFBuilderError == True" $ property testCNFBuilderError
+  testProperty "validate arbitrary CNFBuilderError == True" $
+  property testCNFBuilderError
   where
     testCNFBuilderError :: CNFBuilderError -> Bool
     testCNFBuilderError = validate
@@ -63,7 +64,8 @@ canAddLiteralTest1 :: TestTree
 canAddLiteralTest1 =
   testProperty "canAddLiteral == True on valid CNFBuilder" $
   forAll
-  (oneof [genCNFBuilderEmptyClause 10 10 10 10,genCNFBuilderLitInClause 10 10 10 10])
+  (oneof [genCNFBuilderEmptyClause 10 10 10 10,
+          genCNFBuilderLitInClause 10 10 10 10])
   canAddLiteral
 
 canAddLiteralTest2 :: TestTree

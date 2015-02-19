@@ -47,13 +47,13 @@ choices :: String -> Parser Char
 choices xs = choice $ fmap char xs
 
 parseClause :: CNFBuildErr -> Parser CNFBuildErr
-parseClause build = return $ build
+parseClause = return
 
 parseClauses :: CNFBuilder -> Parser CNFBuilder
-parseClauses cnf = return $ cnf
+parseClauses = return
 
 parseLiteral :: Parser Literal
 parseLiteral = do
   x <- positive
-  s <- return $ True
+  let s = True
   return $ mkLiteral (mkSign s) (mkVariable x)

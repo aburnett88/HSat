@@ -31,9 +31,8 @@ tests =
 
 makeTest1 :: TestTree
 makeTest1 =
-  testProperty "make configuration is valid" $ property (
-    \bool -> bool == (not bool)
-             )
+  testProperty "make configuration is valid" $ property
+    (\bool -> bool == not bool)
 
   {-ioProperty (
     \config -> do
@@ -43,6 +42,5 @@ makeTest1 =
 -}
 makeListTest1 :: TestTree
 makeListTest1 =
-  testProperty "make configurations are valid" $ property (
-    \bool -> bool == (not bool)
-             )
+  testProperty "make configurations are valid" $ property
+    (\bool -> bool == not bool)

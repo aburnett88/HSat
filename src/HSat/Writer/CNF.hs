@@ -25,7 +25,7 @@ addClauseComment w c writer
     let (l,r) = V.splitAt (fromEnum w) $ writeClauses writer
         h' = WCL (wpClause (V.head r)) (wclComments (V.head r) ++ [c])
     in Just $ writer {
-      writeClauses = l V.++ (V.cons h' (V.tail r))
+      writeClauses = l V.++ V.cons h' (V.tail r)
                      }
   | otherwise = Nothing
 
@@ -43,12 +43,12 @@ runCNFWriter (CNFWriter p c) = T.unlines $
   (Prelude.concat . V.toList . V.map runClauses $ c)
   where
     runProblemLine :: WrittenProblemLine -> [Text]
-    runProblemLine (WPL v c comments) = ( ls ++ [m] ++ rs)
+    runProblemLine (WPL v c comments) = ls ++ [m] ++ rs
       where
         (ls,rs) = runComment comments
         m = pack $ "p cnf " ++ show v ++ " " ++ show c
     runClauses :: WrittenClauseLine -> [Text]
-    runClauses (WCL clause comments) = (ls ++ [m] ++ rs)
+    runClauses (WCL clause comments) = ls ++ [m] ++ rs
       where
         (ls,rs) = runComment comments
         m = runClauses' (getVectLiteral clause) empty
@@ -56,10 +56,10 @@ runCNFWriter (CNFWriter p c) = T.unlines $
 
 runClauses' :: V.Vector Literal -> Text -> Text
 runClauses' vs t =
-  case V.null vs of
-    True -> t `append` (pack "0")
-    False -> runClauses' (V.tail vs) (
-      t `append` (pack $
+  if V.null vs then
+    t `append` pack "0" else
+    runClauses' (V.tail vs) (
+      t `append` pack (
                   (show . literalToInteger . V.head $ vs) ++ " "
                   )
       )

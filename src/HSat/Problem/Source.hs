@@ -22,7 +22,8 @@ import HSat.Printer
 A data type describing the source of a problem. 
 -}
 data Source =
-  -- | The source can be a static source - written in code perhaps, or as a placeholder
+  -- | The source can be a static source - written in code perhaps, or as a
+  -- |placeholder
   StaticSource |
   -- | When the source has come from a file
   FileSource FilePath
@@ -51,9 +52,9 @@ instance Printer Source where
         )
   noUnicode StaticSource = text "Static Source"
   noUnicode (FileSource fp) =
-    text ("FilePath:") <+>
+    text "FilePath:" <+>
     text fp
   unicode StaticSource = green (text "StaticSource")
   unicode (FileSource fp) =
-    text ("FilePath:") <+>
+    text "FilePath:" <+>
     (yellow . text $ fp)

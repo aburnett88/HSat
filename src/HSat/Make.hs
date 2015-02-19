@@ -29,7 +29,7 @@ make :: (MonadRandom m) => Config -> m Problem
 make config = do
   expr <-
     case getInputConfig config of
-      CNFProblemType cnfConfig -> do
+      CNFProblemType cnfConfig ->
         (mkCNFProblem . fst) `liftM` evaluateCNFConfig cnfConfig
   return . mkProblem mkStatic . changeProblemType (getOutputType config) $ expr
 

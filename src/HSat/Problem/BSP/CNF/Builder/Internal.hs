@@ -22,8 +22,10 @@ import qualified Data.Vector as V
 import           Data.Word
 import           HSat.Printer
 import           HSat.Problem.BSP.Common
-import           HSat.Problem.BSP.Common.Clause.Internal (printClauseWithContext)
-import           HSat.Problem.BSP.Common.Clauses.Internal (printClausesWithContext)
+import           HSat.Problem.BSP.Common.Clause.Internal (
+  printClauseWithContext)
+import           HSat.Problem.BSP.Common.Clauses.Internal (
+  printClausesWithContext)
 import           HSat.Validate
 
 {-|
@@ -60,7 +62,7 @@ canAddLiteral builder =
       currClause = getCurrClause builder
   in (curr <  exptd) || (
      (curr == exptd) &&
-     (not $ clauseIsEmpty currClause)
+     not (clauseIsEmpty currClause)
      )
 
 {-|
@@ -73,10 +75,11 @@ canFinalise builder =
   in (curr  == exptd)
 
 {-|
-Returns 'True' if a 'Clause' can be finished. Empty clauses can also be added to the 'CNFBuilder'
+Returns 'True' if a 'Clause' can be finished. Empty clauses can also be added
+to the 'CNFBuilder'
 -}
-canFinishClause         :: CNFBuilder -> Bool
-canFinishClause builder = canAddLiteral builder
+canFinishClause :: CNFBuilder -> Bool
+canFinishClause = canAddLiteral
 
 instance Validate CNFBuilder where
   validate (CNFBuilder
@@ -91,15 +94,15 @@ instance Validate CNFBuilder where
                              1)
                         )
     in (exptdClNumb >= currClNumb)                        &&
-       (V.all testVarInRange $ getVectClause currClauses) &&
+       V.all testVarInRange (getVectClause currClauses) &&
        (computedSize == currClNumb)                       &&
-       (testVarInRange currClause)                        &&
-       (validate currClauses)                             &&
-       (validate currClause)
+       testVarInRange currClause                        &&
+       validate currClauses                             &&
+       validate currClause
     where
       testVarInRange :: Clause -> Bool
       testVarInRange cl = V.all (varInRange exptdMaxVar) .
-                          V.map getVariable $ getVectLiteral $ cl
+                          V.map getVariable $ getVectLiteral cl
 
 instance Printer CNFBuilder where
   compact builder   = printCNFBuilder builder   Compact
@@ -124,24 +127,24 @@ printCNFBuilder (CNFBuilder
   facts 
   where
     title :: Doc
-    title = (text "CNFBuilder")
+    title = text "CNFBuilder"
     maxVar :: Doc
     maxVar =
       case pType of
-        Compact -> (text "Max Var")
-        _       -> (text "Maximum Variable")
-      <> colon <+> (word exptdMaxVar)
+        Compact -> text "Max Var"
+        _       -> text "Maximum Variable"
+      <> colon <+> word exptdMaxVar
     clauses :: Doc
     clauses =
       case pType of
-        Compact -> (text "Clauses") <> colon               <+>
-                   (word currClNumb)                        <>
-                   (text "/")                               <>
-                   (word exptdClNumb)
-        _       -> (text "Clauses")   <> colon             <+>
-                   (word exptdClNumb) <> line               <>
-                   (text "Current Clause Counnt") <> colon <+>
-                   (word currClNumb)
+        Compact -> text "Clauses" <> colon               <+>
+                   word currClNumb                        <>
+                   text "/"                               <>
+                   word exptdClNumb
+        _       -> text "Clauses"   <> colon             <+>
+                   word exptdClNumb <> line               <>
+                   text "Current Clause Counnt" <> colon <+>
+                   word currClNumb
     currentClauses :: Doc
     currentClauses = case pType of
       Compact -> compact currClauses
@@ -173,7 +176,7 @@ instance Show CNFBuilderError where
 
 instance Validate CNFBuilderError where
   validate (IncorrectClauseNumber gotten expected) =
-    (expected /= gotten)
+    expected /= gotten
   validate (LitOutsideRange gotten expected)       =
     (expected < gotten) ||
     (gotten == 0)
@@ -190,18 +193,16 @@ printBuildErr :: CNFBuilderError -> PrinterType -> Doc
 printBuildErr (IncorrectClauseNumber
                gotten
                expected) pType =
-  errorDoc pType $ (
-    (text "Incorrect Number of Clauses")               <+>
-    (text "Expected")     <> colon <+> (word expected) <+>
-    (text "Actual Value") <> colon                     <+>
-    (word gotten)
-    )
+  errorDoc pType $
+    text "Incorrect Number of Clauses"               <+>
+    text "Expected"     <> colon <+> word expected <+>
+    text "Actual Value" <> colon                     <+>
+    word gotten
 printBuildErr (LitOutsideRange gotten expected) pType =
-  errorDoc pType $ (
-    text ("Variable outside range")    <> colon  <+>
-    (word 0) <+> le <+> (word gotten) <+>   leq  <+>
-    (word expected)
-    )
+  errorDoc pType $
+    text "Variable outside range"    <> colon  <+>
+    word 0 <+> le <+> word gotten <+>   leq  <+>
+    word expected
   where
     le :: Doc
     le = text "<"

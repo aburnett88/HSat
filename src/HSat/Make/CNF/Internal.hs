@@ -13,7 +13,8 @@ module HSat.Make.CNF.Internal (
   -- * Initialisation of Data
   ClausesInit(..), 
   -- * Populating data randomly
-  chooseClauses, -- :: (MonadRandom m) => ClausesInit -> EitherT CNFMakeError m Clauses
+  chooseClauses, -- :: (MonadRandom m) => ClausesInit ->
+                 --    EitherT CNFMakeError m Clauses
   chooseNumbVariables,
   chooseNumbClauses,
   chooseEachClauseSize,
@@ -51,18 +52,22 @@ data ClausesInit = ClausesInit {
 Describes Error's that can be thrown when creating 'CNF' 'Problem's. 
 -}
 data CNFMakeError =
-  -- | Is thrown when the random creator wants to create more 'Literal's, but the number of remaining calls computed initially has reached zero
+  -- | Is thrown when the random creator wants to create more 'Literal's,
+  -- | but the number of remaining calls computed initially has reached zero
   CallsRemainingFinished    |
-  -- | Is thrown when the random creator is unable to choose a number of 'Variable's consistnat with the 'CNFConfig'
+  -- | Is thrown when the random creator is unable to choose a number of
+  -- | 'Variable's consistnat with the 'CNFConfig'
   UnableToChooseVariables   |
-  -- | Thrown when the random creator is unable to choose a set of sizes for 'Clause's that is consistant with the 'CNFConfig'
+  -- | Thrown when the random creator is unable to choose a set of sizes for
+  -- | 'Clause's that is consistant with the 'CNFConfig'
   UnableToChooseClauseSizes 
   deriving (Eq,Show)
 
 {-|
 Populates a set of 'Clauses' with data within 'ClausesInit'. 
 -}
-chooseClauses             :: (MonadRandom m) => ClausesInit -> EitherT CNFMakeError m Clauses
+chooseClauses             :: (MonadRandom m) => ClausesInit ->
+                             EitherT CNFMakeError m Clauses
 chooseClauses clausesInit = do
   let listClSize = getListClSize clausesInit
       varTotal   = getVarTotal clausesInit
@@ -76,7 +81,8 @@ chooseClauses clausesInit = do
 This data type describes the current Status of the Random creation.
 -}
 data CNFMakeStatus = CNFMakeStatus {
-  -- | The Set of Vars or Lit's which need to be used, but currently have not been used
+  -- | The Set of Vars or Lit's which need to be used, but currently have not
+  -- | been used
   getNotUsed   :: ToBeUsedSet,
   -- | The number of calls remaining where a random Literal will be created
   getCallsLeft :: Word       ,
@@ -97,7 +103,8 @@ rmLiteral literal makeStatus =
   }
                    
 {-|
-The ToBeUsed Set is a Set of what must be added to the Problem before generation is finished.
+The ToBeUsed Set is a Set of what must be added to the Problem before
+generation is finished.
 -}
 data ToBeUsedSet =
   -- | The 'Set' of 'Variable's that must be included
@@ -108,7 +115,8 @@ data ToBeUsedSet =
   NoSet
   deriving (Eq,Show)
 
-rmLiteral'                              :: ToBeUsedSet -> Literal -> ToBeUsedSet
+rmLiteral'                              :: ToBeUsedSet -> Literal ->
+                                           ToBeUsedSet
 rmLiteral' NoSet                _       = NoSet
 rmLiteral' (VariableSet varSet) literal =
   VariableSet $ S.delete (getVariable literal) varSet
@@ -116,7 +124,8 @@ rmLiteral' (LiteralSet  litSet) literal =
   LiteralSet $ S.delete literal litSet
 
 {-|
-Returns the size of the remaining elements that have not been inserted int he problem, but most be
+Returns the size of the remaining elements that have not been inserted int he
+problem, but most be
 -}
 getSize               :: CNFMakeStatus -> Word
 getSize cnfMakeStatus =
@@ -126,17 +135,24 @@ getSize cnfMakeStatus =
     NoSet         -> 0
 
 {-|
-Constructor to initialise the CNFMakeStatus. Most computatin is creating the ToBeUsed Set
+Constructor to initialise the CNFMakeStatus. Most computatin is creating the
+ToBeUsed Set
 -}
-mkStatus                          :: Word -> Word -> VariablePredicate -> CNFMakeStatus
+mkStatus                          :: Word -> Word -> VariablePredicate ->
+                                     CNFMakeStatus
 mkStatus varNumb varTotal varPred =
   let notUsed = mkToBeUsedSet varTotal varNumb varPred
   in CNFMakeStatus notUsed varTotal varNumb
 
 {-|
-Populate ToBeUsed based upon the VariablePredicate. If it is 'AtLeastOnce', we give a list of 'Variable's that must be added. If its 'PosAndNeg' we populate it with 'Literal's of the positive and negative of each 'Variable'. If no predicate, then NoSet s used.
+Populate ToBeUsed based upon the VariablePredicate. If it is 'AtLeastOnce',
+we give a list of 'Variable's that must be added. If its 'PosAndNeg' we
+populate it with 'Literal's of the positive and negative of each 'Variable'.
+If no predicate, then NoSet s used.
 -}
-mkToBeUsedSet                                     :: Word -> Word -> VariablePredicate -> ToBeUsedSet
+mkToBeUsedSet                                     :: Word -> Word ->
+                                                     VariablePredicate ->
+                                                     ToBeUsedSet
 mkToBeUsedSet 0        _              _           = NoSet
 mkToBeUsedSet _        _              NoPredicate = NoSet
 mkToBeUsedSet varTotal varNumb        varPred     =
@@ -149,23 +165,30 @@ mkToBeUsedSet varTotal varNumb        varPred     =
       in LiteralSet $ posLitSet `S.union` negLitSet
 
 {-|
-This simplified data type hides the complexity behind many of the below functions
+This simplified data type hides the complexity behind many of the below
+functions
 -}
 type CNFStatusErr random result =
   StateT CNFMakeStatus (EitherT CNFMakeError random) result
   
 {-|
-Takes a set of 'Clauses', a 'Word' denoting size, and adds a 'Clause' to the 'Clauses' that has the size of the 'Word'
+Takes a set of 'Clauses', a 'Word' denoting size, and adds a 'Clause' to the
+'Clauses' that has the size of the 'Word'
 -}
-runChooseClauses                :: (MonadRandom m) => Clauses -> Word -> CNFStatusErr m Clauses
-runChooseClauses clauses clSize = clausesAddClause clauses `liftM` chooseClause clSize emptyClause
+runChooseClauses                :: (MonadRandom m) => Clauses -> Word ->
+                                   CNFStatusErr m Clauses
+runChooseClauses clauses clSize =
+  clausesAddClause clauses `liftM` chooseClause clSize emptyClause
 
 {-|
-Adds a randomly generated 'Literal' to the 'Clause' until the counter reaches zero
+Adds a randomly generated 'Literal' to the 'Clause' until the counter reaches
+zero
 -}
-chooseClause          :: (MonadRandom m) => Word -> Clause -> CNFStatusErr m Clause
+chooseClause          :: (MonadRandom m) => Word -> Clause ->
+                         CNFStatusErr m Clause
 chooseClause 0 clause = return clause
-chooseClause n clause = chooseLiteral >>= chooseClause (n-1) . clauseAddLiteral clause
+chooseClause n clause =
+  chooseLiteral >>= chooseClause (n-1) . clauseAddLiteral clause
 
 {-|
 Allows us to choose a 'Literal'.
@@ -190,7 +213,8 @@ chooseLiteral = do
     LT -> takeFromAny
 
 {-|
-Take from the set of NotUsed. Get the random Literal, then remove it through modification, then return the 'Literal'
+Take from the set of NotUsed. Get the random Literal, then remove it through
+modification, then return the 'Literal'
 -}
 takeFromSet :: (MonadRandom m) => CNFStatusErr m Literal
 takeFromSet = do
@@ -200,7 +224,8 @@ takeFromSet = do
   return literal
 
 {-|
-Get a random Literal, make a random sign, create the literal, remove it from the set
+Get a random Literal, make a random sign, create the literal, remove it from
+the set
 -}
 takeFromAny :: (MonadRandom m) => CNFStatusErr m Literal
 takeFromAny = do
@@ -221,7 +246,8 @@ If it is a 'Variable'
 If it is a 'Literal'
   Remove from Set
 -}
-getRandomLit                      :: (MonadRandom m) => ToBeUsedSet -> m Literal
+getRandomLit                      :: (MonadRandom m) => ToBeUsedSet ->
+                                     m Literal
 getRandomLit (VariableSet varSet) = do
   index <- getRandomR (0, S.size varSet)
   sign  <- getRandom
@@ -242,9 +268,12 @@ chooseNumbClauses = do
   evalBounded clauseNumber
 
 {-|
-Checks to see if the bounds can be adhered to. If not, then new bounds are formulated as close as possible to the original, then the 'Word' returned that adheres to this
+Checks to see if the bounds can be adhered to. If not, then new bounds are
+formulated as close as possible to the original, then the 'Word' returned that
+adheres to this
 -}
-chooseNumbVariables             :: (MonadRandom m) => Word -> Word -> StateT CNFConfig m Word
+chooseNumbVariables             :: (MonadRandom m) => Word -> Word ->
+                                   StateT CNFConfig m Word
 chooseNumbVariables total clNum = do
   vpc <- gets getVarNum
   let boundWords = boundedToWords clNum vpc
@@ -254,7 +283,8 @@ chooseNumbVariables total clNum = do
   evalBounded boundWords'
 
 {-|
-Takes a 'Word' denoting the number of 'Clause', and a 'VariableNumber', and returns a 'Word' that adheres to the specification
+Takes a 'Word' denoting the number of 'Clause', and a 'VariableNumber', and
+returns a 'Word' that adheres to the specification
 -}
 boundedToWords                   :: Word -> VariableNumber -> Bounds Word
 boundedToWords _ (Right w)       = w
@@ -264,7 +294,7 @@ boundedToWords cl (Left doubles) =
   in mkBounds (posDoubleToWord cl l) (posDoubleToWord cl r)
 
 {-|
-Converts a 'Double' to a 'Word'. Makes sure that rounding errors do not occour. 
+Converts a 'Double' to a 'Word'. Makes sure that rounding errors do not occour.
 -}
 doubleToWord   :: Double -> Word
 doubleToWord d =
@@ -275,7 +305,8 @@ doubleToWord d =
     _  -> fromIntegral integerVal
 
 {-|
-Converts a 'PosDouble' to a 'Word' that is relative to the initial 'Word' argument following the follwoing equation.
+Converts a 'PosDouble' to a 'Word' that is relative to the initial 'Word'
+argument following the follwoing equation.
 
 INPUT: w, d
 result = w/p
@@ -292,7 +323,8 @@ wordToDouble :: Word -> Double
 wordToDouble = fromIntegral
 
 {-|
-When given a new 'Bounds Word' representing a new 'getVarNum' value, replaces this withint he 'CNFConfig'
+When given a new 'Bounds Word' representing a new 'getVarNum' value, replaces
+this withint he 'CNFConfig'
 -}
 modifyNumbVariables           :: Bounds Word -> CNFConfig -> CNFConfig
 modifyNumbVariables vn config =
@@ -301,15 +333,18 @@ modifyNumbVariables vn config =
     }
 
 {-|
-A simple placeholder for a very simple 'Bounds Word' with minimum and maximum value '0'
+A simple placeholder for a very simple 'Bounds Word' with minimum and maximum
+value '0'
 -}
 zero :: Bounds Word
 zero = mkBounds 0 0
 
 {-|
-Updates the 'getVarNum' of the 'CNFConfig' within the 'State' if it is inconstant with the total number of 'Variable's that need to be generated
+Updates the 'getVarNum' of the 'CNFConfig' within the 'State' if it is
+inconstant with the total number of 'Variable's that need to be generated
 -}
-changeVarNumbIfNeeded              :: (Monad m) => Word -> Bounds Word -> StateT CNFConfig m ()
+changeVarNumbIfNeeded              :: (Monad m) => Word -> Bounds Word ->
+                                      StateT CNFConfig m ()
 changeVarNumbIfNeeded 0 worded     =
   unless (worded == zero) $ modify (modifyNumbVariables zero)
 changeVarNumbIfNeeded total worded = do
@@ -329,16 +364,20 @@ changeVarNumbIfNeeded total worded = do
         | currMax > maxAllowed = maxAllowed
         | currMax < minAllowed = minAllowed
         | otherwise            = currMax
-  unless (currMin == newMin && currMax == newMax) $ modify $ modifyNumbVariables $ mkBounds newMin newMax
+  unless (currMin == newMin && currMax == newMax) $
+    modify $ modifyNumbVariables $ mkBounds newMin newMax
 
 {-|
-Generates a set of 'Word' that is consistnat with the input values and the 'getClSize' of the 'CNFConfig'
+Generates a set of 'Word' that is consistnat with the input values and the
+'getClSize' of the 'CNFConfig'
 -}
-chooseEachClauseSize          :: (MonadRandom m) => Word -> StateT CNFConfig m ([Word],Word)
+chooseEachClauseSize          :: (MonadRandom m) => Word ->
+                                 StateT CNFConfig m ([Word],Word)
 chooseEachClauseSize clNumber = do
   clSize <- gets getClSize
   --Corner cases suck.
-  --If we are making a CNF with true an false lits, and totalVars == 1 then totalVars must equal 2
+  -- If we are making a CNF with true an false lits, and totalVars == 1 then
+  -- totalVars must equal 2
   tuple@(clSizes,total) <- evalClauses' clNumber ([],0)
   predicate <- gets Config.getVarPred
   case (predicate,total,clNumber) of
@@ -350,9 +389,12 @@ chooseEachClauseSize clNumber = do
     _ -> return tuple
 
 {-|
-Given a 'Word' n, creates a random list of 'Word' that are within the 'getClSize' bounds. Also returns the total within the tuple as the second argument
+Given a 'Word' n, creates a random list of 'Word' that are within the
+'getClSize' bounds. Also returns the total within the tuple as the second
+argument
 -}
-evalClauses'              :: (MonadRandom m) => Word -> ([Word],Word) -> StateT CNFConfig m ([Word],Word)
+evalClauses'              :: (MonadRandom m) => Word -> ([Word],Word) ->
+                             StateT CNFConfig m ([Word],Word)
 evalClauses' 0 result     = return result
 evalClauses' n (xs,total) = do
   bounds <- gets getClSize
@@ -360,7 +402,8 @@ evalClauses' n (xs,total) = do
   evalClauses' (n-1) (x:xs,x+total)
       
 {-|
-A very specific function; replaces the first 'Word' found that equals '0' with a '1', and returns the list. Throws an error on an empty list
+A very specific function; replaces the first 'Word' found that equals '0' with
+a '1', and returns the list. Throws an error on an empty list
 -}
 replace'        :: [Word] -> [Word]
 replace' []     = error "replace: Empty list"
@@ -368,7 +411,8 @@ replace' (0:xs) = 1:xs
 replace' (x:xs) = x : replace' xs
 
 {-|
-Takes a 'CNFConfig' and replaces the higher bound of its 'getClSize' with a '2' if it is below '2'
+Takes a 'CNFConfig' and replaces the higher bound of its 'getClSize' with a
+'2' if it is below '2'
 -}
 modifyVPC        :: CNFConfig -> CNFConfig
 modifyVPC config =

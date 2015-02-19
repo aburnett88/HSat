@@ -18,7 +18,7 @@ data Comment = Comment {
   } deriving (Eq,Show)
 
 mkComment :: Orientation -> Text -> Comment
-mkComment o t = Comment o t
+mkComment = Comment
 
 runComment :: [Comment] -> ([Text],[Text])
 runComment xs = runComment' xs ([],[])

@@ -55,19 +55,19 @@ instance Printer Clause where
 printLit                 :: (Literal -> Doc) -> Clause -> Doc
 printLit function clause =
   lbracket <>
-  (hsep $ punctuate comma (map function . V.toList . getVectLiteral $ clause)) <>
+  hsep (punctuate comma (map function . V.toList . getVectLiteral $ clause)) <>
   rbracket
 
 instance Validate Clause where
   validate (Clause vect n) =
     let actualSize = toEnum $ V.length vect
     in (actualSize == n) &&
-       (V.all validate vect)
+       V.all validate vect
 
 printClauseWithContext :: String -> Word -> (Literal -> Doc) -> Clause -> Doc
 printClauseWithContext sepClause maxVar function clause =
   lparen <>
-  (hsep $ punctuate (text sepClause) literals) <>
+  hsep (punctuate (text sepClause) literals) <>
   rparen
   where
     literals :: [Doc]
@@ -77,4 +77,4 @@ printClauseWithContext sepClause maxVar function clause =
       let maxVarLen  = length $ show maxVar
           varLen     = length . show . getWord $ getVariable literal
           difference = maxVarLen - varLen
-      in (text $ replicate difference ' ') <> function literal
+      in text (replicate difference ' ') <> function literal

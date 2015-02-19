@@ -20,5 +20,6 @@ The 'Validate' class provides a validate method for types, to make
 sure that they have been defined correctly.
 -}
 class Validate a where
-  -- | validate should return a 'Bool' which defines whether a data structure is valid
+  -- | validate should return a 'Bool' which defines whether a data structure
+  -- | is valid
   validate :: a -> Bool

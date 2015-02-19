@@ -6,8 +6,8 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : -
 
-Within HSat, this Printer type is designed to be used to pretty print internal data
-structuresto text for output.
+Within HSat, this Printer type is designed to be used to pretty print internal
+data structuresto text for output.
 
 Each type contains four modes of sorts, as described below.
 -}
@@ -30,18 +30,19 @@ import Text.PrettyPrint.ANSI.Leijen
 {-|
 The 'Printer' class is used to convert arbitrary types to 'Doc' types.
 
-The class comes with four methods, none of which have to be defined, however for more
-quality output, the user may decide to do so.
+The class comes with four methods, none of which have to be defined, however
+for more quality output, the user may decide to do so.
 -}
 class Printer a where
-  -- | Compact should attempt to save space wherever possible. For example, a 'Bool'
-  -- values may be T and F rather than 'True' and 'False' in a 'Show' instance.
+  -- | Compact should attempt to save space wherever possible. For example, a
+  -- |'Bool' values may be T and F rather than 'True' and 'False' in a 'Show'
+  -- | instance.
   compact   :: a -> Doc
-  -- | Verbose output for where Unicode and colour is not available. However, this is
-  -- not enforced by the type system
+  -- | Verbose output for where Unicode and colour is not available. However,
+ -- | this is not enforced by the type system
   noUnicode :: a -> Doc
-  -- | Coloured output is for a Unix system that allows colour and unicode symbols to
-  -- be used
+  -- | Coloured output is for a Unix system that allows colour and unicode
+  -- |symbols to be used
   unicode   :: a -> Doc
 
 {-|
@@ -54,7 +55,8 @@ data PrinterType =
   deriving (Eq,Show,Enum)
 
 {-|
-Turns any 'Printer' type to a 'Doc' type using the appropriate 'Printing' function
+Turns any 'Printer' type to a 'Doc' type using the appropriate 'Printing'
+function
 -}
 pTypeToDoc           :: Printer a => PrinterType -> a -> Doc
 pTypeToDoc Compact   = compact
@@ -68,6 +70,6 @@ word :: Word -> Doc
 word = text . show
 
 errorDoc :: PrinterType -> Doc -> Doc
-errorDoc Compact reason   = (text "ERR")   <> colon <+> reason
-errorDoc NoUnicode reason = (text "Error") <> colon <+> reason
+errorDoc Compact reason   = text "ERR"   <> colon <+> reason
+errorDoc NoUnicode reason = text "Error" <> colon <+> reason
 errorDoc Unicode reason   = red $ errorDoc NoUnicode reason

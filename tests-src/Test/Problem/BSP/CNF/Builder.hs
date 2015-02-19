@@ -77,7 +77,7 @@ cnfBuilderTest1 =
   testProperty "getExpdMaxVar = v, getExptdCl = c in cnfBuilder v c" $ property
   (\(vars,clauses) ->
     case cnfBuilder vars clauses of
-      Left _ -> property $ False
+      Left _ -> property False
       Right builder -> testCNFBuilderGenTest1 vars clauses builder
   )
 
@@ -113,10 +113,10 @@ addLiteralTest1 =
   (\(cnfbuilder,literal') ->
     case literal' of
       Just literal ->
-        case (return cnfbuilder) >>= addLiteral literal of
-          Left _ -> property $ False
+        case addLiteral literal cnfbuilder of
+          Left _ -> property False
           Right builder -> addLiteralTest1Generic cnfbuilder builder literal
-      Nothing -> property $ True
+      Nothing -> property True
       )
 
 testAddLiteral :: CNFBuilder -> Literal -> CNFBuilder
@@ -126,7 +126,7 @@ testAddLiteral builder lit =
     getCurrClause = exptdClause
     }
   where
-    exptdSize = (getCurrClNumb builder) + (
+    exptdSize = getCurrClNumb builder + (
       if clauseIsEmpty oldClause then
         1 else
         0
@@ -153,13 +153,13 @@ addLiteralTest2 =
       return (cnf,literal)
       )
   (\(cnfbuilder,literal) ->
-    case (return cnfbuilder) >>= addLiteral literal of
+    case addLiteral literal cnfbuilder of
       Left (LitOutsideRange gotten expected) ->
         let exptd = getExptdMaxVar cnfbuilder
             gotten' = getWord . getVariable $ literal
         in exptd === expected .&&.
            gotten' === gotten
-      _ -> property $ False
+      _ -> property False
       )
 
 addLiteral'Test1 :: TestTree
@@ -179,7 +179,8 @@ addLiteral'Test1 =
   (\(builder,literal') ->
     case literal' of
       Nothing -> property True
-      Just literal -> addLiteralTest1Generic builder (addLiteral' literal builder) literal
+      Just literal ->
+        addLiteralTest1Generic builder (addLiteral' literal builder) literal
     )
 
 addLiteral'Test2 :: TestTree
@@ -200,8 +201,8 @@ addLiteral'Test2 =
     let expected = addLiteral' literal builder
         gotten'  = testAddLiteral builder literal
         gotten   = gotten' {
-          getExptdMaxVar = (getWord . getVariable $ literal)
-                           }
+          getExptdMaxVar = getWord . getVariable $ literal
+          }
     in gotten === expected
        )
 
@@ -214,7 +215,7 @@ finishClauseTest1 =
       genCNFBuilderLitInClause 10 10 10 10
       ])
   (\cnfbuilder ->
-    case (return cnfbuilder) >>= finishClause of
+    case finishClause cnfbuilder of
       Left _ -> property False
       Right builder ->
         finishClauseTest1Generic builder cnfbuilder
@@ -323,7 +324,8 @@ genFinaliseTest1 builder cnf =
       clNumb      = getCurrClNumb builder
       newClauses = if clauseIsEmpty (getCurrClause builder) then
                      getCurrClauses builder else
-                     clausesAddClause (getCurrClauses builder) (getCurrClause builder)
+                     clausesAddClause
+                     (getCurrClauses builder) (getCurrClause builder)
       cnf' = CNF exptdMaxVar clNumb newClauses
   in (cnf === cnf')
 
@@ -342,7 +344,8 @@ finalise'Test2 =
         maxVar = getExptdMaxVar builder
         newClauses = if clauseIsEmpty (getCurrClause builder) then
                        getCurrClauses builder else
-                       clausesAddClause (getCurrClauses builder) (getCurrClause builder)
+                       clausesAddClause
+                       (getCurrClauses builder) (getCurrClause builder)
         cnf = CNF maxVar currClNumb newClauses
     in (currClNumb < exptdClNumb) .&&.
        (cnf' === cnf) .&&.

@@ -77,7 +77,8 @@ genBounds f = do
       y <- f
       return $ mkBounds x y
 
-genBounded :: (Ord a, Arbitrary a, Random a, Bounded a) => a -> a -> Gen (Bounds a)
+genBounded :: (Ord a, Arbitrary a, Random a, Bounded a) =>
+              a -> a -> Gen (Bounds a)
 genBounded min max = do
   x <- choose (min,max)
   y <- choose (min,max)
@@ -92,7 +93,8 @@ instance Arbitrary PosDouble where
   shrink d =
     map mkPosDouble . filter (>0.0) $ shrink . getDouble $ d
 
---Makes sure that the choice is within the bounds of Word so as not to throw errors
+--Makes sure that the choice is within the bounds of Word so as not to throw
+-- errors
 mkIntegerNonZero :: Gen Integer
 mkIntegerNonZero = do
   let m =  toInteger (maxBound :: Word)
@@ -153,7 +155,8 @@ testList _ [] = property True
 testList a (x:xs) = checkBounds x a .&&. testList a xs
 
 testEq :: (Eq a, Show a) => String -> a -> a -> Property
-testEq s a b = counterexample (s ++ ": " ++ show a ++ " /= " ++ show b ++ " ") (a==b)
+testEq s a b =
+  counterexample (s ++ ": " ++ show a ++ " /= " ++ show b ++ " ") (a==b)
 
 testAllEq :: (Show a, Eq a) => String -> [a] -> [a] -> Property
 testAllEq _ [] [] = property True

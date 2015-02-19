@@ -26,7 +26,8 @@ tests =
 
 evaluateCNFConfigTest1 :: TestTree
 evaluateCNFConfigTest1 =
-  testProperty ("Test CNF created. If failed, test everything but var number in " ++
+  testProperty ("Test CNF created. If failed, test everything but var number
+in " ++
                 "\"evaluateCNFConfig'\"") $ ioProperty $ do
     config <- generate arbitrary
     cnf <- evaluateCNFConfigErr config
@@ -35,7 +36,8 @@ evaluateCNFConfigTest1 =
         newCnf <- evaluateCNFConfig config
         case newCnf of
           (Just ddd,newCnf') -> return $ checkCNFAgainstConfig True ddd newCnf'
-          (Nothing,newCnf') -> return $ checkCNFAgainstConfig True config newCnf'
+          (Nothing,newCnf') -> return $ checkCNFAgainstConfig True
+config newCnf'
       Right cnf' -> do
         return $ checkCNFAgainstConfig True config cnf'
 
@@ -50,7 +52,8 @@ checkCNFAgainstConfig testVars config cnf =
       exptdVars        = S.fromList . map mkVariable $ (if varNumb==0 then
                                                           [] else
                                                           [1..varNumb])
-      clauseSizes      = V.toList . V.map clauseLength . getVectOfClauses . getClauses $ cnf
+      clauseSizes      = V.toList . V.map clauseLength . getVectOfClauses .
+getClauses $ cnf
       exptdClauseSizes = varsInEachClause config
       validateCNF      = validate cnf
   in (checkBounds clauseNumb exptdClauseNum) .&&.
@@ -63,7 +66,8 @@ checkCNFAgainstConfig testVars config cnf =
      (validateCNF) .&&.
      (if testVars then
         case numbVariables config of
-          (Left doubles) -> checkBounds  varNumb (convertVariableNumber clauseNumb (numbVariables config))
+          (Left doubles) -> checkBounds  varNumb (convertVariableNumber
+clauseNumb (numbVariables config))
           (Right nonDoubles) -> checkBounds varNumb nonDoubles else
         property True
         )
