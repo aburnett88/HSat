@@ -5,7 +5,9 @@ module HSat.Parser (
 import HSat.Problem
 
 fromCNFFile :: FilePath -> Either ProblemParseError Problem
-fromCNFFile fp = undefined
+fromCNFFile fp = Left ProblemParseError
+
+
 
 data ProblemParseError =
   ProblemParseError

@@ -2,7 +2,8 @@ module HSat.Writer.CNF (
   mkCNFWriter,
   addClauseComment,
   addPreambleComment,
-  runCNFWriter
+  runCNFWriter,
+  getCNFFromWriter
   ) where
 
 import HSat.Writer.CNF.Internal
@@ -12,6 +13,9 @@ import Data.Text as T
 import HSat.Problem.BSP.CNF.Internal
 import qualified Data.Vector as V
 import HSat.Problem.BSP.Common
+
+getCNFFromWriter :: CNFWriter -> CNF
+getCNFFromWriter _ = CNF 0 0 emptyClauses
 
 mkCNFWriter :: CNF -> CNFWriter
 mkCNFWriter (CNF v c cl) =
