@@ -168,7 +168,9 @@ data CNFBuilderError =
   -- | When the incorrect number of 'Clauses' has been defined.
   IncorrectClauseNumber Word Word |
   -- | When a 'Literal' is constructed outside the range specified
-  LitOutsideRange Word Word
+  VarOutsideRange Integer Word    |
+  -- | When the number of 'Variable's or 'Clause's are not within the bounds of a word
+  Initialisation Integer Integer
   deriving (Eq)
 
 instance Show CNFBuilderError where
@@ -177,8 +179,8 @@ instance Show CNFBuilderError where
 instance Validate CNFBuilderError where
   validate (IncorrectClauseNumber gotten expected) =
     expected /= gotten
-  validate (LitOutsideRange gotten expected)       =
-    (expected < gotten) ||
+  validate (VarOutsideRange gotten expected)       =
+    ((toInteger expected) < gotten) ||
     (gotten == 0)
 
 instance Printer CNFBuilderError where
@@ -198,10 +200,10 @@ printBuildErr (IncorrectClauseNumber
     text "Expected"     <> colon <+> word expected <+>
     text "Actual Value" <> colon                     <+>
     word gotten
-printBuildErr (LitOutsideRange gotten expected) pType =
+printBuildErr (VarOutsideRange gotten expected) pType =
   errorDoc pType $
     text "Variable outside range"    <> colon  <+>
-    word 0 <+> le <+> word gotten <+>   leq  <+>
+    word 0 <+> le <+> (text $ show gotten) <+>   leq  <+>
     word expected
   where
     le :: Doc

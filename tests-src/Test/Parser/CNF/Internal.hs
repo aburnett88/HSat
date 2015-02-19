@@ -2,18 +2,18 @@ module Test.Parser.CNF.Internal (
   tests
   ) where
 
-import TestUtils
-import HSat.Parser.CNF.Internal
-import Data.Attoparsec.Text as P
-import Data.Attoparsec.Text (Parser)
-import Data.Word
-import Data.Either
-import HSat.Problem.BSP.Common
+import           Control.Monad (replicateM,liftM)
+import           Data.Attoparsec.Text (Parser)
+import           Data.Attoparsec.Text as P
+import           Data.Either
+import           Data.Text as T hiding (map,replicate)
 import qualified Data.Vector as V
-import HSat.Problem.BSP.CNF.Builder.Internal
-import Control.Monad (replicateM,liftM)
-import Data.Text as T hiding (map,replicate)
-import HSat.Problem.BSP.CNF.Builder
+import           Data.Word
+import           HSat.Parser.CNF.Internal
+import           HSat.Problem.BSP.CNF.Builder
+import           HSat.Problem.BSP.CNF.Builder.Internal
+import           HSat.Problem.BSP.Common
+import           TestUtils
 
 name :: String
 name = "Internal"
@@ -44,7 +44,16 @@ tests =
       parseLiteralTest5
       ],
     testGroup "parseClause" [
-      parseClauseTest1
+      parseClauseTest1,
+      parseClauseTest2,
+      parseClauseTest3,
+      parseClauseTest4,
+      parseClauseTest5
+      ],
+    testGroup "parseClauses" [
+      parseClausesTest1,
+      parseClausesTest2,
+      parseClausesTest3
       ]
     ]
 
@@ -54,21 +63,19 @@ genComment = do
   indent <- choose (0,100)
   return (pack (replicate indent ' ') `append` str)
 
+parseCommentGen :: String -> TestTree
+parseCommentGen str =
+  testCase ("parseComment \"" ++ str ++ "\"") $ assert (
+    parseOnly parseComment (pack str) == Right ()
+    )
+
 parseCommentTest1 :: TestTree
 parseCommentTest1 =
-  testCase ("parseComment \"" ++ testStr ++ "\"") $ assert (
-    parseOnly parseComment (pack testStr) == Right ()
-    )
-  where
-    testStr = "c hello world"
+  parseCommentGen "c hello world"
 
 parseCommentTest2 :: TestTree
 parseCommentTest2 =
-  testCase ("parseComment \"" ++ testStr ++ "\"") $ assert (
-    parseOnly parseComment (pack testStr) == Right ()
-    )
-  where
-    testStr = "   c hello world"
+  parseCommentGen "   c hello world"
 
 parseCommentTest3 :: TestTree
 parseCommentTest3 =
@@ -80,7 +87,8 @@ parseCommentTest3 =
 
 parseCommentTest4 :: TestTree
 parseCommentTest4 =
-  testProperty "Parse random comments" $ forAll
+  testProperty "Parse random comments" $
+  forAll
   genComment
   (\text ->
     parseOnly parseComment text == Right ()
@@ -124,33 +132,39 @@ parseProblemLineTest2 =
     testStr = "   p    cnf    24 \t2424"
     cnf' = CNFBuilder 24 2424 0 emptyClauses emptyClause
 
+genSpace :: Gen String
+genSpace = do
+  number <- choose (1,10) :: Gen Int
+  replicateM number $ do
+    typ <- choose (0,1) :: Gen Int
+    return $ case typ of
+      0 -> ' '
+      1 -> '\t'
+
 parseProblemLineTest3 :: TestTree
 parseProblemLineTest3 =
   testProperty "parseProblemLine parses correctly" $ forAll
   (do
       v <- arbitrary
       c <- arbitrary
-      xs <- replicateM 5 (
-        do
-          x <- choose (0,10) :: Gen Int
-          x <- choose (0,2) :: Gen Int
-          Prelude.concat `liftM` replicateM x (
-            do
-              x <- choose (0,2) :: Gen Int
-              return $ case x of
-                0 -> ""
-                1 -> "\t"
-                2 -> " "
-                )
-            )
-      return (xs,v,c)
+      text <- do
+        p <- return "p"
+        spc1 <- genSpace
+        cnf <- return "cnf"
+        spc2 <- genSpace
+        v <- return (show v)
+        spc3 <- genSpace
+        c <- return (show c)
+        spc4 <- genSpace
+        return $
+          p   ++ spc1 ++
+          cnf ++ spc2 ++
+          v   ++ spc3 ++
+          c   ++ spc4
+      return (pack text,v,c)
       )
-  (\(xs,v,c) ->
-    let text = pack (Prelude.head xs ++ "p" ++ (xs !! 1) ++ "cnf" ++
-                       (xs !! 2) ++ show v ++ (xs !! 3) ++ show c ++
-                       (xs !! 4)
-                       )
-        cnf' = CNFBuilder v c 0 emptyClauses emptyClause
+  (\(text,v,c) ->
+    let cnf' = CNFBuilder v c 0 emptyClauses emptyClause
     in parseOnly parseProblemLine text === (Right . Right $ cnf')
        )
        
@@ -189,7 +203,7 @@ parseLiteralTest4 =
     )
   where
     testStr = show word
-    word = (maxBound :: Word) + 100
+    word = 100 + (toInteger (maxBound :: Word)):: Integer
 
 parseLiteralTest5 :: TestTree
 parseLiteralTest5 =
@@ -209,11 +223,88 @@ parseClauseTest1 =
     )
   where
     cnf = CNFBuilder 10 10 0 emptyClauses emptyClause
-    cnf' = V.foldl (flip addLiteral') cnf (getVectLiteral cl)
+    cnf' = V.foldl (flip addLiteral') cnf . V.map literalToInteger $ (getVectLiteral cl)
     cl = mkClauseFromLits $ map mkLiteralFromInteger [
       1,2,3,-4,-5,6,-7,8,9
                          ]
     testStr = "1 2 3 -4 -5 6 -7 8 9 0"
-
-
     
+
+parseClauseTest2 :: TestTree
+parseClauseTest2 =
+  testCase ("parseClause \"" ++ testStr ++ "\"") $ assert (
+    parseOnly (parseClause $ return cnf) (pack testStr) ==
+    (Right . Right $ cnf')
+    )
+    where
+      cnf = CNFBuilder 10 10 0 emptyClauses emptyClause
+      cnf' = V.foldl (flip addLiteral') cnf . V.map literalToInteger $ (getVectLiteral cl)
+      cl = mkClauseFromLits $ map mkLiteralFromInteger [
+        1,2,3,-4,-5,6,-7,8,9
+                           ]
+      testStr = "1   2   3   -4 -5    6 -7   8            9 0"
+
+{-
+mkClauseStr :: [Integer] -> [String] -> String
+mkClauseStr [] = " 0"
+mkClauseStr (x:xs) = (show x) ++ " " ++ mkClauseStr xs
+-}
+parseClauseTest3 :: TestTree
+parseClauseTest3 = 
+  testCase ("parseClause \"" ++ testStr ++ "\"") $ assert (
+    parseOnly (parseClause $ return cnf) (pack testStr) ==
+    (Right . Right $ cnf')
+    )
+    where
+      cnf = CNFBuilder 10 10 0 emptyClauses emptyClause
+      cnf' = V.foldl (flip addLiteral') cnf . V.map literalToInteger $ (getVectLiteral cl)
+      cl = mkClauseFromLits $ map mkLiteralFromInteger [
+        1,2,3,-4,-5,6,-7,8,9
+                           ]
+      testStr = "1   2   3   -4 -5 \n   6 -7   8    \n        9 0"
+
+parseClauseTest4 :: TestTree
+parseClauseTest4 = 
+  testCase ("parseClause \"" ++ testStr ++ "\"") $ assert (
+    parseOnly (parseClause $ return cnf) (pack testStr) ==
+    (Right . Right $ cnf')
+    )
+    where
+      cnf = CNFBuilder 10 10 0 emptyClauses emptyClause
+      cnf' = V.foldl (flip addLiteral') cnf . V.map literalToInteger $ (getVectLiteral cl)
+      cl = mkClauseFromLits $ map mkLiteralFromInteger [
+        1,2,3,-4,-5,6,-7,8,9
+                           ]
+      testStr = "1   2 \nc initial\n  3   -4 -5 \nc hello world\n   6 -7   8    \n        9 0"
+
+--282
+
+parseClauseTest5 :: TestTree
+parseClauseTest5 =
+  testProperty "parse randomly generated clauses" $
+  forAll
+  arbitrary
+  (\bool -> bool === (not bool))
+
+parseClausesTest1 :: TestTree
+parseClausesTest1 =
+  testCase ("parseClauses \"" ++ testStr ++ "\"") $ assert (
+    True == False
+    )
+  where
+    testStr = "UNWRITTEN YET"
+
+parseClausesTest2 :: TestTree
+parseClausesTest2 =
+  testCase ("parseClauses \"" ++ testStr ++ "\"") $ assert (
+    True == False
+    )
+  where
+    testStr = "UNWRITTEN YET"
+
+parseClausesTest3 :: TestTree
+parseClausesTest3 =
+  testProperty "parse randomly generated Clauses" $
+  forAll
+  arbitrary
+  (\bool -> bool == (not bool))

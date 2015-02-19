@@ -44,8 +44,8 @@ instance Arbitrary CNFBuilderError where
   shrink (IncorrectClauseNumber gotten expected) =
     filter validate . map (uncurry IncorrectClauseNumber) $
     shrink (gotten,expected)
-  shrink (LitOutsideRange gotten expected) =
-    filter validate . map (uncurry LitOutsideRange) $ shrink (gotten,expected)
+  shrink (VarOutsideRange gotten expected) =
+    filter validate . map (uncurry VarOutsideRange) $ shrink (gotten,expected)
 
 
 
@@ -96,7 +96,7 @@ genCNFBuilderError = do
     1 -> do
       expected <- choose (0,100)
       gotten <- choose (expected+1,maxBound)
-      return $ LitOutsideRange gotten expected
+      return $ VarOutsideRange (toInteger gotten) expected
 
 genCNFInvalidBuilder :: Word -> Word -> Word -> Word -> Gen CNFBuilder
 genCNFInvalidBuilder =

@@ -6,16 +6,41 @@ module HSat.Writer.Internal (
   ) where
 
 import Data.Text
+import HSat.Printer
 
 data Orientation =
   Above |
   Below
-  deriving (Eq,Show)
+  deriving (Eq)
+
+instance Show Orientation where
+  showsPrec = show'
+
+instance Printer Orientation where
+  compact Below = text "BLW"
+  compact Above = text "ABV"
+  noUnicode Above = text "Above"
+  noUnicode Below = text "Below"
+  unicode a = noUnicode a
+  
 
 data Comment = Comment {
   orientation :: Orientation,
   commentText :: Text
-  } deriving (Eq,Show)
+  } deriving (Eq)
+
+instance Show Comment where
+  showsPrec = show'
+
+instance Printer Comment where
+  compact (Comment orientation commentText) = compact orientation <+> compact commentText
+  noUnicode comment = compact comment
+  unicode comment = compact comment
+
+instance Printer Text where
+  compact t = text (unpack t)
+  noUnicode t = compact t
+  unicode t = compact t
 
 mkComment :: Orientation -> Text -> Comment
 mkComment = Comment

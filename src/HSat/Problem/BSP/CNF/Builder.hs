@@ -10,19 +10,20 @@ The CNF Builder type that builds up CNF instances
 -}
 
 module HSat.Problem.BSP.CNF.Builder (
+  -- * Data Types
+  CNFBuilderError,
+  CNFBuildErr,
+  CNFBuilder,
   -- * Safe Construction
   cnfBuilder,
   addLiteral,
   finishClause,
   finalise,
-  -- * Unchecked Constructors
+  -- * Mutable Constructors
   cnfBuilder',
   addLiteral',
   finishClause',
-  finalise',
-  CNFBuilderError,
-  CNFBuildErr,
-  CNFBuilder
+  finalise'
   ) where
 
 import Data.Word
@@ -39,16 +40,19 @@ type CNFBuildErr = Either CNFBuilderError CNFBuilder
 {-|
 Creates an initial CNFBuilder with a set number of variables and clauses
 -}
-cnfBuilder     :: Word -> Word -> CNFBuildErr
-cnfBuilder v c = return $ cnfBuilder' v c 
-
+cnfBuilder     :: Integer -> Integer -> CNFBuildErr
+cnfBuilder v c =
+  if v < 0 || v > (toInteger (maxBound :: Word)) || c < 0 || c > (toInteger (maxBound :: Word)) then
+    Left $ Initialisation v c else
+    return $ cnfBuilder' v c
+    
 {-|
 Creates an initial CNFBuilder with a set number of varialbes and clauses, but
 returns the result purely
 -}
-cnfBuilder'     :: Word -> Word -> CNFBuilder
+cnfBuilder'     :: Integer -> Integer -> CNFBuilder
 cnfBuilder' v c =
-  CNFBuilder v c 0 emptyClauses emptyClause
+  CNFBuilder (fromInteger v) (fromInteger c) 0 emptyClauses emptyClause
 
 {-|
 Moves the current clause to the set of 'Clauses' and replaces this with an
@@ -118,23 +122,24 @@ the new CNFBuilder.
 
 Else, throw an error
 -}
-addLiteral       :: Literal -> CNFBuilder -> CNFBuildErr
-addLiteral l cnf =
-  let l' = getWord . getVariable $ l
+addLiteral       :: Integer -> CNFBuilder -> CNFBuildErr
+addLiteral lit cnf =
+  let lit' = abs lit
       maxVar = getExptdMaxVar cnf
-  in if l' == 0 || l' > maxVar then
-       Left $ LitOutsideRange l' maxVar else
-       return . addLiteral' l $ cnf
+  in if lit' == 0 || lit' > (toInteger maxVar) then
+       Left $ VarOutsideRange lit' maxVar else
+       return . addLiteral' lit $ cnf
 
 {-|
 adds the literal to the clause. If the ltieral is outside the range
 denoted by the CNFBuilder, the range is increased to incorporate it
 -}
-addLiteral'       :: Literal -> CNFBuilder -> CNFBuilder
-addLiteral' l cnf =
+addLiteral'       :: Integer -> CNFBuilder -> CNFBuilder
+addLiteral' lit cnf =
   (\cnf' ->
-    let l' = getWord . getVariable $ l
+    let l = mkLiteralFromInteger lit
         exptdMaxVar = getExptdMaxVar cnf'
+        l' = getWord . getVariable $ l
     in cnf' {
       getCurrClause  = clauseAddLiteral (getCurrClause cnf') l,
       getExptdMaxVar = if exptdMaxVar < l' then

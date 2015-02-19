@@ -35,10 +35,12 @@ tests =
   testGroup name [
     Internal.tests,
     testGroup "cnfBuilder" [
-      cnfBuilderTest1
+      cnfBuilderTest1,
+      cnfBuilderTest2
       ],
     testGroup "cnfBuilder" [
-      cnfBuilder'Test1
+      cnfBuilder'Test1,
+      cnfBuilder'Test2
       ],
     testGroup "addLiteral" [
       addLiteralTest1,
@@ -74,19 +76,47 @@ tests =
 
 cnfBuilderTest1 :: TestTree
 cnfBuilderTest1 =
-  testProperty "getExpdMaxVar = v, getExptdCl = c in cnfBuilder v c" $ property
+  testProperty "getExpdMaxVar = v, getExptdCl = c in cnfBuilder v c" $
+  forAll
+  (do
+    vars <- choose (0,toInteger (maxBound :: Word))
+    clauses <- choose (0,toInteger (maxBound :: Word))
+    return (vars,clauses)
+    )
   (\(vars,clauses) ->
     case cnfBuilder vars clauses of
       Left _ -> property False
       Right builder -> testCNFBuilderGenTest1 vars clauses builder
   )
 
-testCNFBuilderGenTest1 :: Word -> Word -> CNFBuilder -> Property
+genIntegerOutsideRange :: Gen Integer
+genIntegerOutsideRange = oneof [
+  liftM (\a -> if a==0 then -1 else if a < 0 then a else negate a) arbitrary,
+  choose (1 + maxWord',(1+maxWord') ^ 2)
+  ]
+
+maxWord' :: Integer
+maxWord' = toInteger (maxBound :: Word)
+
+cnfBuilderTest2 :: TestTree
+cnfBuilderTest2 =
+  testProperty "cnfBuilder fails with correct error on incorrect initalisation" $
+  forAll
+  genVarsOrClausesOutsideRange
+   (\(vars,clauses) ->
+     case cnfBuilder vars clauses of
+       Left (Initialisation v' c') ->
+         v' < 0 .||. v' > maxWord' .||.
+         c' < 0 .||. c' > maxWord'
+       Right _ -> counterexample ("not failing " ++ show (cnfBuilder vars clauses)) $ property False
+       )
+   
+testCNFBuilderGenTest1 :: Integer -> Integer -> CNFBuilder -> Property
 testCNFBuilderGenTest1 vars cl builder =
   let valMaxVar = getExptdMaxVar builder
       valClNumb = getExptdClNumb builder
-  in (valMaxVar === vars) .&&.
-     (valClNumb === cl  )
+  in (valMaxVar === (fromInteger vars)) .&&.
+     (valClNumb === (fromInteger cl))
 
 cnfBuilder'Test1 :: TestTree
 cnfBuilder'Test1 =
@@ -94,6 +124,32 @@ cnfBuilder'Test1 =
                 "in cnfBuilder' v c") $ property
   (\(vars,clauses) ->
     testCNFBuilderGenTest1 vars clauses (cnfBuilder' vars clauses)
+    )
+
+genVarsOrClausesOutsideRange :: Gen (Integer,Integer)
+genVarsOrClausesOutsideRange =   (oneof [
+      do
+        vars <- choose (0,maxWord')
+        clauses <- genIntegerOutsideRange
+        return (vars,clauses),
+      do
+        vars <- genIntegerOutsideRange
+        clauses <- choose (0,maxWord')
+        return (vars,clauses),
+      do
+        vars <- genIntegerOutsideRange
+        clauses <- genIntegerOutsideRange
+        return (vars,clauses)
+        ]
+                                  )
+
+cnfBuilder'Test2 :: TestTree
+cnfBuilder'Test2 =
+  testProperty "cnfBuilder' vars or clauses outside range is correct" $
+  forAll
+  genVarsOrClausesOutsideRange
+  (\(vars,clauses) ->
+    validate (cnfBuilder' vars clauses)
     )
 
 addLiteralTest1 :: TestTree
@@ -107,7 +163,7 @@ addLiteralTest1 =
         ]
       literal <- case getExptdMaxVar cnf of
         0 -> return Nothing
-        i -> liftM Just $ genLiteral i
+        i -> liftM (Just . literalToInteger) $ genLiteral i
       return (cnf,literal)
       )
   (\(cnfbuilder,literal') ->
@@ -119,7 +175,7 @@ addLiteralTest1 =
       Nothing -> property True
       )
 
-testAddLiteral :: CNFBuilder -> Literal -> CNFBuilder
+testAddLiteral :: CNFBuilder -> Integer -> CNFBuilder
 testAddLiteral builder lit =
   builder {
     getCurrClNumb = exptdSize,
@@ -131,10 +187,10 @@ testAddLiteral builder lit =
         1 else
         0
         )
-    exptdClause = clauseAddLiteral oldClause lit
+    exptdClause = clauseAddLiteral oldClause (mkLiteralFromInteger lit)
     oldClause = getCurrClause builder
 
-addLiteralTest1Generic :: CNFBuilder -> CNFBuilder -> Literal -> Property
+addLiteralTest1Generic :: CNFBuilder -> CNFBuilder -> Integer -> Property
 addLiteralTest1Generic oldbuilder builder lit =
   let exptdBuilder = testAddLiteral oldbuilder lit
   in  exptdBuilder === builder
@@ -149,14 +205,14 @@ addLiteralTest2 =
         genCNFBuilderLitInClause 10 10 10 10
         ]
       x <- choose (getExptdMaxVar cnf,maxBound)
-      literal <- genLiteral x
+      literal <- liftM literalToInteger $ genLiteral x
       return (cnf,literal)
       )
   (\(cnfbuilder,literal) ->
     case addLiteral literal cnfbuilder of
-      Left (LitOutsideRange gotten expected) ->
+      Left (VarOutsideRange gotten expected) ->
         let exptd = getExptdMaxVar cnfbuilder
-            gotten' = getWord . getVariable $ literal
+            gotten' = abs literal
         in exptd === expected .&&.
            gotten' === gotten
       _ -> property False
@@ -173,7 +229,7 @@ addLiteral'Test1 =
         ]
       literal <- case getExptdMaxVar cnf of
         0 -> return Nothing
-        _ -> liftM Just $ genLiteral (getExptdMaxVar cnf)
+        _ -> liftM (Just . literalToInteger) $ genLiteral (getExptdMaxVar cnf)
       return (cnf,literal)
       )
   (\(builder,literal') ->
@@ -198,8 +254,9 @@ addLiteral'Test2 =
       return (cnf,literal)
       )
   (\(builder,literal) ->
-    let expected = addLiteral' literal builder
-        gotten'  = testAddLiteral builder literal
+    let literal' = literalToInteger literal
+        expected = addLiteral' literal' builder
+        gotten'  = testAddLiteral builder literal'
         gotten   = gotten' {
           getExptdMaxVar = getWord . getVariable $ literal
           }
@@ -372,27 +429,27 @@ generalTest'1 =
     in cnf === exptdCNF
        )
 
-combined :: CNF -> (Word,Word,[[Literal]])
+combined :: CNF -> (Integer,Integer,[[Integer]])
 combined cnf =
-  let maxVar = getMaxVar cnf
-      clauseNumb = getClauseNumb cnf
-      literals = map (map mkLiteralFromInteger) $ cnfToIntegers cnf
+  let maxVar = toInteger $ getMaxVar cnf
+      clauseNumb = toInteger $ getClauseNumb cnf
+      literals = cnfToIntegers cnf
   in (maxVar,clauseNumb,literals)
 
-evaluate :: CNFBuildErr -> [[Literal]] -> Either CNFBuilderError CNF
+evaluate :: CNFBuildErr -> [[Integer]] -> Either CNFBuilderError CNF
 evaluate cnf [] = cnf >>= finalise
 evaluate cnf (x:xs) = evaluate (evaluation cnf x) xs
   where
-    evaluation :: CNFBuildErr -> [Literal] -> CNFBuildErr
+    evaluation :: CNFBuildErr -> [Integer] -> CNFBuildErr
     evaluation cnf [] = cnf >>= finishClause
     evaluation cnf (y:ys) =
       evaluation (cnf >>= addLiteral y) ys
 
-evaluate' :: CNFBuilder -> [[Literal]] -> CNF
+evaluate' :: CNFBuilder -> [[Integer]] -> CNF
 evaluate' cnf [] = finalise' cnf
 evaluate' cnf (x:xs) = evaluate' (evaluation cnf x) xs
   where
-    evaluation :: CNFBuilder -> [Literal] -> CNFBuilder
+    evaluation :: CNFBuilder -> [Integer] -> CNFBuilder
     evaluation cnf [] = finishClause' cnf
     evaluation cnf (y:ys) =
       evaluation (addLiteral' y cnf) ys
