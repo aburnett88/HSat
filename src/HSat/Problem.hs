@@ -1,32 +1,33 @@
-{-|
+{- |
 Module      : HSat.Problem
-Description : The general Problem type
+Description : The Problem data type
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The general 'Problem' type describes all types of 'Problem', there 'Source'
-and accompanying 'ProblemExpr'
+This module describes the general 'Problem' data type, used to describe
+a variety of 'Problem's.
+
+It also includes an accompanying 'Source' which describes the problems origins.
 -}
 
 module HSat.Problem (
-  -- Problem
-  Problem(..), -- :: Problem
-  mkProblem    -- :: Source -> ProblemExpr -> Problem
+  -- * Problem
+  Problem (..), -- :: Problem
+  mkProblem    --  :: Source -> ProblemExpr -> Problem
   ) where
 
 import HSat.Printer
 import HSat.Problem.ProblemExpr
 import HSat.Problem.Source
 
-{-|
-The general 'Problem' type describes all the types of 'ProblemExpr' and
-provides an accompanying 'Source'
+{- |
+Used to contain a 'ProblemExpr' and the 'Problem's 'Source'.
 -}
 data Problem = Problem {
   -- | The 'Source' of the 'Problem'
-  getSource :: Source          ,
+  getSource      :: Source     ,
   -- | The expression 'ProblemExpr' of the problem itself
   getProblemExpr :: ProblemExpr
   } deriving (Eq)
@@ -34,9 +35,7 @@ data Problem = Problem {
 instance Show Problem where
   showsPrec = show'
 
-{-|
-Constructs a problem from the 'Source' and 'ProblemExpr' parts
--}
+-- | Constructs a problem from the 'Source' and 'ProblemExpr' parts
 mkProblem :: Source -> ProblemExpr -> Problem
 mkProblem = Problem
 
