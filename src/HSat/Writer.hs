@@ -10,10 +10,14 @@ Writes problems
 -}
 
 module HSat.Writer (
-  plainProblemToFile
+  plainProblemToFile,
+  writeFolder
   ) where
 
 import HSat.Problem
 
 plainProblemToFile :: Problem -> FilePath -> IO Bool
-plainProblemToFile = undefined
+plainProblemToFile _ _ = return False
+
+writeFolder :: (Problem -> FilePath -> IO Bool) -> [Problem] -> IO Bool
+writeFolder f ps = return False
