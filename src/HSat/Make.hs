@@ -14,13 +14,12 @@ module HSat.Make (
   makeList -- :: (MonadRandom m) = Int -> Config -> m [Problem]
   ) where
 
-import Control.Monad (replicateM,liftM)
 import Control.Monad.Random.Class
-import HSat.Make.CNF
 import HSat.Make.Config
 import HSat.Problem
 import HSat.Problem.ProblemExpr
 import HSat.Problem.Source
+import Control.Monad (replicateM)
 
 {-|
 Creates a random 'Problem' from a 'Config'
@@ -29,8 +28,7 @@ make :: (MonadRandom m) => Config -> m Problem
 make config = do
   expr <-
     case getInputConfig config of
-      CNFProblemType cnfConfig ->
-        (mkCNFProblem . fst) `liftM` evaluateCNFConfig cnfConfig
+      CNFProblemType cnfConfig -> undefined
   return . mkProblem mkStatic . changeProblemType (getOutputType config) $ expr
 
 {-|
