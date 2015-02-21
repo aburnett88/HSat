@@ -71,7 +71,9 @@ makeLiteral = do
     EQ -> takeFromSet
     LT -> takeFromAny
 
-takeFromSet = undefined
+takeFromSet :: (MonadRandom m) => LiteralStatusError m Literal
+takeFromSet = do
+  return $ mkLiteral pos (mkVariable 1)
 
 takeFromAny :: (MonadRandom m) => LiteralStatusError m Literal
 takeFromAny = do
