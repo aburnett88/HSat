@@ -81,7 +81,8 @@ Test-Suite HSat-tests
     directory,
     MonadRandom,
     random,
-    attoparsec
+    attoparsec,
+    either
 
 Test-Suite HSat-Printer
   type: exitcode-stdio-1.0

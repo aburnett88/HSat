@@ -3,10 +3,13 @@ module Test.Make.BSP (
   ) where
 
 import TestUtils
+import qualified Test.Make.BSP.Common as Common
 
 name :: String
 name = "BSP"
 
 tests :: TestTree
 tests =
-  testGroup name []
+  testGroup name [
+    Common.tests
+    ]
