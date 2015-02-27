@@ -1,100 +1,128 @@
 module HSat.Make.BSP.Common.Literal (
-  makeLiteral,
+  LiteralSet(..),
+  mkLiteralSet,
+  reset,
+  getTrueLiteral,
+  getRandomLiteral,
+  LiteralMake(..),
   LiteralMakeError(..),
-  LiteralMakeStatus(..),
-  LitGenSet(..),
-  LiteralStatusError(..),
-  mkVarSet,
-  mkLitSet,
-  mkNoSet,
-  getSize
+  LiteralPredicate(..)
   ) where
 
+import Data.Map (Map)
+import Data.Set (Set)
+import qualified Data.Set as S
+import qualified Data.Map as M
+import Control.Monad.Random
+import HSat.Problem.BSP.Common
 import Data.Word
 import Control.Monad.Trans.Either
 import Control.Monad.State
-import Control.Monad.Random
-import HSat.Problem.BSP.Common.Literal
-import qualified Data.Set as S
-import HSat.Problem.BSP.Common.Variable
-import HSat.Problem.BSP.Common.Sign
 
-data LiteralMakeStatus = LiteralMakeStatus {
-  getTotalLitsLeftToMk :: Word,
-  getGenerateSet       :: LitGenSet
+data LiteralSet = LiteralSet {
+  getVarsThatCanAppear :: Set Variable,
+  getTrueSet           :: Map Variable Sign,
+  getHasGeneratedTrue  :: Word,
+  getMaximumVariable   :: Word,
+  getVarsAppearTwice   :: Bool
   } deriving (Eq,Show)
 
-getSize :: LitGenSet -> Word
-getSize (VariableSet s _) = toEnum $ S.size s
-getSize (LiteralSet   s _) = toEnum $ S.size s
-getSize _ = 0
-
-mkVarSet,mkLitSet,mkNoSet :: Word -> LitGenSet
-mkVarSet n =
-  VariableSet set n
+mkLiteralSet :: (MonadRandom m) => Word -> Bool -> m LiteralSet
+mkLiteralSet 0 vAppearTwice = return $
+                 LiteralSet S.empty M.empty 0 0 vAppearTwice
+mkLiteralSet maxVar vAppearTwice = do
+  trueSet <- mkTrueSet
+  return $ LiteralSet vars trueSet 0 maxVar vAppearTwice
   where
-    set = S.fromList $ map mkVariable [1..n]
-mkLitSet n =
-  LiteralSet set n
-  where
-    set = S.fromList $ posLits ++ negLits
-    posLits = map (mkLiteral pos) . map mkVariable $ [1..n]
-    negLits = map (mkLiteral neg) . map mkVariable $ [1..n]
-mkNoSet n = NoSet n
+    vars = S.fromList varList
+    varList = map mkVariable $ [1..maxVar]
+    mkTrueSet :: (MonadRandom m) => m (Map Variable Sign)
+    mkTrueSet = M.fromList `liftM` mapM (
+      \var -> do
+        bool <- getRandom
+        let sign = mkSign bool
+        return (var,sign)
+        ) varList
 
-data LitGenSet =
-  VariableSet (S.Set Variable) Word |
-  LiteralSet  (S.Set Literal ) Word |
-  NoSet                        Word
+data LiteralMakeError =
+  CannotFindMapping |
+  NoVariables
   deriving (Eq,Show)
 
-genAny :: (MonadRandom m) => LitGenSet -> m Literal
-genAny litGen = do
-  let max = case litGen of
-        NoSet w -> w
-        LiteralSet _ w -> w
-        VariableSet _ w -> w
-  var <- mkVariable `liftM` getRandomR (1,max)
-  sign <- mkSign `liftM` getRandom
-  return $ mkLiteral sign var
+type LiteralMake random result =
+  StateT LiteralSet (EitherT LiteralMakeError random) result
 
-type LiteralStatusError random result =
-  StateT LiteralMakeStatus (EitherT LiteralMakeError random) result
+reset :: (MonadRandom m) => LiteralMake m ()
+reset = do
+  modify reset'
+  where
+    reset' :: LiteralSet -> LiteralSet
+    reset' ls =
+      ls {
+        getVarsThatCanAppear = (fullSet ls),
+        getHasGeneratedTrue  = 0
+        }
 
-makeLiteral :: (MonadRandom m) => LiteralStatusError m Literal
-makeLiteral = do
-  litConfig <- get
-  let totalLitsLeftToMk = getTotalLitsLeftToMk     litConfig
-      genSetSize        = getSize $ getGenerateSet litConfig
-  case compare genSetSize totalLitsLeftToMk of
-    GT -> lift . left $ CannotFulfillCallsRemaining genSetSize totalLitsLeftToMk
-    EQ -> takeFromSet
-    LT -> takeFromAny
+fullSet :: LiteralSet -> S.Set Variable
+fullSet ls = vars
+  where
+    maxVariable = getMaximumVariable ls
+    vars = case maxVariable of
+      0 -> S.empty
+      _ -> S.fromList $ map mkVariable [1..maxVariable]
 
-takeFromSet :: (MonadRandom m) => LiteralStatusError m Literal
-takeFromSet = do
-  return $ mkLiteral pos (mkVariable 1)
+makeVariable :: (MonadRandom m) => LiteralMake m Variable
+makeVariable = do
+  vars <- gets getVarsThatCanAppear
+  case S.size vars of
+    0 -> lift $ left NoVariables
+    n -> do
+      vAppearTwice <- gets getVarsAppearTwice
+      index <- getRandomR (0,n-1)
+      let var = S.elemAt index vars
+      if vAppearTwice then
+        return () else
+        modify $ removeVariable var
+      return var
 
-takeFromAny :: (MonadRandom m) => LiteralStatusError m Literal
-takeFromAny = do
-  set <- gets getGenerateSet
-  result <- genAny set
-  modify (flip update result)
-  return result
+removeVariable :: Variable -> LiteralSet -> LiteralSet
+removeVariable v ls =
+  let varsThatCanAppear = getVarsThatCanAppear ls
+  in ls {
+    getVarsThatCanAppear = S.delete v varsThatCanAppear
+    }
 
-update :: LiteralMakeStatus -> Literal -> LiteralMakeStatus
-update (LiteralMakeStatus w lgen) l = (LiteralMakeStatus (w-1) (removeFromSet lgen l))
+getTrueLiteral :: (MonadRandom m) => LiteralMake m Literal
+getTrueLiteral = do
+  var <- makeVariable
+  mapping <- gets getTrueSet
+  case M.lookup var mapping of
+    Nothing -> lift $ left CannotFindMapping
+    Just sign -> do
+      modify $ changeTrueLiteralCreated
+      return $ mkLiteral sign var
+
+changeTrueLiteralCreated :: LiteralSet -> LiteralSet
+changeTrueLiteralCreated ls =
+  ls {
+    getHasGeneratedTrue = (getHasGeneratedTrue) ls + 1
+  }
+
+getRandomLiteral :: (MonadRandom m) => LiteralMake m Literal
+getRandomLiteral = do
+  var <- makeVariable
+  bool <- getRandom
+  let sign = mkSign bool
+      lit  = mkLiteral sign var
+  mapping <- gets getTrueSet
+  case M.lookup var mapping of
+    Just sign' -> if sign == sign' then do
+                    modify changeTrueLiteralCreated
+                    return lit else
+                    return lit
   
-removeFromSet :: LitGenSet -> Literal -> LitGenSet
-removeFromSet (VariableSet s w) l =
-  let s' = S.delete (getVariable l) s
-  in VariableSet s' w
-removeFromSet (LiteralSet s w) l =
-  let s' = S.delete l s
-  in LiteralSet s' w
-removeFromSet n _ = n
-  
-  
-data LiteralMakeError =
-  CannotFulfillCallsRemaining Word Word
+data LiteralPredicate =
+  Any |
+  All |
+  None
   deriving (Eq,Show)

@@ -1,14 +1,18 @@
 module Test.Make.BSP.Common.Literal (
-  tests
+  tests,
+  arbLiteralSet
   ) where
 
 import TestUtils
 import HSat.Make.BSP.Common.Literal
-import HSat.Problem.BSP.Common.Literal
+import HSat.Problem.BSP.Common
 import Control.Monad.Random
 import Control.Monad.State
 import Control.Monad.Trans.Either
 import qualified Data.Set as S
+import qualified Data.Map as M
+import Data.Word
+import Data.Set (Set)
 
 name :: String
 name = "Literal"
@@ -16,86 +20,166 @@ name = "Literal"
 tests :: TestTree
 tests =
   testGroup name [
-    testGroup "makeLiteral" [
-       makeLiteralTest1,
-       makeLiteralTest2,
-       makeLiteralTest3,
-       makeLiteralTest4,
-       makeLiteralTest5
-       ]
+    testGroup "mkLiteralSet" [
+       mkLiteralSet1,
+       mkLiteralSet2
+       ],
+    testGroup "reset" [
+      resetTest1
+      ],
+    testGroup "getTrueLiteral" [
+      getTrueLiteralTest1,
+      genericRunOutOfVars getTrueLiteral
+      ],
+    testGroup "getRandomLiteral" [
+      getRandomLiteralTest1,
+      genericRunOutOfVars getRandomLiteral
+      ]
     ]
 
-x :: (MonadRandom m) => LiteralStatusError m Literal -> LiteralMakeStatus -> m (Either LiteralMakeError (Literal,LiteralMakeStatus))
-x lse lms = runEitherT (runStateT lse lms)
+instance Arbitrary LiteralSet where
+  arbitrary = arbLiteralSet 10 1
 
-makeLiteralTest1 :: TestTree
-makeLiteralTest1 =
-  testCase "makeLiteral == generates correct literal" $ do
-    let litMakeStatus = LiteralMakeStatus 12 litGenSet
-        litGenSet     = mkVarSet 10
-    lit <- x makeLiteral litMakeStatus
-    assert $ checkLiteral lit litMakeStatus
+arbLiteralSet :: Word -> Word -> Gen LiteralSet
+arbLiteralSet max canGenerate = do
+  n <- choose (1,max)
+  s <- arbitrary
+  let vars = map mkVariable [1..n]
+  map <- M.fromList `liftM` mapM (\v -> do
+                                     s <- arbitrary
+                                     return (v,s)) vars
+  gotten <- choose (0,n-1)
+  genTrue <- choose (0,gotten)
+  set <- generateSet (S.fromList vars) gotten
+  return $ LiteralSet set map genTrue n s
 
-checkLiteral :: Either a (Literal,LiteralMakeStatus) -> LiteralMakeStatus -> Bool
-checkLiteral (Left _) _ = False
-checkLiteral (Right (lit,(LiteralMakeStatus w lgen))) (LiteralMakeStatus w' lgen') =
-  let checkCounter = w == (w'-1)
-      sizeComparison = compare w' (getSize lgen')
-      inOldSet = case lgen' of
-        (NoSet _) -> True
-        (VariableSet s _) -> S.member (getVariable lit) s
-        (LiteralSet s _) -> S.member lit s
-      notInNewSet = case lgen of
-        (NoSet _) -> True
-        (VariableSet s _) -> not $ S.member (getVariable lit) s
-        (LiteralSet s _) -> not $ S.member lit s
-  in checkCounter && (case sizeComparison of
-        EQ -> notInNewSet && inOldSet
-        LT -> False
-        GT -> if inOldSet then
-                notInNewSet else
-                True
-                )
+f :: (MonadRandom m) => LiteralMake m a -> LiteralSet -> m (Either LiteralMakeError (a,LiteralSet))
+f func init = runEitherT (runStateT func init)
+  
 
-makeLiteralTest2 :: TestTree
-makeLiteralTest2 =
-  testCase "makeLiteral == generates single correct literal" $ do
-    let literal = mkLiteralFromInteger (-32)
-        litMakeStatus = LiteralMakeStatus 1 litGenSet
-        litGenSet =  LiteralSet (S.fromList . map mkLiteralFromInteger $ [-32]) 48
-    lit <- x makeLiteral litMakeStatus
-    case lit of
-      Right (lit',_) -> assert $ (lit' == literal)
-      _ -> assert $ False
-    
-makeLiteralTest3 :: TestTree
-makeLiteralTest3 =
-  testProperty "Generated litMakeStatus returns correct literal" $
-  forAll
-  (return $ LiteralMakeStatus 0 (mkNoSet 100))
-  (\makeStatus -> ioProperty $ do
-      literal <- x makeLiteral makeStatus
-      return $ property $ checkLiteral literal makeStatus
-      )
+mkLiteralSet1 :: TestTree
+mkLiteralSet1 =
+  testCase "mkLiteralSet 0" $ do
+    gotten <- mkLiteralSet 0 True
+    let expected = LiteralSet S.empty M.empty 0 0 True
+    assert ( gotten == expected)
 
-makeLiteralTest4 :: TestTree
-makeLiteralTest4 =
-  testProperty "makeLiteral litMakeStatus returns something within the lit set" $
-  forAll
-  (return $ LiteralMakeStatus 0 (mkNoSet 100))
-  (\makeStatus -> ioProperty $ do
-      literal <- x makeLiteral makeStatus
-      return $ property $ checkLiteral literal makeStatus
-      )
+mkLiteralSet2 :: TestTree
+mkLiteralSet2 =
+  testProperty "mkLiteralSet non-zero" $ ioProperty $ do
+    (maxVar,vAppearTwice) <- generate $ do
+      maxVar' <- choose (1,100)
+      vAppearTwice' <- arbitrary
+      return (maxVar',vAppearTwice')
+    gotten <- mkLiteralSet maxVar vAppearTwice
+    let vars = map mkVariable [1..maxVar]
+        exptdVars = S.fromList vars
+        exptdTrueSet = vars
+        gottenTrueSet = map fst . M.toList $ getTrueSet gotten
+        gottenVars = getVarsThatCanAppear gotten
+        gottenMaxVar = getMaximumVariable gotten
+        gottenHasGeneratedTrue = getHasGeneratedTrue gotten
+        gottenVarsAppearTwice = getVarsAppearTwice gotten
+    return $ property $ (exptdTrueSet === gottenTrueSet) .&&.
+             (gottenVars === exptdVars) .&&.
+             (gottenMaxVar === maxVar) .&&.
+             (gottenHasGeneratedTrue === 0) .&&.
+             (gottenVarsAppearTwice === vAppearTwice)
 
-makeLiteralTest5 :: TestTree
-makeLiteralTest5 =
-  testProperty "makeLiteral (Generate litmakestatus that cannot be satisfied throws error" $
-  forAll
-  (return $ LiteralMakeStatus 0 (mkNoSet 100))
-  (\makeStatus -> ioProperty $ do
-      literal <- x makeLiteral makeStatus
-      return $ case literal of
-        Left err -> property True
-        _ -> property False
-        )
+generateNonFullVAppear :: Gen LiteralSet
+generateNonFullVAppear = do
+  v <- choose (1,100)
+  m <- M.fromList `liftM` mapM (\v -> do
+                                     s <- arbitrary
+                                     return (mkVariable v,s)) [1..v]
+  removal <- choose (1,v-1)
+  s <- generateSet (S.fromList . map mkVariable $ [1..v]) removal
+  l <- choose (0,removal)
+  if (toEnum $ S.size s) == (v-removal) then
+    return (LiteralSet s m l v False) else
+    undefined
+
+generateSet :: (Ord a) => Set a -> Word -> Gen (Set a)
+generateSet s n =
+  if s==S.empty || n == 0 then
+    return s else do
+      index <- choose (0, S.size s-1)
+      let s' = S.delete (S.elemAt index s) s
+      generateSet s' (n-1)
+
+resetTest1 :: TestTree
+resetTest1 = do
+  testProperty "reset has correct vals" $ ioProperty $ do
+    literalset <- generate generateNonFullVAppear
+    result <- f reset literalset
+    case result of
+      Left _ -> return $ property False
+      Right (_,ls) -> do
+        let exptd = literalset {
+              getVarsThatCanAppear = S.fromList . map mkVariable $ [1..(getMaximumVariable ls)],
+              getHasGeneratedTrue  = 0
+              }
+        return $ property $ (exptd === ls)
+
+genericRunOutOfVars :: LiteralMake IO Literal ->
+                       TestTree
+genericRunOutOfVars function =
+  testCase "Run out of Variables throws correct error" $ do
+    oldLitSet <- generate arbitrary
+    let ls = oldLitSet {
+          getVarsThatCanAppear = S.empty
+              }
+    result <- f function ls
+    case result of
+      Left NoVariables -> assert $ True
+      _ -> assert False
+
+getRandomLiteralTest1 :: TestTree
+getRandomLiteralTest1 =
+  testProperty "getRandomLiteral has correct semantics" $ ioProperty $ do
+    ls <- generate arbitrary
+    let hasGen = getHasGeneratedTrue ls
+    result <- f getRandomLiteral ls
+    return $ case result of
+      Left _ -> property False
+      Right (l,newLs) -> 
+        let newHasGen = getHasGeneratedTrue newLs
+        in if newHasGen > hasGen then
+          (checkTrue l ls newLs) else
+          (checkGeneral l ls newLs)
+
+checkGeneral :: Literal -> LiteralSet -> LiteralSet -> Property
+checkGeneral l oldLs newLs =
+  let vAppearTwice = getVarsAppearTwice oldLs
+      oldSet = getVarsThatCanAppear oldLs
+      exptdCanAppear = if vAppearTwice then
+                         oldSet else
+                         S.delete (getVariable l) oldSet
+  in property $ (exptdCanAppear == (getVarsThatCanAppear newLs))
+
+getTrueLiteralTest1 :: TestTree
+getTrueLiteralTest1 =
+  testProperty "getTrueLiteral has correct semantics" $ ioProperty $ do
+    ls <- generate arbitrary
+    result <- f getTrueLiteral ls
+    return $ case result of
+      Left e -> counterexample ("Threw an unexepcted Left: " ++ show e ++"\nInitial LiteralSet Used: " ++ show ls) False
+      Right (l,ls') -> checkTrue l ls ls'
+
+checkTrue :: Literal -> LiteralSet -> LiteralSet -> Property
+checkTrue l oldLs newLs =
+  let vAppearTwice = getVarsAppearTwice oldLs
+      oldSet = getVarsThatCanAppear oldLs
+      exptdVCanAppear = if vAppearTwice then
+                          oldSet else
+                          S.delete (getVariable l) oldSet
+      mapping = getTrueSet oldLs
+      sameSign = case M.lookup (getVariable l) mapping of
+        Nothing -> False
+        Just s' -> s' == (getSign l)
+      exptdNumb = (getHasGeneratedTrue oldLs) + 1
+      exptdLs = oldLs {
+        getVarsThatCanAppear = exptdVCanAppear,
+        getHasGeneratedTrue = exptdNumb
+                              }
+   in counterexample ("Non equal on literal" ++ (show l)) $ (exptdLs === newLs) .&&. (sameSign === True)

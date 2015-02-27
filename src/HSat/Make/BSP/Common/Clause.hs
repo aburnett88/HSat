@@ -1,44 +1,50 @@
 module HSat.Make.BSP.Common.Clause (
-  makeClause,
-  ClauseMakeError(..),
-  ClauseMakeStatus(..)
+  makeClause
   ) where
 
 import Data.Word
-import Control.Monad.Trans.Either
 import Control.Monad.State
 import Control.Monad.Random
 import HSat.Problem.BSP.Common
 import HSat.Make.BSP.Common.Literal
 
-type ClauseStatusError random result =
-  StateT ClauseMakeStatus (EitherT ClauseMakeError random) result
+makeClause :: (MonadRandom m) =>
+              LiteralPredicate -> Word ->
+              LiteralMake m (Bool,Clause)
+makeClause predicate size = do
+  clause <- (case predicate of
+    Any -> makeClauseOneTrue
+    All -> makeClauseAllTrue
+    None -> makeClauseUndefined)
+            size emptyClause
+  hasGeneratedTrue <- gets getHasGeneratedTrue
+  let allTrue = hasGeneratedTrue == size
+  reset
+  return (allTrue,clause)
 
-data ClauseMakeError =
-  LitMakeError LiteralMakeError
-  deriving (Eq,Show)
+makeClauseAllTrue :: (MonadRandom m) => Word -> Clause ->
+                     LiteralMake m Clause
+makeClauseAllTrue 0 c = return c
+makeClauseAllTrue n c = do
+  l <- getTrueLiteral
+  makeClauseAllTrue (n-1) (clauseAddLiteral c l)
 
-data ClauseMakeStatus = ClauseMakeStatus {
-  getMustContainOneOfSet :: LiteralSet       ,
-  getLiteralMakeStatus   :: LiteralMakeStatus
-  } deriving (Eq,Show)
+makeClauseUndefined :: (MonadRandom m) => Word -> Clause ->
+                       LiteralMake m Clause
+makeClauseUndefined 0 c = return c
+makeClauseUndefined n c = do
+  l <- getRandomLiteral
+  makeClauseUndefined (n-1) (clauseAddLiteral c l)
 
-type LiteralSet = (Maybe ())
-
-makeClause :: (MonadRandom m) => Word -> ClauseStatusError m Clause
-makeClause size = do
-  getMustContainOneOfSet <- gets getMustContainOneOfSet
-  case getMustContainOneOfSet of
-    Nothing -> makeClauseNoSolution size emptyClause
-    Just sol -> makeClauseSolution size emptyClause False
-
-makeClauseNoSolution :: (MonadRandom m) => Word -> Clause -> ClauseStatusError m Clause
-makeClauseNoSolution 0 clause = return clause
-makeClauseNoSolution n clause = do
-  makeLiteral' >>= makeClauseNoSolution (n-1) . clauseAddLiteral clause
-
-makeLiteral' :: ClauseStatusError m Literal
-makeLiteral' = undefined
-
-makeClauseSolution :: (MonadRandom m) => Word -> Clause -> Bool -> ClauseStatusError m Clause
-makeClauseSolution = undefined
+makeClauseOneTrue :: (MonadRandom m) => Word -> Clause ->
+                     LiteralMake m Clause
+makeClauseOneTrue 0 c = return c
+makeClauseOneTrue 1 c = do
+  hasGeneratedTrue <- gets getHasGeneratedTrue
+  l <- case hasGeneratedTrue of
+    0 -> getTrueLiteral
+    _ -> getRandomLiteral
+  return (clauseAddLiteral c l)
+makeClauseOneTrue n c = do
+  l <- getRandomLiteral
+  makeClauseOneTrue (n-1) (clauseAddLiteral c l)
