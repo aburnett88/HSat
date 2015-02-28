@@ -15,7 +15,6 @@ module TestUtils (
   testMaxClausesSize,   -- :: Int
   mkIntegerNonZero,     -- :: Gen Integer
   mkWordNonZero,        -- :: Gen Word
-  checkBounds,          -- :: (Ord a) => a -> Bounds a -> Bool
   testList,             -- ::
   testEq,               -- ::
   testAllEq,            -- ::
@@ -145,8 +144,9 @@ instance Arbitrary CNFConfig where
           y <- genBounded 0 2000
           return . Right $ y
     posAndNeg <- arbitrary
-    return $ CNFConfig clauses vars varsInEach posAndNeg
-  shrink (CNFConfig a b c d) = []
+    x <- arbitrary
+    return $ CNFConfig clauses vars varsInEach posAndNeg x
+  shrink (CNFConfig a b c d e) = []
 --    let xs = shrink (a,b,c,d)
  --   in map (\(a,b,c,d) -> CNFConfig a b c d) xs
 

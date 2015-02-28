@@ -1,22 +1,18 @@
-module Test.Make.CNF (
+module Test.Make.BSP.CNF (
   tests
   ) where
 
 import TestUtils
-import qualified Test.Make.CNF.Internal as Internal
-import HSat.Make.CNF
-import HSat.Make.Config
-import HSat.Problem.BSP.CNF
-import HSat.Problem.BSP.Common
-import qualified Data.Set as S
-import qualified Data.Vector as V
+import qualified Test.Make.BSP.CNF.Internal as Internal
 
 name :: String
 name = "CNF"
 
 tests :: TestTree
 tests =
-  testGroup name []
+  testGroup name [
+    Internal.tests
+    ]
   {-
     testGroup "evaluateCNFConfig" [
        evaluateCNFConfigTest1

@@ -42,10 +42,11 @@ data ConfigProblemType =
   deriving (Eq,Show)
 
 data CNFConfig = CNFConfig {
-  getClNum  :: ClauseNumber      ,
-  getVarNum :: VariableNumber    ,
-  getClSize :: ClauseSizeNumber  ,
-  getVarPred :: VariablePredicate
+  getClauseSizeBounds :: ClauseNumber,
+  getVariableBounds   :: VariableNumber,
+  getClauseSizesBounds :: ClauseSizeNumber,
+  getVarsCanAppearTwice :: Bool,
+  getDefinitielyHasSolution :: Bool
   } deriving (Eq,Show)
 
 data VariablePredicate =

@@ -1,4 +1,4 @@
-module Test.Make.CNF.Internal (
+module Test.Make.BSP.CNF.Internal (
   tests
   ) where
 
@@ -6,18 +6,91 @@ import           Control.Monad (replicateM)
 import           Control.Monad.Random.Class
 import qualified Data.Set as S
 import qualified Data.Vector as V
-import           HSat.Make.CNF.Internal
 import           HSat.Make.Config
 import           HSat.Make.Internal
 import           HSat.Problem.BSP.Common
 import           TestUtils
+import HSat.Make.BSP.CNF
+import HSat.Make.BSP.CNF.Internal
+import Data.Word
 
 name :: String
 name = "Internal"
 
 tests :: TestTree
 tests =
-  testGroup name []
+  testGroup name [
+    testGroup "mkCNFInit" [
+       mkCNFInitTest1
+       ],
+    testGroup "mkCNFInit'" [
+      mkCNFInit'Test1
+      ]
+    ]
+
+mkCNFInitTest1 :: TestTree
+mkCNFInitTest1 =
+  testProperty "testCNFInit values are all correct" $ ioProperty $ do
+    config <- generate arbitrary
+    init   <- mkCNFInit config
+    return $ testConfigInit config init
+
+mkCNFInit'Test1 :: TestTree
+mkCNFInit'Test1 =
+  testProperty "testCNFInit' returns correct values" $ ioProperty $ do
+    config <- generate arbitrary
+    (init,config') <- mkCNFInit' config
+    let prop1 = testConfigInit config' init
+    result <- makeCNF init
+    let prop2 = case result of
+          Left e -> counterexample
+                    ("Should not have thrown error: " ++ show e)
+                    False
+          Right cnf -> property True
+    return $ prop1 .&&. prop2
+      
+
+testConfigInit :: CNFConfig -> CNFInit -> Property
+testConfigInit
+  (CNFConfig
+   clauseSizeBounds
+   variableBounds
+   clausesSizeBound
+   configVarsAppearTwice
+   definitelyHasSolution)
+  (CNFInit
+   setMaxVar
+   sizes
+   varsCanAppearTwice
+   willBeSolvable) =
+    let sizeClauses = toEnum . length $ sizes
+        propClauses = checkBounds clauseSizeBounds sizeClauses
+        propVariables = checkBounds (toWords variableBounds sizeClauses) setMaxVar
+        propClauseSizes = checkListBounds clausesSizeBound sizes
+        propVarsTwice   = configVarsAppearTwice === varsCanAppearTwice
+        propSolution    = definitelyHasSolution === willBeSolvable
+   in propClauses .&&. propVariables .&&.
+      propClauseSizes .&&. propVarsTwice .&&. propSolution
+
+toWords :: VariableNumber -> Word -> Bounds Word
+toWords _ w = mkExact w
+      
+checkListBounds :: (Ord a, Show a) => Bounds a -> [a] -> Property
+checkListBounds b [] = property True
+checkListBounds b (x:xs) = checkBounds b x .&&. checkListBounds b xs
+
+checkBounds :: (Ord a, Show a) => Bounds a -> a -> Property
+checkBounds b result =
+  let lesser = getLesser b
+      greater = getGreater b
+      gteLeftTest =
+        counterexample (show result ++ " < " ++ show lesser)
+        (result >= lesser)
+      lteRightTest =
+        counterexample (show result ++ " > " ++ show greater)
+        (result <= greater)
+  in property $ gteLeftTest .&&. lteRightTest
+      
   {-
     testGroup "fillClauses" [
        fillClausesTest1

@@ -10,6 +10,7 @@ import HSat.Problem.ProblemExpr
 import HSat.Problem
 import qualified Test.Make.BSP as BSP
 import qualified Test.Make.Config as Config
+import qualified Test.Make.Internal as Internal
 
 name :: String
 name = "Make"
@@ -24,7 +25,8 @@ tests =
       makeListTest1
       ],
     Config.tests,
-    BSP.tests
+    BSP.tests,
+    Internal.tests
     ]
 
 makeTest1 :: TestTree

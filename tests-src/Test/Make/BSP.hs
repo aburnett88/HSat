@@ -4,6 +4,7 @@ module Test.Make.BSP (
 
 import TestUtils
 import qualified Test.Make.BSP.Common as Common
+import qualified Test.Make.BSP.CNF as CNF
 
 name :: String
 name = "BSP"
@@ -11,5 +12,6 @@ name = "BSP"
 tests :: TestTree
 tests =
   testGroup name [
-    Common.tests
+    Common.tests,
+    CNF.tests
     ]

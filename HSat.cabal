@@ -48,6 +48,7 @@ library
     HSat.Make.Internal
     HSat.Make.Config
     HSat.Make.BSP.CNF
+    HSat.Make.BSP.CNF.Internal
     HSat.Make.BSP.Common.Clauses
     HSat.Make.BSP.Common.Clause
     HSat.Make.BSP.Common.Literal
