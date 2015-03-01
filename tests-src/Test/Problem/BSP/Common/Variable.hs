@@ -60,7 +60,7 @@ mkVariableTest2 =
 
 mkVariableFromIntegerTest1 :: TestTree
 mkVariableFromIntegerTest1 =
-  testProperty "fromEnum . getWord . mkVariableFromInteger == id" $
+  testProperty "getWord . mkVariableFromInteger == id" $
   forAll
   mkIntegerNonZero
   (\int ->
@@ -71,12 +71,12 @@ mkVariableFromIntegerTest1 =
 
 mkVariableFromIntegerTest2 :: TestTree
 mkVariableFromIntegerTest2 =
-  testCase "mkVariableFromInteger 0 throws runtime error" $
+  testCase "mkVariableFromInteger 0 throws error" $
   forceError (mkVariableFromInteger 0) (mkVariableFromInteger 1)
 
 mkVariableFromIntegerTest3 :: TestTree
 mkVariableFromIntegerTest3 =
-  testCase "mkVariableFromInteger (maxBound + 1) throws runtime error" $ do
+  testCase "mkVariableFromInteger (maxBound + 1) throws error" $ do
     let throwErrorVal = mkVariableFromInteger . (1+) . toInteger $ (
           maxBound :: Word)
         dummyVal      = mkVariableFromInteger 1
@@ -84,7 +84,7 @@ mkVariableFromIntegerTest3 =
 
 mkVariableFromIntegerTest4 :: TestTree
 mkVariableFromIntegerTest4 =
-  testCase "mkVarFromInteger (negate maxBound + 1) throws runtime error" $ do
+  testCase "mkVarFromInteger (negate maxBound + 1) throws error" $ do
     let throwErrorVal = mkVariableFromInteger . negate . (1+) . toInteger $ (
           maxBound :: Word)
         dummyVal      = mkVariableFromInteger 1

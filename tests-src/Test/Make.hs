@@ -35,7 +35,6 @@ makeTest1 =
     (\bool -> bool == not bool)
 
   {-ioProperty (
-    \config -> do
       result <- make config
       return . property . validate . getProblemExpr $ result
       )

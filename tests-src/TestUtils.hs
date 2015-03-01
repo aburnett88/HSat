@@ -19,7 +19,8 @@ module TestUtils (
   testEq,               -- ::
   testAllEq,            -- ::
   forceError,           -- ::
-  printTest             -- :: 
+  printTest,             -- ::
+  propList              -- :: (a -> Property) -> [a] -> Property
   ) where
 
 import qualified Control.Exception as E (catch)
@@ -242,3 +243,10 @@ printTest str getElem =
       assertBool "" True
       ]
 --348 - 267--250
+
+propList :: (Show a) => (a -> Property) -> [a] -> Property
+propList f xs = once $ propList' xs
+  where
+    propList' [] = property True
+    propList' (x:xs) =
+      (counterexample ("Failed on input " ++ show x) (f x)) .&&. propList' xs

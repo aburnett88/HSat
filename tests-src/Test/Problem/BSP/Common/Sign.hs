@@ -23,7 +23,8 @@ tests :: TestTree
 tests =
   testGroup name [
     testGroup "mkSign" [
-       mkSignTest1
+       mkSignTest1,
+       mkSignTest2
        ],
     testGroup "pos" [
       posTest1
@@ -42,51 +43,57 @@ tests =
       signToIntegerTest3
       ],
     testGroup "isPos" [
-      isPosTest1
+      isPosTest1,
+      isPosTest2
       ],
     testGroup "isNeg" [
-      isNegTest1
+      isNegTest1,
+      isNegTest2
       ]
     ]
 
 mkSignTest1 :: TestTree
 mkSignTest1 =
-  testProperty "getBool . mkSign == id" $ property
-  (\bool ->
-    let gottenBool = getBool $ mkSign bool
-    in bool        === gottenBool
-  )
+  testCase "getBool . mkSign == id" $
+  (getBool $ mkSign True) @=? True
 
+mkSignTest2 :: TestTree
+mkSignTest2 =
+  testCase "getBool . mkSign False == False" $
+  False @=? (getBool $ mkSign False)
+  
 posTest1 :: TestTree
 posTest1 =
-  testCase "mkSign True == pos" $ pos @=? mkSign True
+  testCase "mkSign True == pos" $
+  pos @=? mkSign True
 
 negTest1 :: TestTree
 negTest1 =
-  testCase "mkSign False == neg" $ neg @=? mkSign False
+  testCase "mkSign False == neg" $
+  neg @=? mkSign False
 
 mkSignFromIntegerTest1 :: TestTree
 mkSignFromIntegerTest1 =
-  testProperty "mkSignFromInteger nonZero == either pos or neg" $
+  testProperty "mkSignFromInteger nonZero has correct sign" $
   forAll
   mkIntegerNonZero
   (\int ->
     case compare int 0 of
-      EQ -> error ("mkIntegerNonZero created: " ++ show int)
+      EQ -> counterexample
+            ("compare " ++ show int ++ " 0 === EQ") False
       LT -> mkSignFromInteger int === neg
       GT -> mkSignFromInteger int === pos
   )
 
 mkSignFromIntegerTest2 :: TestTree
 mkSignFromIntegerTest2 =
-  testProperty ("Compare 0 . signToInteger $ mkSignFromInteger int" ++
-                " == compare 0 int") $ 
+  testProperty "signToInteger mkSignFromInteger has correct sign" $
   forAll
   mkIntegerNonZero
   (\int ->
-    let expectedOrdVal = compare 0 int
-        gottenOrdVal   = compare 0 (signToInteger $ mkSignFromInteger int)
-    in expectedOrdVal  === gottenOrdVal
+    let exptd  = compare 0 int
+        actual = compare 0 (signToInteger $ mkSignFromInteger int)
+    in exptd  === actual
   )
 
 mkSignFromIntegerTest3 :: TestTree
@@ -108,23 +115,26 @@ signToIntegerTest3 :: TestTree
 signToIntegerTest3 =
   testProperty "mkSignFromInteger . signToInteger == id" $ property
   (\sign ->
-    let gottenVal = mkSignFromInteger $ signToInteger sign
-    in sign       === gottenVal
+    let actual = mkSignFromInteger $ signToInteger sign
+    in sign    === actual
   )
 
 isPosTest1 :: TestTree
 isPosTest1 =
-  testProperty "isPos . mkSign $ x == x" $ property
-  (\bool ->
-    let gottenVal = isPos $ mkSign bool
-    in bool       === gottenVal
-  )
+  testCase "isPos $ mkSign True == True" $
+  True @=? (isPos $ mkSign True)
+
+isPosTest2 :: TestTree
+isPosTest2 =
+  testCase "isPos $ mkSign False == False" $
+  False @=? (isPos $ mkSign False)
 
 isNegTest1 :: TestTree
 isNegTest1 =
-  testProperty "isNeg . mkSign $ x == (not x)" $ property
-  (\bool ->
-    let gottenVal   = isNeg $ mkSign bool
-        expectedVal = not bool
-    in expectedVal  === gottenVal
-       )
+  testCase "isNeg $ mkSign True == False" $
+  False @=? (isNeg $ mkSign True)
+
+isNegTest2 :: TestTree
+isNegTest2 =
+  testCase "isNeg $ mkSign False == True" $
+  True @=? (isNeg $ mkSign False)

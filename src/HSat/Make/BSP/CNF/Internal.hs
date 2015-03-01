@@ -30,8 +30,10 @@ mkCNFInit (CNFConfig
   return $ CNFInit noClauses clauseSizes varsCanAppearTwice definitelyHasSolution
 
 evalVariableNumber :: (MonadRandom m) => Word -> VariableNumber -> m Word
-evalVariableNumber = undefined
+evalVariableNumber x _ = return x
 
 mkCNFInit' :: (MonadRandom m) => CNFConfig -> m (CNFInit,CNFConfig)
-mkCNFInit' = undefined
+mkCNFInit' c = do
+  init <- mkCNFInit c
+  return (init,c)
   
