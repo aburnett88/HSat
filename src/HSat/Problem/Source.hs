@@ -13,10 +13,12 @@ module HSat.Problem.Source (
   Source(..),
   -- * Constructors
   mkStatic,     -- :: Source
-  mkFileSource  -- :: FilePath -> Source
+  mkFileSource, -- :: FilePath -> Source
+  mkMakeConfig  -- :: Config -> Source
   ) where
 
 import HSat.Printer
+import HSat.Make.Config
 
 {-|
 A data type describing the source of a problem. 
@@ -26,7 +28,8 @@ data Source =
   -- |placeholder
   StaticSource |
   -- | When the source has come from a file
-  FileSource FilePath
+  FileSource FilePath |
+  MakeConfiguration Config
   deriving (Eq,Show)
 
 {-|
@@ -40,6 +43,9 @@ A quick constructor for a source from a file
 -}
 mkFileSource :: FilePath -> Source
 mkFileSource = FileSource
+
+mkMakeConfig :: Config -> Source
+mkMakeConfig = MakeConfiguration
 
 instance Printer Source where
   compact StaticSource = text "STATIC"

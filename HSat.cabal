@@ -25,7 +25,8 @@ library
     random,
     containers,
     mtl,
-    either
+    either,
+    bifunctors
   Exposed-Modules:
     HSat.Problem
     HSat.Problem.ProblemExpr

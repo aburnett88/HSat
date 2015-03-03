@@ -39,9 +39,9 @@ mkCNFInit'Test1 :: TestTree
 mkCNFInit'Test1 =
   testProperty "testCNFInit' returns correct values" $ ioProperty $ do
     config <- generate arbitrary
-    (init,config') <- mkCNFInit' config
+    (config',init) <- mkCNFInit' config
     let prop1 = testConfigInit config' init
-    result <- makeCNF init
+    result <- mkCNF init
     let prop2 = case result of
           Left e -> counterexample
                     ("Should not have thrown error: " ++ show e)

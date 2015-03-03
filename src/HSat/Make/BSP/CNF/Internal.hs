@@ -1,7 +1,10 @@
 module HSat.Make.BSP.CNF.Internal (
   mkCNFInit,
   mkCNFInit',
-  CNFInit(..)
+  CNFInit(..),
+  CNFMakeError(..),
+  mkCNF,
+  mkCNF'
   ) where
 
 import Data.Word
@@ -9,6 +12,7 @@ import HSat.Make.Config
 import HSat.Make.Internal
 import Control.Monad (replicateM)
 import Control.Monad.Random
+import HSat.Problem.BSP.CNF
 
 data CNFInit = CNFInit {
   getSetMaxVar :: Word,
@@ -32,8 +36,21 @@ mkCNFInit (CNFConfig
 evalVariableNumber :: (MonadRandom m) => Word -> VariableNumber -> m Word
 evalVariableNumber x _ = return x
 
-mkCNFInit' :: (MonadRandom m) => CNFConfig -> m (CNFInit,CNFConfig)
+mkCNFInit' :: (MonadRandom m) => CNFConfig -> m (CNFConfig,CNFInit)
 mkCNFInit' c = do
   init <- mkCNFInit c
-  return (init,c)
+  return (c,init)
   
+mkCNF :: (MonadRandom m) => CNFInit -> m (Either CNFMakeError CNF)
+mkCNF = undefined
+
+mkCNF' :: (MonadRandom m) => CNFInit -> m CNF
+mkCNF' init = do
+  result <- mkCNF init
+  return $ case result of
+    Left e -> error ("Unexpected error " ++ show e)
+    Right cnf -> cnf
+
+data CNFMakeError =
+  CNFMakeError
+  deriving (Eq,Show)

@@ -4,15 +4,32 @@ module HSat.Make.BSP.CNF (
   makeCNF'
   ) where
 
-import HSat.Make.BSP.Common.Literal
 import HSat.Problem.BSP.CNF
 import HSat.Make.BSP.CNF.Internal
-import Control.Monad.Trans.Either
-import Control.Monad.State
-import HSat.Make.BSP.Common.Clauses
 import HSat.Problem.BSP.Common
 import Data.Map (Map)
 import Control.Monad.Random
+import HSat.Make.Config
+
+
+makeCNF :: (MonadRandom m) => CNFConfig -> m (Either CNFMakeError CNF)
+makeCNF config =
+  mkCNFInit config >>= mkCNF
+
+makeCNF' :: (MonadRandom m) =>
+            CNFConfig ->
+            m (CNFConfig,CNF)
+makeCNF' config = do
+  (config',init) <- mkCNFInit' config
+  cnf <- mkCNF' init
+  return (config',cnf)
+
+makeCNFSolution :: (MonadRandom m) =>
+                   CNFConfig ->
+                   m (Map Variable Sign,CNF)
+makeCNFSolution = undefined
+
+{-
 
 makeCNF :: (MonadRandom m) => CNFInit -> m (Either LiteralMakeError CNF)
 makeCNF init = do
@@ -34,3 +51,4 @@ makeCNF' init = do
   return $ case cnf of
     Left e -> error ("makeCNF': " ++ show e)
     Right cnf -> cnf
+-}
