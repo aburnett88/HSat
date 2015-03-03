@@ -15,7 +15,11 @@ import qualified Data.Vector as V
 import HSat.Problem.BSP.Common
 
 getCNFFromWriter :: CNFWriter -> CNF
-getCNFFromWriter _ = CNF 0 0 emptyClauses
+getCNFFromWriter (CNFWriter problem clauses) =
+  let v = wplVariables problem
+      c = wplClauses problem
+      cl = mkClauses . V.map wpClause $ clauses
+  in CNF v c cl
 
 mkCNFWriter :: CNF -> CNFWriter
 mkCNFWriter (CNF v c cl) =

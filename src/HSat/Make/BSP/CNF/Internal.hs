@@ -13,6 +13,7 @@ import HSat.Make.Internal
 import Control.Monad (replicateM)
 import Control.Monad.Random
 import HSat.Problem.BSP.CNF
+import HSat.Problem.BSP.Common
 
 data CNFInit = CNFInit {
   getSetMaxVar :: Word,
@@ -42,7 +43,8 @@ mkCNFInit' c = do
   return (c,init)
   
 mkCNF :: (MonadRandom m) => CNFInit -> m (Either CNFMakeError CNF)
-mkCNF = undefined
+mkCNF _ = do
+  return . Right . mkCNFFromClauses $ emptyClauses
 
 mkCNF' :: (MonadRandom m) => CNFInit -> m CNF
 mkCNF' init = do

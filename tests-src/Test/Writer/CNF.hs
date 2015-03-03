@@ -8,7 +8,10 @@ import TestUtils
 import HSat.Problem.BSP.CNF.Internal
 import qualified Data.Vector as V
 import HSat.Problem.BSP.Common
-import Control.Monad (liftM)
+import Control.Monad (liftM,replicateM,foldM)
+import Data.Attoparsec.Text
+import HSat.Parser.CNF
+import Data.Maybe (fromJust)
 
 name :: String
 name = "CNF"
@@ -16,6 +19,9 @@ name = "CNF"
 tests :: TestTree
 tests =
   testGroup name [
+    testGroup "getCNFFromWriter" [
+       getCNFFromWriterTest1
+       ],
     testGroup "mkCNFWriter" [
        mkCNFWriterTest1
        ],
@@ -30,6 +36,30 @@ tests =
       runCNFWriterTest1
       ]
     ]
+
+getCNFFromWriterTest1 :: TestTree
+getCNFFromWriterTest1 =
+  testProperty "getCNFFromWriter returns correct values on hand made CNF" $ forAll
+  (do
+      cnf <- arbitrary
+      preamblesToAdd <- choose (0,100)
+      commentsToAdd <- choose (0,100)
+      let w = mkCNFWriter cnf
+      preambles <- replicateM preamblesToAdd arbitrary
+      let p = foldl (\wr c -> addPreambleComment c wr) w preambles
+      comments <-replicateM commentsToAdd arbitrary
+      c <- foldM (\wr c -> 
+                     case wplClauses . writeProblemLine $ wr of
+                       0 -> return wr
+                       n -> do
+                         index <- choose (0,n-1)
+                         return . fromJust $ addClauseComment index c wr)
+           p comments
+      return (cnf,c))
+  (\(cnf,writer) ->
+    let exptd = getCNFFromWriter writer
+    in exptd === cnf
+       )
 
 mkCNFWriterTest1 :: TestTree
 mkCNFWriterTest1 =
@@ -63,11 +93,25 @@ addClauseCommentTest1 =
         let writer' = addClauseComment index comment writer
         in case writer' of
           Just written ->
-            let x = True
-                y = False
-            in property $ x===y
-          Nothing -> property False
-      Nothing -> property True
+            let exptd = writer {
+                  writeClauses = newClauses
+                  }
+                (l,r) = V.splitAt (fromEnum index) $ writeClauses writer
+                newClauses = l V.++ (V.cons newCl (V.tail r))
+                newCl = (V.head r) {
+                  wpClause = (wpClause . V.head $ r),
+                  wclComments = (wclComments . V.head $ r) ++ [comment]
+                                }
+            in counterexample
+               ("Should have been equal")
+               (exptd === written)
+          Nothing ->
+            counterexample
+            "Should not have generated value outside range"
+            False
+      Nothing -> counterexample
+                 "Cannot generate value"
+                 True
       )
 
 addClauseCommentTest2 :: TestTree
@@ -77,37 +121,35 @@ addClauseCommentTest2 =
     do
       comment <- arbitrary
       writer <- arbitrary
-      w <- choose (0,wplClauses . writeProblemLine $ writer)
+      w <- choose (wplClauses . writeProblemLine $ writer, maxBound)
       return (comment,writer,w)
       )
   (\(comment,writer,w) ->
     let writer' = addClauseComment w comment writer
-    in case writer' of
-          Nothing -> property True
-          Just writer'' -> property False
-          )
+    in counterexample
+       ("Value excepted, should not have been")
+       (writer' === Nothing)
+       )
 
 addPreambleCommentTest1 :: TestTree
 addPreambleCommentTest1 =
-  testProperty "addPreambleComment" $ property (
+  testProperty "addPreambleComment provides correct result" $ property (
     \(comment,writer) ->
-    let writer' = addPreambleComment comment writer
-        expectedClauses = writeClauses writer
-        gottenClauses = writeClauses writer'
-        p = writeProblemLine writer
-        expectedPreamble = WPL (wplVariables p) (wplClauses p) (
-                               wplComments p ++ [comment])
-        gottenPreamble = writeProblemLine writer'
-    in testEq "" expectedClauses gottenClauses .&&.
-       testEq "" expectedPreamble gottenPreamble
+    let preamble = writeProblemLine writer
+        exptdPreamble = preamble {
+          wplComments = (wplComments preamble) ++ [comment]
+          }
+        exptd = writer {
+          writeProblemLine = exptdPreamble
+          }
+    in exptd === (addPreambleComment comment writer)
        )
 
 runCNFWriterTest1 :: TestTree
 runCNFWriterTest1 =
-  testProperty "read . write == cnf" $ property (
-    \cnfWriter ->
-    let v' = wplVariables . writeProblemLine $ cnfWriter
-        c' = wplClauses . writeProblemLine $ cnfWriter
-        cl' = V.map wpClause . writeClauses $ cnfWriter
-    in property (v' === v') .&&. (c' === c') .&&. (cl' === cl')
+  testProperty "read . write == cnf" $ property $
+  (\cnfWriter ->
+    let exptd = return . return $ getCNFFromWriter cnfWriter
+        gotten = parseOnly cnfParser (runCNFWriter cnfWriter)
+    in gotten === exptd
        )
