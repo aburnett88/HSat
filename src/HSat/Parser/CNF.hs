@@ -16,6 +16,8 @@ module HSat.Parser.CNF (
 import Data.Attoparsec.Text (Parser)
 import HSat.Problem.BSP.CNF.Builder
 import HSat.Problem.BSP.CNF
+import HSat.Parser.CNF.Internal
 
 cnfParser :: Parser (Either CNFBuilderError CNF)
-cnfParser = return $ cnfBuilder 0 0 >>= finalise
+cnfParser =
+  parseProblemLine >>= parseClauses >>= (\builder -> return $ builder >>= finalise)

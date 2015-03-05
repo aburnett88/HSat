@@ -1,7 +1,7 @@
 module HSat.Parser.CNF.Internal (
   parseComment,
   parseComments,
-  parseLiteral,
+  parseNonZeroInteger,
   parseProblemLine,
   parseClause,
   parseClauses
@@ -9,21 +9,21 @@ module HSat.Parser.CNF.Internal (
 
 import Data.Attoparsec.Text as P
 import HSat.Problem.BSP.CNF.Builder
-import Data.Word
-import Control.Monad (void)
+import Control.Monad (void,liftM)
 import Data.Text
-import HSat.Problem.BSP.Common
 
 parseComments :: Parser ()
 parseComments =
-  skipMany (parseComment >> endOfLine >> return ())
+  skipMany (parseComment >> endOfLine >> return ()) <?>
+  "parseComments"
 
 parseComment :: Parser ()
 parseComment =
-  many' space >> P.char 'c' >> skipWhile (/='\n')
+  many' space' >> P.char 'c' >> skipWhile (\a -> not $ isEndOfLine a ) <?>
+  "parseComment"
 
 parseProblemLine :: Parser CNFBuildErr
-parseProblemLine = do
+parseProblemLine = (do
   skipMany space'
   char 'p'
   skipMany1 space'
@@ -32,28 +32,48 @@ parseProblemLine = do
   vars <- P.decimal
   skipMany1 space'
   clauses <- P.decimal
-  return $ cnfBuilder vars clauses
+  skipMany space'
+  return $ cnfBuilder vars clauses) <?> "parseProblemLine"
 
 space' :: Parser ()
 space' = void $ choice [char '\t', char ' ']
 
-positive :: Parser Word
+positive :: Parser Integer
 positive = do
   x <- choices "123456789"
-  xs <- many' . choices $ "0123456789"
+  xs <- many' $ choices "0123456789"
   return . read $ (x:xs)
 
 choices :: String -> Parser Char
 choices xs = choice $ fmap char xs
 
 parseClause :: CNFBuildErr -> Parser CNFBuildErr
-parseClause = return
+parseClause b = choice [
+  do
+    many' space'
+    char '0'
+    return $ b >>= finishClause,
+  do
+    many' space'
+    b' <- (\i -> b >>= addLiteral i) `liftM` parseNonZeroInteger
+    parseClause b',
+  do
+    many' space'
+    endOfLine
+    parseComments
+    parseClause b
+    ]
+    
+parseClauses :: CNFBuildErr -> Parser CNFBuildErr
+parseClauses cnf = do
+  parseComments >> choice [
+    parseClause cnf >>= parseClauses,
+    return cnf
+    ]
+                             
 
-parseClauses :: CNFBuilder -> Parser CNFBuilder
-parseClauses = return
-
-parseLiteral :: Parser Literal
-parseLiteral = do
+parseNonZeroInteger :: Parser Integer
+parseNonZeroInteger = do
+  f <- option id (char '-' >> return negate)
   x <- positive
-  let s = True
-  return $ mkLiteral (mkSign s) (mkVariable x)
+  return $ f x

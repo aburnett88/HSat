@@ -10,6 +10,7 @@ import Data.Text.IO as T
 import HSat.Parser.CNF
 import Data.Attoparsec.Text (parseOnly)
 import HSat.Writer.CNF
+import Data.Either
 
 name :: String
 name = "CNF"
@@ -29,13 +30,14 @@ fileTestGen fp val =
   testCase ("cnfParser file test " ++ fp) $ do
     fileContent <- T.readFile fp
     let result = parseOnly cnfParser fileContent
-    case (val,result) of
-      (Nothing,Left _) -> assert True
-      (Just cnf,Right cnf') -> assert $ cnf == cnf'
-      _ -> assert False
+    case val of
+      Nothing -> assertBool "This should not have been parsed"  (isLeft result)
+      Just exptdVal -> case result of
+        Right cnf' -> exptdVal @=? cnf'
+        _ -> assertBool "Parser failed when it should not have done so" False
 
 prepare :: FilePath -> FilePath
-prepare fp = "Files/" ++ fp ++ ".cnf"
+prepare fp = "tests-src/Files/" ++ fp ++ ".cnf"
 
 fileTests :: [TestTree]
 fileTests = map (\(a,b) -> fileTestGen (prepare a) b) [
