@@ -128,7 +128,9 @@ addLiteral lit cnf =
       maxVar = getExptdMaxVar cnf
   in if lit' == 0 || lit' > (toInteger maxVar) then
        Left $ VarOutsideRange lit' maxVar else
-       return . addLiteral' lit $ cnf
+       if (getExptdClNumb cnf) == (getCurrClNumb cnf) && (clauseIsEmpty $ getCurrClause cnf) then
+         Left $ IncorrectClauseNumber ((getExptdClNumb cnf) + 1) (getExptdClNumb cnf) else
+         return . addLiteral' lit $ cnf
 
 {-|
 adds the literal to the clause. If the ltieral is outside the range

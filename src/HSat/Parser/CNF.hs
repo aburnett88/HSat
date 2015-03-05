@@ -13,11 +13,17 @@ module HSat.Parser.CNF (
   cnfParser
   ) where
 
-import Data.Attoparsec.Text (Parser)
+import Data.Attoparsec.Text (Parser,endOfInput)
 import HSat.Problem.BSP.CNF.Builder
 import HSat.Problem.BSP.CNF
 import HSat.Parser.CNF.Internal
 
 cnfParser :: Parser (Either CNFBuilderError CNF)
-cnfParser =
-  parseProblemLine >>= parseClauses >>= (\builder -> return $ builder >>= finalise)
+cnfParser = do
+  parseComments
+  b2 <-  parseProblemLine
+  b3 <- parseClauses b2
+  let b4 = b3 >>= finalise
+  parseComments
+  endOfInput
+  return $ b4

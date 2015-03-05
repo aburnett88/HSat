@@ -29,9 +29,9 @@ parseProblemLine = (do
   skipMany1 space'
   string . pack $ "cnf"
   skipMany1 space'
-  vars <- P.decimal
+  vars <- P.signed P.decimal
   skipMany1 space'
-  clauses <- P.decimal
+  clauses <- P.signed P.decimal
   skipMany space'
   return $ cnfBuilder vars clauses) <?> "parseProblemLine"
 
