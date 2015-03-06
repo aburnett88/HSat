@@ -1,6 +1,9 @@
 # HSat
 
-HSat is a library used for solving and analysing Boolean Satisfiability Problems - or atleast it is intended to be so.
+HSat is a library whose primary use is for solving Boolean Satisfiability
+Instances using stochastic local search.
+
+The Boolean Satisfiability Problem (BSP) is a difficult combinatorial problem. This piece of software intends to evaluate difering methods of solving it, as well as generating 'toy' problems to show how they perform.
 
 ## Latest Release Features
 
