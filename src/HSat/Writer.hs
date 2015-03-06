@@ -19,5 +19,5 @@ import HSat.Problem
 plainProblemToFile :: Problem -> FilePath -> IO Bool
 plainProblemToFile _ _ = return False
 
-writeFolder :: (Problem -> FilePath -> IO Bool) -> [Problem] -> IO Bool
-writeFolder f ps = return False
+writeFolder :: (Problem -> FilePath -> IO Bool) -> [Problem] -> FilePath -> IO Bool
+writeFolder f ps folder = return False

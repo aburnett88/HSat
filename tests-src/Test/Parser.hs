@@ -61,7 +61,7 @@ fromFolderTest1 =
   testProperty "Write random files. Read them all back in" $ ioProperty $ do
     problems <- generate $ listOf arbitrary
     let folder = "fromFolderTest1"
-    result <- writeFolder plainProblemToFile problems
+    result <- writeFolder plainProblemToFile problems "fromFolderTest1"
     if result then do
       problems' <- fromFolder fromFile folder
       list <- getDirectoryContents folder
