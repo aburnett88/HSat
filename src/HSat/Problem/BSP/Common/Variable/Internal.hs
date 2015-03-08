@@ -15,7 +15,6 @@ module HSat.Problem.BSP.Common.Variable.Internal (
 
 import Data.Word
 import HSat.Printer
-import HSat.Validate
 
 {-|
 A 'Variable' represents a numerial representation of a variable wtihin a
@@ -41,7 +40,3 @@ Order is denoted by the underlying 'Word' in the 'Variable'
 -}
 instance Ord Variable where
   compare (Variable a) (Variable b) = compare a b
-
-instance Validate Variable where
-  validate (Variable 0) = False
-  validate _            = True

@@ -18,7 +18,6 @@ module HSat.Problem.BSP.CNF.Builder.Internal (
   canFinalise
   ) where
 
-import qualified Data.Vector as V
 import           Data.Word
 import           HSat.Printer
 import           HSat.Problem.BSP.Common
@@ -26,7 +25,6 @@ import           HSat.Problem.BSP.Common.Clause.Internal (
   printClauseWithContext)
 import           HSat.Problem.BSP.Common.Clauses.Internal (
   printClausesWithContext)
-import           HSat.Validate
 
 {-|
 A 'CNFBuilder' represents a 'CNF' as it is being constructed. This data type
@@ -81,28 +79,7 @@ to the 'CNFBuilder'
 canFinishClause :: CNFBuilder -> Bool
 canFinishClause = canAddLiteral
 
-instance Validate CNFBuilder where
-  validate (CNFBuilder
-            exptdMaxVar
-            exptdClNumb
-            currClNumb
-            currClauses
-            currClause) =
-    let computedSize = (getSizeClauses currClauses + (
-                           if clauseIsEmpty currClause then
-                             0 else
-                             1)
-                        )
-    in (exptdClNumb >= currClNumb)                        &&
-       V.all testVarInRange (getVectClause currClauses) &&
-       (computedSize == currClNumb)                       &&
-       testVarInRange currClause                        &&
-       validate currClauses                             &&
-       validate currClause
-    where
-      testVarInRange :: Clause -> Bool
-      testVarInRange cl = V.all (varInRange exptdMaxVar) .
-                          V.map getVariable $ getVectLiteral cl
+
 
 instance Printer CNFBuilder where
   compact builder   = printCNFBuilder builder   Compact
@@ -175,13 +152,6 @@ data CNFBuilderError =
 
 instance Show CNFBuilderError where
   showsPrec = show'
-
-instance Validate CNFBuilderError where
-  validate (IncorrectClauseNumber gotten expected) =
-    expected /= gotten
-  validate (VarOutsideRange gotten expected)       =
-    ((toInteger expected) < gotten) ||
-    (gotten == 0)
 
 instance Printer CNFBuilderError where
   compact err   = printBuildErr err   Compact

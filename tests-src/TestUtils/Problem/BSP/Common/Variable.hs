@@ -15,9 +15,11 @@ module TestUtils.Problem.BSP.Common.Variable (
   ) where
 
 import Data.Word
+import HSat.Problem.BSP.Common.Variable.Internal
 import HSat.Problem.BSP.Common.Variable
 import TestUtils.Limits
 import TestUtils.Test
+import TestUtils.Validate
 
 genVariable :: Gen Variable
 genVariable = liftM mkVariable $ choose (1,maxBound)
@@ -29,3 +31,7 @@ instance Arbitrary Variable where
   arbitrary = genVariable
   shrink v =
     map mkVariable $ filter (/=0) . shrink . getWord $ v
+
+instance Validate Variable where
+  validate (Variable 0) = False
+  validate _            = True

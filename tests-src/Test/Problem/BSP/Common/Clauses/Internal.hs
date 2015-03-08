@@ -1,12 +1,12 @@
 {-|
 Module      : Test.Problen.BSP.Common.Clauses.Internal
-Description : The 'Clause' internal Test Leaf
+Description : The Clauses internal tests
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The TestTree Leaf for the Clauses definition
+The Test Tree Node for the internal Clauses module
 -}
 
 module Test.Problem.BSP.Common.Clauses.Internal (
@@ -15,8 +15,8 @@ module Test.Problem.BSP.Common.Clauses.Internal (
 
 import HSat.Problem.BSP.Common.Clauses
 import HSat.Problem.BSP.Common.Clauses.Internal
-import HSat.Validate
 import TestUtils
+import TestUtils.Validate
 
 name :: String
 name = "Internal"
@@ -35,6 +35,10 @@ clausesTest1 =
     testClauses :: Clauses -> Bool
     testClauses = validate
 
+{-
+Non valid Clauses are when the size is incorrect when comparing to the size of
+the vector containing the Literals themselves
+-}
 clausesTest2 :: TestTree
 clausesTest2 =
   testProperty ("validate (Clauses vect (sizeVect + choose (1,maxBound))"++
@@ -44,8 +48,8 @@ clausesTest2 =
       clauseList <- arbitrary
       wrongLen   <- choose (1,maxBound)
       return (clauseList,wrongLen)
-      )
+  )
   (\(clauseList,wrongLen) ->
-    let madeManual   = Clauses clauseList wrongLen
-    in  not $ validate madeManual
+    let val = Clauses clauseList wrongLen
+    in  not $ validate val
   )

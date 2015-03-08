@@ -23,7 +23,6 @@ import           HSat.Problem.BSP.Common.Clause
 import           HSat.Problem.BSP.Common.Clause.Internal (
   printClauseWithContext)
 import           HSat.Problem.BSP.Common.Literal
-import           HSat.Validate
 
 {-|
 A 'Clauses' represents a list of 'Clause', which in themselves represent
@@ -44,12 +43,6 @@ data Clauses = Clauses {
 
 instance Show Clauses where
   showsPrec = show'
-
-instance Validate Clauses where
-  validate (Clauses vector sizeClauses) =
-    let actualSize = toEnum $ V.length vector
-    in (actualSize == sizeClauses) &&
-       V.all validate vector
 
 instance Printer Clauses where
   compact   = generalPrinter compact

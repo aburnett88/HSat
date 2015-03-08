@@ -11,6 +11,7 @@ import TestUtils.Limits
 import HSat.Problem.BSP.Common.Clause
 import Data.Word
 import Data.Vector (Vector)
+import TestUtils.Validate
 
 genClauses :: Word -> Word -> Word -> Gen Clauses
 genClauses sizeBound sizeClause maxVar = do
@@ -22,3 +23,9 @@ instance Arbitrary Clauses where
   arbitrary = genClauses 5 5 100
   shrink clauses =
     map mkClauses $ shrink . getVectClause $ clauses
+
+instance Validate Clauses where
+  validate (Clauses vector sizeClauses) =
+    let actualSize = toEnum $ V.length vector
+    in (actualSize == sizeClauses) &&
+       V.all validate vector

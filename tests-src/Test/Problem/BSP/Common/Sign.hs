@@ -6,7 +6,7 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The TestTree Leaf for the Sign module
+The Test Tree Node for the Sign module
 -}
 
 module Test.Problem.BSP.Common.Sign (
@@ -35,7 +35,8 @@ tests =
     testGroup "mkSignFromInteger" [
       mkSignFromIntegerTest1,
       mkSignFromIntegerTest2,
-      mkSignFromIntegerTest3
+      mkSignFromIntegerTest3,
+      mkSignFromIntegerTest4
       ],
     testGroup "signToInteger" [
       signToIntegerTest1,
@@ -54,13 +55,13 @@ tests =
 
 mkSignTest1 :: TestTree
 mkSignTest1 =
-  testCase "getBool . mkSign == id" $
-  (getBool $ mkSign True) @=? True
+  testCase "getBool . mkSign True == True" $
+  getBool (mkSign True) @=? True
 
 mkSignTest2 :: TestTree
 mkSignTest2 =
   testCase "getBool . mkSign False == False" $
-  False @=? (getBool $ mkSign False)
+  False @=? getBool (mkSign False)
   
 posTest1 :: TestTree
 posTest1 =
@@ -72,34 +73,43 @@ negTest1 =
   testCase "mkSign False == neg" $
   neg @=? mkSign False
 
+{-
+positive integers should all create positive signs
+-}
 mkSignFromIntegerTest1 :: TestTree
 mkSignFromIntegerTest1 =
-  testProperty "mkSignFromInteger nonZero has correct sign" $
+  testProperty "mkSignFromInteger posInteger == pos" $
   forAll
-  mkIntegerNonZero
-  (\int ->
-    case compare int 0 of
-      EQ -> counterexample
-            ("compare " ++ show int ++ " 0 === EQ") False
-      LT -> mkSignFromInteger int === neg
-      GT -> mkSignFromInteger int === pos
-  )
+  mkPosIntegerNonZero
+  (\int -> mkSignFromInteger int === pos)
 
+--negative integers should create negative signs
 mkSignFromIntegerTest2 :: TestTree
 mkSignFromIntegerTest2 =
+  testProperty "mkSignFromInteger negInteger == neg" $
+  forAll
+  mkNegIntegerNonZero
+  (\int -> mkSignFromInteger int === neg)
+
+{-
+Comparing the input and comparing something from and to a Sign should preserve
+its comparison to zero
+-}
+mkSignFromIntegerTest3 :: TestTree
+mkSignFromIntegerTest3 =
   testProperty "signToInteger mkSignFromInteger has correct sign" $
   forAll
   mkIntegerNonZero
   (\int ->
-    let exptd  = compare 0 int
-        actual = compare 0 (signToInteger $ mkSignFromInteger int)
-    in exptd  === actual
+    let exptd = compare 0 int
+        val   = compare 0 (signToInteger $ mkSignFromInteger int)
+    in exptd === val
   )
 
-mkSignFromIntegerTest3 :: TestTree
-mkSignFromIntegerTest3 =
+mkSignFromIntegerTest4 :: TestTree
+mkSignFromIntegerTest4 =
   testCase "mkSignFromInteger 0 throws Error" $
-  assert $ forceError (mkSignFromInteger 0) pos
+  forceError $ mkSignFromInteger 0
 
 signToIntegerTest1 :: TestTree
 signToIntegerTest1 =
@@ -115,26 +125,26 @@ signToIntegerTest3 :: TestTree
 signToIntegerTest3 =
   testProperty "mkSignFromInteger . signToInteger == id" $ property
   (\sign ->
-    let actual = mkSignFromInteger $ signToInteger sign
-    in sign    === actual
+    let val = mkSignFromInteger $ signToInteger sign
+    in sign === val
   )
 
 isPosTest1 :: TestTree
 isPosTest1 =
   testCase "isPos $ mkSign True == True" $
-  True @=? (isPos $ mkSign True)
+  True @=? isPos (mkSign True)
 
 isPosTest2 :: TestTree
 isPosTest2 =
   testCase "isPos $ mkSign False == False" $
-  False @=? (isPos $ mkSign False)
+  False @=? isPos (mkSign False)
 
 isNegTest1 :: TestTree
 isNegTest1 =
   testCase "isNeg $ mkSign True == False" $
-  False @=? (isNeg $ mkSign True)
+  False @=? isNeg (mkSign True)
 
 isNegTest2 :: TestTree
 isNegTest2 =
   testCase "isNeg $ mkSign False == True" $
-  True @=? (isNeg $ mkSign False)
+  True @=? isNeg (mkSign False)

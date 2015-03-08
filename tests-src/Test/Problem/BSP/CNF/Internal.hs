@@ -16,7 +16,7 @@ module Test.Problem.BSP.CNF.Internal (
 import TestUtils
 import HSat.Problem.BSP.CNF.Internal
 import HSat.Problem.BSP.Common
-import HSat.Validate
+import TestUtils.Validate
 import HSat.Problem.BSP.CNF
 
 name :: String

@@ -18,6 +18,7 @@ import HSat.Problem.BSP.Common
 import Control.Monad (liftM3)
 import Data.Word
 import qualified Data.Vector as V
+import TestUtils.Validate
 
 genCNF :: Word -> Word -> Word -> Word -> Gen CNF
 genCNF maxVar clauseSize clausesSize varOffset = do
@@ -52,3 +53,12 @@ instance Arbitrary CNF where
   arbitrary = genCNF 10 10 10 10
   shrink (CNF maxVar clSize clauses) =
     map (\cl -> CNF maxVar (getSizeClauses cl) cl) $ shrink clauses
+
+instance Validate CNF where
+  validate (CNF maxVar clauseNumb clauses) =
+    let actualClauseNumb = getSizeClauses clauses
+        actualMaxVar     = findMaxVar clauses
+    in (actualClauseNumb == clauseNumb) &&
+       (actualMaxVar     <= maxVar)     &&
+       validate clauses
+

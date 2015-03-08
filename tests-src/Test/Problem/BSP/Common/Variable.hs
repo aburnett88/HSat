@@ -6,7 +6,7 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The TestTree Leaf for the Variable module
+The Test Tree Node for the Variable module
 -}
 
 module Test.Problem.BSP.Common.Variable (
@@ -49,14 +49,14 @@ mkVariableTest1 =
   forAll
   mkWordNonZero
   (\word ->
-    let gottenVal = getWord $ mkVariable word
-    in word       === gottenVal
-       )
-
+    let val = getWord $ mkVariable word
+    in word === val
+  )
+  
 mkVariableTest2 :: TestTree
 mkVariableTest2 =
-  testCase "mkVariale 0 throws runtime error" $
-  forceError (mkVariable 0) (mkVariable 1)
+  testCase "mkVariale 0 throws run-time error" $
+  forceError $ mkVariable 0
 
 mkVariableFromIntegerTest1 :: TestTree
 mkVariableFromIntegerTest1 =
@@ -64,41 +64,43 @@ mkVariableFromIntegerTest1 =
   forAll
   mkIntegerNonZero
   (\int ->
-    let expectedVal = abs int
-        gottenVal   = toInteger . getWord . mkVariableFromInteger $ int
-    in expectedVal  === gottenVal
-       )
+    let exptd = abs int
+        val   = toInteger . getWord .
+                mkVariableFromInteger $ int
+    in exptd === val
+  )
 
 mkVariableFromIntegerTest2 :: TestTree
 mkVariableFromIntegerTest2 =
   testCase "mkVariableFromInteger 0 throws error" $
-  forceError (mkVariableFromInteger 0) (mkVariableFromInteger 1)
+  forceError $ mkVariableFromInteger 0
 
 mkVariableFromIntegerTest3 :: TestTree
 mkVariableFromIntegerTest3 =
-  testCase "mkVariableFromInteger (maxBound + 1) throws error" $ do
-    let throwErrorVal = mkVariableFromInteger . (1+) . toInteger $ (
-          maxBound :: Word)
-        dummyVal      = mkVariableFromInteger 1
-    forceError throwErrorVal dummyVal
+  testCase "mkVariableFromInteger (maxBound + 1) throws error" $
+  let input = mkVariableFromInteger . (1+) .
+              toInteger $ (maxBound :: Word)
+  in forceError input
 
 mkVariableFromIntegerTest4 :: TestTree
 mkVariableFromIntegerTest4 =
-  testCase "mkVarFromInteger (negate maxBound + 1) throws error" $ do
-    let throwErrorVal = mkVariableFromInteger . negate . (1+) . toInteger $ (
-          maxBound :: Word)
-        dummyVal      = mkVariableFromInteger 1
-    forceError throwErrorVal dummyVal
+  testCase "mkVarFromInteger (negate maxBound + 1) throws error" $
+  let input = mkVariableFromInteger . negate .
+              (1+) . toInteger $ (maxBound :: Word)
+  in forceError input
 
+{-
+only if a variable is outside the range is it invalid. Zero is a valid variable
+for now, however at the moment this is undefined behaviour
+-}
 varInRangeTest1 :: TestTree
 varInRangeTest1 =
-  testProperty "Returned result is consistant with input" $ property
-  (\(range,var) ->
+  testProperty "Returned result is consistent with input" $ property
+  (\(range, var) ->
     case compare (getWord var) range of
       GT -> varInRange range var === False
       _  -> varInRange range var === True
-      )
-  
+  )
 
 variableToIntegerTest1 :: TestTree
 variableToIntegerTest1 =
@@ -106,7 +108,7 @@ variableToIntegerTest1 =
   forAll
   mkIntegerNonZero
   (\int ->
-    let expectedVal = abs int
-        gottenVal   = variableToInteger $ mkVariableFromInteger int
-    in expectedVal  === gottenVal
-       )
+    let exptd = abs int
+        val   = variableToInteger $ mkVariableFromInteger int
+    in exptd === val
+  )

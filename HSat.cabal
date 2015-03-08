@@ -61,7 +61,6 @@ library
     HSat.Parser.CNF
     HSat.Parser.CNF.Internal
     HSat.Printer
-    HSat.Validate
 
 Test-Suite HSat-tests
   type: exitcode-stdio-1.0

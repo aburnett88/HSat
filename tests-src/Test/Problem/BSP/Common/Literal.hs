@@ -1,12 +1,12 @@
 {-|
 Module      : Test.Problen.BSP.Common.Literal
-Description : The 'Literal' test leaf
+Description : The Literal tests
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The TestTree Leaf for the Literal module
+The Test Tree Node for the Literal module
 -}
 
 module Test.Problem.BSP.Common.Literal (
@@ -37,9 +37,11 @@ mkLiteralTest1 :: TestTree
 mkLiteralTest1 =
   testProperty "getVariable == v, getSign == s in mkLiteral s v" $ property
   (\(sign,variable) ->
-    let resSign = getSign $ mkLiteral sign variable
-        resVar  = getVariable $ mkLiteral sign variable
-    in (resSign === sign) .&&. (resVar === variable)
+    let valLiteral = mkLiteral sign variable
+        valSign    = getSign valLiteral
+        valVar     = getVariable valLiteral
+    in (valSign === sign) .&&.
+       (valVar  === variable)
   )
 
 mkLiteralFromIntTest1 :: TestTree
@@ -48,12 +50,14 @@ mkLiteralFromIntTest1 =
   forAll
   mkIntegerNonZero
   (\int ->
-    literalToInteger (mkLiteralFromInteger int) === int
-    )
+    let val = literalToInteger $ mkLiteralFromInteger int
+    in val === int
+  )
 
 literalToIntegerTest1 :: TestTree
 literalToIntegerTest1 =
   testProperty "mkLiteralFromInteger . literalToInteger == id" $ property
   (\lit ->
-    mkLiteralFromInteger (literalToInteger lit) === lit
-    )
+    let val = mkLiteralFromInteger $ literalToInteger lit
+    in lit === val
+  )

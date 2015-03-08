@@ -1,12 +1,12 @@
 {-|
 Module      : Test.Problem.BSP.Common.Clause
-Description : The test leaf for the Clause type
+Description : The Clause tests
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The TestTree Leaf for the Clause module
+The Test Tree Node for the Clause module
 -}
 
 module Test.Problem.BSP.Common.Clause (
@@ -54,58 +54,66 @@ mkClauseTest1 =
   testProperty ("let getSizeClause == (length cl), getLiterals == cl in" ++
                 "mkClause cl") $ property
   (\vectLiterals ->
-    let clause        = mkClause vectLiterals
-        expectedLits  = vectLiterals
-        gottenLits    = getVectLiteral clause
-        expectedSize  = toEnum . V.length $ vectLiterals
-        gottenSize    = getSizeClause clause
-    in (expectedSize  === gottenSize) .&&.
-       (expectedLits  === gottenLits)
-       )
+    let clause    = mkClause vectLiterals
+        valLits   = getVectLiteral clause
+        exptdSize = toEnum $ V.length vectLiterals
+        valSize   = getSizeClause clause
+    in (valSize === exptdSize) .&&.
+       (valLits === vectLiterals)
+  )
 
 emptyClauseTest1 :: TestTree
 emptyClauseTest1 =
   testCase ("let getClauseSize emptyClause == 0," ++
-            "getLiterals emptyClause == 0") $ do
-    let clause       = emptyClause
-        expectedSize = 0
-        gottenSize   = getSizeClause clause
-        expectedLits = V.empty
-        gottenLits   = getVectLiteral clause        
-    assertEqual "Clause size equal" expectedSize gottenSize
-    assertEqual "getLiterals == []" expectedLits gottenLits
+            "getLiterals emptyClause == []") $ do
+    let clause    = emptyClause
+        exptdSize = 0
+        valSize   = getSizeClause clause
+        exptdLits = V.empty
+        valLits   = getVectLiteral clause
+    assertEqual
+      "Clause size not equal"
+      exptdSize
+      valSize
+    assertEqual
+      "Literal vector not equal"
+      exptdLits
+      valLits
 
+{-
+Checks that the size and the elements contained are as expected
+-}
 mkClauseFromLitsTest1 :: TestTree
 mkClauseFromLitsTest1 =
   testProperty ("let V.length lits == size cl,"++
                 "V.toList cl == lits in cl = mkClauseFromLits lits")
   (\lits ->
-    let clause       = mkClauseFromLits lits
-        expectedSize = toEnum $ length lits
-        gottenLits   = getVectLiteral clause
-        expectedLits = V.fromList lits
-        gottenSize   = getSizeClause clause
-    in (expectedSize === gottenSize) .&&.
-       (expectedLits === gottenLits)
-       )
+    let clause    = mkClauseFromLits lits
+        exptdSize = toEnum $ length lits
+        exptdLits = V.fromList lits
+        valSize   = getSizeClause clause
+        valLits   = getVectLiteral clause
+    in (exptdSize === valSize) .&&.
+       (exptdLits === valLits)
+  )
 
 clauseToIntegersTest1 :: TestTree
 clauseToIntegersTest1 =
   testProperty "mkClauseFromIntegers . clauseToIntegers == id" $ property
   (\clause ->
-    let gottenClause  = mkClauseFromIntegers $ clauseToIntegers clause
-    in clause         === gottenClause
-    )
+    let val = mkClauseFromIntegers $ clauseToIntegers clause
+    in clause === val
+  )
 
 clauseAddLitTest1 :: TestTree
 clauseAddLitTest1 =
   testProperty "addLit c l == mkClause c ++ [l]" $ property
   (\(clause,lit) ->
-    let listOfLits     = (V.toList . getVectLiteral $ clause) ++ [lit]
-        expectedClause = mkClauseFromLits listOfLits
-        gottenClause   = clauseAddLiteral clause lit
-    in expectedClause  === gottenClause
-       )
+    let litList     = V.toList $ V.snoc (getVectLiteral clause) lit
+        exptdClause = mkClauseFromLits litList
+        valClause   = clauseAddLiteral clause lit
+    in exptdClause === valClause
+  )
 
 mkClauseFromIntegersTest1 :: TestTree
 mkClauseFromIntegersTest1 =
@@ -113,18 +121,28 @@ mkClauseFromIntegersTest1 =
   forAll
   (listOf mkIntegerNonZero)
   (\ints ->
-    let gottenInts = clauseToIntegers $ mkClauseFromIntegers ints
-    in ints        === gottenInts
-       )
+    let valInts = clauseToIntegers $ mkClauseFromIntegers ints
+    in ints === valInts
+  )
 
 clauseIsEmptyTest1 :: TestTree
 clauseIsEmptyTest1 =
   testCase "clauseIsEmpty [] == True" $
   assertBool "clauseIsEmpty [] == False" (clauseIsEmpty emptyClause)
 
+{-
+The property creates a non-empty Clause, and tests that clauseIsEmpty
+always returns False. 
+-}
 clauseIsEmptyTest2 :: TestTree
 clauseIsEmptyTest2 =
-  testCase "clauseIsEmpty [-1,1] == False" $
-  assertBool "clauseIsEmpty [-1,1] == True" (
-    not . clauseIsEmpty . mkClauseFromIntegers $ [-1,1]
-    )
+  testProperty "clauseIsEmpty [nonempty] == False" $
+  forAll
+  (do
+      clause <- arbitrary
+      lit <- arbitrary
+      return (clauseAddLiteral clause lit)
+  )
+  (\clause ->
+    not $ clauseIsEmpty clause
+  )

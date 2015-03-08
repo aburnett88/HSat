@@ -4,7 +4,7 @@ module Test.Problem.BSP.CNF.Builder.Internal (
 
 import TestUtils
 import HSat.Problem.BSP.CNF.Builder.Internal
-import HSat.Validate
+import TestUtils.Validate
 import TestUtils.Problem.BSP.CNF.Builder
 
 name :: String

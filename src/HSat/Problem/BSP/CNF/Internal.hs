@@ -17,7 +17,6 @@ import Data.Word
 import HSat.Printer
 import HSat.Problem.BSP.Common
 import HSat.Problem.BSP.Common.Clauses.Internal (printClausesWithContext)
-import HSat.Validate
 
 {-|
 The Conjunctive Normal Form type. It is much like a 'Clauses'
@@ -34,14 +33,6 @@ data CNF = CNF {
 
 instance Show CNF where
   showsPrec = show'
-
-instance Validate CNF where
-  validate (CNF maxVar clauseNumb clauses) =
-    let actualClauseNumb = getSizeClauses clauses
-        actualMaxVar     = findMaxVar clauses
-    in (actualClauseNumb == clauseNumb) &&
-       (actualMaxVar     <= maxVar)     &&
-       validate clauses
 
 noUnicodeAnd,unicodeAnd,noUnicodeOr,unicodeOr :: String
 noUnicodeAnd                                  = "/\\"

@@ -28,7 +28,6 @@ import           Data.Word
 import           HSat.Printer
 import           HSat.Problem.BSP.Common.Literal
 import           HSat.Problem.BSP.Common.Variable (getWord)
-import           HSat.Validate
 
 {-|
 A 'Clause' describes a finite number of 'Literal's to be used as a generic
@@ -57,12 +56,6 @@ printLit function clause =
   lbracket <>
   hsep (punctuate comma (map function . V.toList . getVectLiteral $ clause)) <>
   rbracket
-
-instance Validate Clause where
-  validate (Clause vect n) =
-    let actualSize = toEnum $ V.length vect
-    in (actualSize == n) &&
-       V.all validate vect
 
 printClauseWithContext :: String -> Word -> (Literal -> Doc) -> Clause -> Doc
 printClauseWithContext sepClause maxVar function clause =

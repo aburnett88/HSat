@@ -1,50 +1,72 @@
 {-|
 Module      : HSat.Problem.BSP.Common.Sign
-Description : The Sign data type
+Description : The Sign type
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-This module exports the common functions and definition of 'Sign' which
-represents the part of a 'Literal' that decides whether it is the positive or
-negative occurence of the associated 'Variable'
+The 'Sign' type is a binary data structure that, when paired with a second
+element, yields either the positive or negative occurence of that second
+element.
+
+For example, when paired with a positive number (that is non-zero), it can be used to describe a
+literal within a Boolean Formula.
 -}
 module HSat.Problem.BSP.Common.Sign (
-  -- * Data Type
+  -- * Sign
   Sign(..),
-  -- * Construct Signs
-  mkSign,            -- :: Bool -> Sign
+  -- * Construction
+  mkSign,            -- :: Bool    -> Sign
   mkSignFromInteger, -- :: Integer -> Sign
-  -- * Conversions
+  -- * Conversion
   signToInteger,     -- :: Sign -> Integer
-  -- * Tests
+  -- * Common Functions
   isPos,isNeg,       -- :: Sign -> Bool
   -- * Constants
   pos,neg            -- :: Sign
   ) where
 
+import Data.Bifunctor
 import HSat.Printer
 import System.Random
 
-name :: String
-name = "HSat.Problem.BSP.Common.Sign"
-
 {-|
-A 'Sign' describes, when given an associated 'Variable', how that 'Variable'
-should be interpreted as the negative or positive occurence of that 'Variable'
-
-Internally represented as a 'Bool'
+A 'Sign' is, in its most simple form, a simple binary data type. Internally
+it is represented as a 'Bool' value.
 -}
 
 newtype Sign = Sign {
-  -- | The underlying 'Bool' that is represented
+  -- | The internally represented 'Bool'
   getBool :: Bool
   }
   deriving (Eq)
 
+{-
+Compares the underlying 'Bool' values
+-}
+instance Ord Sign where
+  compare (Sign b1) (Sign b2) = compare b1 b2
+
+{-
+Gets a random 'Bool', then packs it up into a Sign type
+-}
+instance Random Sign where
+  randomR signs gen =
+    let bools = bimap getBool getBool signs
+    in first mkSign $ randomR bools gen
+  random gen        =
+    first mkSign $ random gen
+
 instance Show Sign where
   showsPrec = show'
+
+instance Printer Sign where
+  compact (Sign True)  =         text "+"
+  compact (Sign False) =         text "-"
+  unicode (Sign True)  = green $ text "+"
+  unicode (Sign False) = red   $ text "-"
+  noUnicode            = compact
 
 {-|
 Constructs a 'Sign' from a 'Bool'
@@ -65,60 +87,39 @@ neg :: Sign
 neg = Sign False
 
 {-|
-Constructs a 'Sign' from an 'Integer'. Positive 'Integer's construct positive
-'Sign's and negative 'Integer's negative ones.
+Constructs a 'Sign' from an 'Integer'.
 
-When given a zero, this function throws a runtime error. 
+A positive 'Integer' will construct a positive 'Sign' while a negative 'Integer' will construct a negative 'Sign'.
+
+An 'Integer' of zero will throw a run-time error. 
 -}
 mkSignFromInteger   :: Integer -> Sign
 mkSignFromInteger i
   | i < 0 = neg
   | i > 0 = pos
-  | otherwise = error (name ++ ":mkSignFromInteger: Argument " ++ show i)
+  | otherwise = error (name ++ ":" ++ func ++ ": Argument " ++ show i)
+  where
+    name = "HSat.Problem.BSP.Common.Sign"
+    func = "mkSignFromInteger"
 
 {-|
-Constructs an 'Integer' from a 'Sign'. Will only return the values 1 or (-1)
-depending upon whether the 'Sign' is positive or negative. 
+Converts a 'Sign' into an 'Integer'.
+
+Will return the value '1' if the 'Sign' is positive and the value '-1' if the 'Sign' is negative.
 -}
 signToInteger      :: Sign -> Integer
-signToInteger sign
-  | isPos sign =  1
-  | otherwise  = -1
-
+signToInteger sign = if isPos sign then
+                       1 else
+                       -1
 {-|
-Tests if the 'Sign' is positive
+Returns 'True' if the 'Sign' is positive. 
 -}
 isPos :: Sign -> Bool
 isPos = getBool
 
 {-|
-Tests if the 'Sign' is negative
+Returns 'True' if the 'Sign' is negative
 -}
 isNeg :: Sign -> Bool
 isNeg = not . getBool
 
-instance Printer Sign where
-  compact (Sign True)  = text "+"
-  compact (Sign False) = text "-"
-  unicode (Sign True)  = green . text $ "+"
-  unicode (Sign False) = red . text $ "-"
-  noUnicode            = compact
-
-{-|
-Compares the underlying 'Bool' values
--}
-instance Ord Sign where
-  compare (Sign a) (Sign b) = compare a b
-
-{-|
-Gets a random 'Bool', then packs it up in a 'Sign' data type
--}
-instance Random Sign where
-  randomR (l,r) g =
-    let l'       = getBool l
-        r'       = getBool r
-        (res,g') = randomR (l',r') g
-    in (mkSign res,g')
-  random g        =
-    let (res,g') = random g
-    in (mkSign res,g')

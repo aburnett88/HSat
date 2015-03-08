@@ -20,14 +20,12 @@ module HSat.Problem.ProblemExpr (
   -- * Mutators
   changeProblemType,
   -- * Other functions
-  problemToCNF,
-  validate
+  problemToCNF
   ) where
 
 import           HSat.Printer
 import qualified HSat.Problem.BSP.CNF as C (CNF)
 import           HSat.Problem.ProblemType
-import           HSat.Validate
 
 {-|
 A simple sum of types containing each of the problem types
@@ -66,8 +64,3 @@ instance Printer ProblemExpr where
   compact (CNFExpr cnf)   = compact cnf
   noUnicode (CNFExpr cnf) = noUnicode cnf
   unicode (CNFExpr cnf)   = unicode cnf
-
---Validation
-
-instance Validate ProblemExpr where
-  validate (CNFExpr cnf) = validate cnf

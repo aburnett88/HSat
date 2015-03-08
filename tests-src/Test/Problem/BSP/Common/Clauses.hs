@@ -1,12 +1,12 @@
 {-|
 Module      : Test.Problen.BSP.Common.Clauses
-Description : The 'Clause' test leaf
+Description : The Clauses tests
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The TestTree Leaf for the Clauses module
+The Test Tree Node for the Clauses module
 -}
 
 module Test.Problem.BSP.Common.Clauses (
@@ -23,7 +23,6 @@ import           HSat.Problem.BSP.Common.Sign
 import           HSat.Problem.BSP.Common.Variable
 import qualified Test.Problem.BSP.Common.Clauses.Internal as Internal
 import           TestUtils
-import Debug.Trace
 
 name :: String
 name = "Clauses"
@@ -55,8 +54,7 @@ tests =
        clausesIsEmptyTest2
        ],
     testGroup "findMaxVar" [
-      findMaxVarTest1,
-      findMaxVarTest2
+      findMaxVarTest1
       ],
     testGroup "getSetOfVars" [
       getSetOfVarsTest1
@@ -74,43 +72,48 @@ mkClausesTest1 =
   testProperty ("getSizeClauses = V.length cl,"++
                 "getVectClause = cl in" ++
                 "mkClause cl") $ property
-  (\vectClause ->
-    let newClause       = mkClauses vectClause
-        expectedSize    = toEnum $ V.length vectClause
-        gottenSize      = getSizeClauses newClause
-        expectedClauses = vectClause
-        gottenClauses   = getVectClause newClause
-    in (expectedSize    === gottenSize) .&&.
-       (expectedClauses === gottenClauses)
+  (\vectOfClause ->
+    let clauses      = mkClauses vectOfClause
+        exptdSize    = toEnum $ V.length vectOfClause
+        valSize      = getSizeClauses clauses
+        exptdClauses = vectOfClause
+        valClauses   = getVectClause clauses
+    in (exptdSize === valSize) .&&.
+       (exptdClauses === valClauses)
   )
 
 emptyClausesTest1 :: TestTree
 emptyClausesTest1 =
   testCase ("let numbOfClauses emptyClause = 0,"++
             "getVectClause = V.empty in emptyClause") $ do
-    let expectedSize = 0
-        gottenSize   = getSizeClauses emptyClauses
-        expectedVect = V.empty
-        gottenVect   = getVectClause emptyClauses
-    assertEqual "Size not zero" expectedSize gottenSize
-    assertEqual "Vector not empty" expectedVect gottenVect
+    let exptdSize   = 0
+        valSize     = getSizeClauses emptyClauses
+        exptdVector = V.empty
+        valVector   = getVectClause emptyClauses
+    assertEqual
+      "Size not zero"
+      exptdSize valSize
+    assertEqual
+      "Vector not empty"
+      exptdVector
+      valVector
 
 mkClausesFromClauseTest1 :: TestTree
 mkClausesFromClauseTest1 =
   testProperty "toList . getvect . mkClausesFromClause c == c" $ property
-  (\cl ->
-    let gottenValue = V.toList . getVectClause $ mkClausesFromClause cl
-    in cl           === gottenValue
+  (\clauses ->
+    let val = V.toList . getVectClause $ mkClausesFromClause clauses
+    in clauses === val
   )
 
 clausesAddClauseTest1 :: TestTree
 clausesAddClauseTest1 =
   testProperty "clausesAddClause cl c == cl ++c" $ property
   (\(clauses,clause) ->
-    let expectedValue = mkClausesFromClause $ (
-          V.toList . getVectClause $ clauses) ++ [clause]
-        gottenValue   = clausesAddClause clauses clause
-    in expectedValue  === gottenValue
+    let exptd = mkClausesFromClause . V.toList $
+                V.snoc (getVectClause clauses) clause
+        val   = clausesAddClause clauses clause
+    in exptd === val
   )
 
 mkClausesFromIntegersTest1 :: TestTree
@@ -119,16 +122,16 @@ mkClausesFromIntegersTest1 =
   forAll
   (listOf $ listOf mkIntegerNonZero)
   (\ints ->
-    let expectedVal = clausesToIntegers $ mkClausesFromIntegers ints
-    in expectedVal  === ints
+    let exptd = clausesToIntegers $ mkClausesFromIntegers ints
+    in exptd === ints
   )
 
 clausesToIntegersTest1 :: TestTree
 clausesToIntegersTest1 =
   testProperty "mkClausesFromIntgers . clausesToIntegers == id" $ property
   (\clauses ->
-    let expectedVal = mkClausesFromIntegers $ clausesToIntegers clauses
-    in  expectedVal === clauses
+    let exptd = mkClausesFromIntegers $ clausesToIntegers clauses
+    in  exptd === clauses
   )
 
 clausesIsEmptyTest1 :: TestTree
@@ -136,59 +139,64 @@ clausesIsEmptyTest1 =
   testCase "clausesIsEmpty []" $
   assertBool "clausesIsEmpty [] == False" (clausesIsEmpty emptyClauses)
 
+{-
+Test the non empty versions
+-}
 clausesIsEmptyTest2 :: TestTree
 clausesIsEmptyTest2 =
-  testCase "clausesIsEmpty [..]" $
-  assertBool "clausesIsEmpty [..] == True" (
-    not . clausesIsEmpty $ mkClausesFromClause [emptyClause])
+  testProperty "clausesIsEmpty [..] == False" $
+  forAll
+  (do
+      clauses <- arbitrary
+      clause <- arbitrary
+      return $ clausesAddClause clauses clause
+  )
+  (not . clausesIsEmpty)
 
+{-
+We test the element where there are no literals. In this instance, the maxVar
+returned should be zero. 
+-}
 findMaxVarTest1 :: TestTree
 findMaxVarTest1 =
-  testCase "findMaxVar [] == 0" $
-  assertEqual "findMaxVar [] != 0" (findMaxVar emptyClauses) 0
-  
-findMaxVarTest2 :: TestTree
-findMaxVarTest2 =
-  testProperty "max litlist == findmaxVar . toClauses $ litlist" $ property
-  (\litlist ->
-    let expectedVal =
-          if null $ concat litlist then
-            0 else
-            maximum . map (getWord . getVariable) $ concat litlist
-        actualVal   = findMaxVar . mkClausesFromIntegers $
-                      map (map literalToInteger) litlist
-    in expectedVal  === actualVal
+  testProperty "maxVar clauses == maximum . toList $ clauses" $ property
+  (\clauses ->
+    let litList = map abs . concat $ clausesToIntegers clauses
+        exptd   = fromEnum $ if null litList then
+                  0 else
+                  maximum litList
+        val     = fromEnum $ findMaxVar clauses
+    in exptd === val
   )
 
 getSetOfVarsTest1 :: TestTree
 getSetOfVarsTest1 =
   testProperty "getSetOfVars == S.fromList $ concat lits" $ property
   (\litlist ->
-    let expectedVal = S.fromList . map getVariable $ concat litlist
-        actualVal   = getSetOfVars . mkClausesFromIntegers $
+    let exptd = S.fromList . map getVariable $ concat litlist
+        val   = getSetOfVars . mkClausesFromIntegers $
                       map (map literalToInteger) litlist
-    in expectedVal  === actualVal
+    in exptd  === val
   )
 
 getSetPosTest1 :: TestTree
 getSetPosTest1 =
   testProperty "getSetPos = S.fromList (filter isPos) $ concat lits" $ property
   (\litlist ->
-    let expectedVal = S.fromList . map getVariable .
+    let exptd = S.fromList . map getVariable .
                       filter (isPos . getSign) $ concat litlist
-        actualVal   = getSetPos . mkClausesFromIntegers $
+        val   = getSetPos . mkClausesFromIntegers $
                       map (map literalToInteger) litlist
-    in expectedVal  === actualVal
+    in exptd  === val
   )
 
 getSetNegTest1 :: TestTree
 getSetNegTest1 =
   testProperty "getSetNeg = S.fromList (filter isNeg) $ concat lits" $ property
   (\litlist ->
-    let expectedVal = S.fromList . map getVariable .
+    let exptd = S.fromList . map getVariable .
                       filter (isNeg . getSign) $ concat litlist
-        actualVal   = getSetNeg . mkClausesFromIntegers $
+        val   = getSetNeg . mkClausesFromIntegers $
                       map (map literalToInteger) litlist
-    in expectedVal  === actualVal
+    in exptd  === val
   )
-  

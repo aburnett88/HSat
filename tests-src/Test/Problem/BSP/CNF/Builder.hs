@@ -25,7 +25,7 @@ import           TestUtils
 import qualified Test.Problem.BSP.CNF.Builder.Internal as Internal
 import TestUtils.Problem.BSP.CNF.Builder
 import TestUtils.Problem.BSP.Common.Literal
-import HSat.Validate
+import TestUtils.Validate
 
 name :: String
 name = "Builder"

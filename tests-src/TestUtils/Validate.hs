@@ -1,5 +1,5 @@
 {-|
-Module      : HSat.Validate
+Module      : TestUtils.Validate
 Description : The Validate type class
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
@@ -11,7 +11,7 @@ we may cache information about the size of a list as it is created. Validate
 would check that this is correct
 -}
 
-module HSat.Validate (
+module TestUtils.Validate (
   Validate(..)
   ) where
 

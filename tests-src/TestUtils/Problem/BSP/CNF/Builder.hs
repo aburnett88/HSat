@@ -15,7 +15,7 @@ import Control.Monad (liftM5)
 import Data.Word
 import HSat.Problem.BSP.Common
 import qualified Data.Vector as V
-import HSat.Validate
+import TestUtils.Validate
 import Debug.Trace
 
 genCNFBuilder :: Word -> Word -> Word -> Word -> Gen CNFBuilder
@@ -109,3 +109,33 @@ genCNFInvalidBuilderCount var sizeClause sizeClauses offset = do
   return $ builder {
     getCurrClNumb = getCurrClNumb builder + x
     }
+
+instance Validate CNFBuilder where
+  validate (CNFBuilder
+            exptdMaxVar
+            exptdClNumb
+            currClNumb
+            currClauses
+            currClause) =
+    let computedSize = (getSizeClauses currClauses + (
+                           if clauseIsEmpty currClause then
+                             0 else
+                             1)
+                        )
+    in (exptdClNumb >= currClNumb)                        &&
+       V.all testVarInRange (getVectClause currClauses) &&
+       (computedSize == currClNumb)                       &&
+       testVarInRange currClause                        &&
+       validate currClauses                             &&
+       validate currClause
+    where
+      testVarInRange :: Clause -> Bool
+      testVarInRange cl = V.all (varInRange exptdMaxVar) .
+                          V.map getVariable $ getVectLiteral cl
+
+instance Validate CNFBuilderError where
+  validate (IncorrectClauseNumber gotten expected) =
+    expected /= gotten
+  validate (VarOutsideRange gotten expected)       =
+    ((toInteger expected) < gotten) ||
+    (gotten == 0)

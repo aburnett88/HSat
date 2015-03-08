@@ -21,7 +21,7 @@ import           HSat.Problem.BSP.Common
 import qualified Test.Problem.BSP.CNF.Builder as CNFBuilder
 import qualified Test.Problem.BSP.CNF.Internal as Internal
 import           TestUtils
-import HSat.Validate
+import TestUtils.Validate
 
 name :: String
 name = "CNF"

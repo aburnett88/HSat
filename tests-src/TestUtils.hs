@@ -14,6 +14,8 @@ module TestUtils (
   testMaxClauseSize,    -- :: Int
   testMaxClausesSize,   -- :: Int
   mkIntegerNonZero,     -- :: Gen Integer
+  mkPosIntegerNonZero,  -- :: Gen Integer
+  mkNegIntegerNonZero,  -- :: Gen Integer
   mkWordNonZero,        -- :: Gen Word
   testList,             -- ::
   testEq,               -- ::
@@ -95,12 +97,20 @@ instance Arbitrary PosDouble where
 
 --Makes sure that the choice is within the bounds of Word so as not to throw
 -- errors
+
+mkPosIntegerNonZero :: Gen Integer
+mkPosIntegerNonZero =
+  ((1+) . abs) `liftM` arbitrary
+
+mkNegIntegerNonZero :: Gen Integer
+mkNegIntegerNonZero =
+  ((-1)*) `liftM` mkPosIntegerNonZero
+
 mkIntegerNonZero :: Gen Integer
-mkIntegerNonZero = do
-  let m =  toInteger (maxBound :: Word)
-  sign  <- choose (True,False)
-  value <- choose (1,m)
-  return . (if sign then id else negate) $ value
+mkIntegerNonZero = oneof [
+  mkPosIntegerNonZero,
+  mkNegIntegerNonZero
+  ]
 
 mkWordNonZero :: Gen Word
 mkWordNonZero = choose (1,maxBound)
@@ -209,8 +219,9 @@ instance Arbitrary VariablePredicate where
       1 -> AtleastOnce
       2 -> PosAndNeg
 
-forceError :: (Eq a, Show a) => a -> a -> Assertion
-forceError correct dummyVal = do
+forceError :: (Eq a, Show a, Arbitrary a) => a -> Assertion
+forceError correct = do
+  dummyVal <- generate arbitrary
   maybValue <- E.catch (
     do
       let ans = Just correct
