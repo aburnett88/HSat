@@ -158,8 +158,8 @@ addLiteralTest1 =
   forAll
   (do
       cnf <- oneof [
-        genCNFBuilderEmptyClause 10 10 10 10,
-        genCNFBuilderLitInClause 10 10 10 10
+        sized genCNFBuilderEmptyClause,
+        sized genCNFBuilderLitInClause
         ]
       literal <- case getExptdMaxVar cnf of
         0 -> return Nothing
@@ -201,8 +201,8 @@ addLiteralTest2 =
   forAll
     (do
       cnf <- oneof [
-        genCNFBuilderEmptyClause 10 10 10 10,
-        genCNFBuilderLitInClause 10 10 10 10
+        sized genCNFBuilderEmptyClause,
+        sized genCNFBuilderLitInClause
         ]
       x <- choose (getExptdMaxVar cnf,maxBound)
       literal <- liftM literalToInteger $ genLiteral x
@@ -224,8 +224,8 @@ addLiteral'Test1 =
   forAll
   (do
       cnf <- oneof [
-        genCNFBuilderEmptyClause 10 10 10 10,
-        genCNFBuilderLitInClause 10 10 10 10
+        sized genCNFBuilderEmptyClause,
+        sized genCNFBuilderLitInClause
         ]
       literal <- case getExptdMaxVar cnf of
         0 -> return Nothing
@@ -245,8 +245,8 @@ addLiteral'Test2 =
   forAll
   (do
       cnf <- oneof [
-        genCNFBuilderEmptyClause 10 10 10 10,
-        genCNFBuilderLitInClause 10 10 10 10
+        sized genCNFBuilderEmptyClause ,
+        sized genCNFBuilderLitInClause 
         ]
       variable <- choose (getExptdMaxVar cnf+1,maxBound)
       sign <- arbitrary
@@ -268,8 +268,8 @@ finishClauseTest1 =
   testProperty "finishClause finishes the clause" $
   forAll
   (oneof [
-      genCNFBuilderEmptyClause 10 10 10 10,
-      genCNFBuilderLitInClause 10 10 10 10
+      sized genCNFBuilderEmptyClause ,
+      sized genCNFBuilderLitInClause 
       ])
   (\cnfbuilder ->
     case finishClause cnfbuilder of
@@ -297,7 +297,7 @@ finishClauseTest2 :: TestTree
 finishClauseTest2 =
   testProperty "finishClasue on full CNF throws error" $
   forAll
-  (genCNFBuilderFinalise 10 10 10 10)
+  (sized genCNFBuilderFinalise )
   (\builder ->
     case finishClause builder of
       Left (IncorrectClauseNumber gotten expected) ->
@@ -313,8 +313,8 @@ finishClause'Test1 =
   testProperty "finishClause' has desired effects" $
   forAll
   (oneof [
-      genCNFBuilderEmptyClause 10 10 10 10,
-      genCNFBuilderLitInClause 10 10 10 10
+      sized genCNFBuilderEmptyClause,
+      sized genCNFBuilderLitInClause
       ])
   (\cnfbuilder ->
     finishClauseTest1Generic (finishClause' cnfbuilder) cnfbuilder)
@@ -323,7 +323,7 @@ finishClause'Test2 :: TestTree
 finishClause'Test2 =
   testProperty "finishClause' pushes boundaries of problem if out of range" $
   forAll
-  (genCNFBuilderFinalise 10 10 10 10)
+  (sized genCNFBuilderFinalise )
   (\builder ->
     let builder' = finishClause' builder
         exptdClNumb = getCurrClNumb builder +
@@ -341,7 +341,7 @@ finaliseTest1 :: TestTree
 finaliseTest1 =
   testProperty "finalise on correct builder builds CNF" $
   forAll
-  (genCNFBuilderFinalise 10 10 10 10)
+  (sized genCNFBuilderFinalise )
   (\builder ->
     case finalise builder of
       Left _ -> property False
@@ -353,9 +353,9 @@ finaliseTest2 =
   testProperty "finalise too early and error thrown" $
   forAll
   (oneof [
-      genCNFBuilderEmptyClause 10 10 10 10,
-      genCNFBuilderLitInClause 10 10 10 10
-      ])
+        sized genCNFBuilderEmptyClause,
+        sized genCNFBuilderLitInClause
+        ])
   (\builder ->
     case finalise builder of
       Left (IncorrectClauseNumber gotten expected) ->
@@ -370,7 +370,7 @@ finalise'Test1 :: TestTree
 finalise'Test1 =
   testProperty "finalise on correct pure builder builds CNF" $
   forAll
-  (genCNFBuilderFinalise 10 10 10 10)
+  (sized genCNFBuilderFinalise)
   (\builder ->
     genFinaliseTest1 builder (finalise' builder)
     )
@@ -391,9 +391,9 @@ finalise'Test2 =
   testProperty "finalise' on incorrect builder builds correc CNF" $
   forAll
   (oneof [
-      genCNFBuilderEmptyClause 10 10 10 10,
-      genCNFBuilderLitInClause 10 10 10 10
-      ])
+        sized genCNFBuilderEmptyClause,
+        sized genCNFBuilderLitInClause
+        ])
   (\builder ->
     let cnf' = finalise' builder
         currClNumb = getCurrClNumb builder

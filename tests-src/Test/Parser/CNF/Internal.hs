@@ -288,7 +288,7 @@ parseClauseTest5 =
 
 genX :: Gen (CNFBuildErr,CNFBuildErr,Text,Clause)
 genX = do
-  before <- return `liftM` genCNFBuilderEmptyClause 10 10 10 10
+  before <- return `liftM` genCNFBuilderEmptyClause 10
   clause <- arbitrary
   let lits = getVectLiteral clause
       after = (V.foldl (\b' l -> b' >>= addLiteral (literalToInteger l)) before lits) >>= finishClause

@@ -1,24 +1,38 @@
+{-|
+Module      : TestUtils.Problem.BSP.Common.Literal
+Description : Generators for the Literal type
+Copyright   : (c) Andrew Burnett 2014-2015
+Maintainer  : andyburnett88@gmail.com
+Stability   : experimental
+Portability : Unknown
+
+Exports Generator functions for the Literal type
+-}
+
 module TestUtils.Problem.BSP.Common.Literal (
   genLiteral -- :: Word -> Gen Literal
   ) where
 
-import TestUtils.Test
+import Data.Word
 import HSat.Problem.BSP.Common.Literal
-import HSat.Problem.BSP.Common.Variable
 import HSat.Problem.BSP.Common.Sign
+import HSat.Problem.BSP.Common.Variable
 import TestUtils.Problem.BSP.Common.Sign
 import TestUtils.Problem.BSP.Common.Variable
-import Data.Word
+import TestUtils.Test
 import TestUtils.Validate
 
-genLiteral :: Word -> Gen Literal
+{-
+Generate random sign, random variable (within context) then create a Literal from the parts.
+-}
+genLiteral     :: Word -> Gen Literal
 genLiteral max = do
   sign <- arbitrary
   var  <- genVariableContext max
   return $ mkLiteral sign var
 
 instance Arbitrary Literal where
-  arbitrary = genLiteral maxBound
+  arbitrary            = genLiteral maxBound
   shrink (Literal s v) =
     map (uncurry mkLiteral) $ shrink (s,v)
 

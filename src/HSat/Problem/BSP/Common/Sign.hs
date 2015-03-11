@@ -7,7 +7,7 @@ Stability   : experimental
 Portability : Unknown
 
 The 'Sign' type is a binary data structure that, when paired with a second
-element, yields either the positive or negative occurence of that second
+element, yields either the positive or negative occurrence of that second
 element.
 
 For example, when paired with a positive number (that is non-zero), it can be used to describe a
@@ -46,7 +46,8 @@ newtype Sign = Sign {
 Compares the underlying 'Bool' values
 -}
 instance Ord Sign where
-  compare (Sign b1) (Sign b2) = compare b1 b2
+  compare (Sign bool1) (Sign bool2) =
+    compare bool1 bool2
 
 {-
 Gets a random 'Bool', then packs it up into a Sign type
@@ -93,11 +94,11 @@ A positive 'Integer' will construct a positive 'Sign' while a negative 'Integer'
 
 An 'Integer' of zero will throw a run-time error. 
 -}
-mkSignFromInteger   :: Integer -> Sign
-mkSignFromInteger i
-  | i < 0 = neg
-  | i > 0 = pos
-  | otherwise = error (name ++ ":" ++ func ++ ": Argument " ++ show i)
+mkSignFromInteger       :: Integer -> Sign
+mkSignFromInteger intgr
+  | intgr < 0 = neg
+  | intgr > 0 = pos
+  | otherwise = error (name ++ ":" ++ func ++ ": Argument " ++ show intgr)
   where
     name = "HSat.Problem.BSP.Common.Sign"
     func = "mkSignFromInteger"

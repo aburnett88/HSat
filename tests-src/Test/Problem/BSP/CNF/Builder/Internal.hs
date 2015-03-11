@@ -14,9 +14,7 @@ tests :: TestTree
 tests =
   testGroup name [
     cnfBuilderTest1,
-    cnfBuilderTest2,
     cnfBuilderError1,
-    cnfBuilderError2,
     testGroup "canAddLiteral" [
        canAddLiteralTest1,
        canAddLiteralTest2
@@ -38,13 +36,6 @@ cnfBuilderTest1 =
     testCNFBuilder :: CNFBuilder -> Bool
     testCNFBuilder = validate
 
-cnfBuilderTest2 :: TestTree
-cnfBuilderTest2 =
-  testProperty "validate badCNFBuilder == False" $
-  forAll
-  (genCNFInvalidBuilder 10 10 10 10)
-  (not . validate)
-
 cnfBuilderError1 :: TestTree
 cnfBuilderError1 =
   testProperty "validate arbitrary CNFBuilderError == True" $
@@ -53,41 +44,36 @@ cnfBuilderError1 =
     testCNFBuilderError :: CNFBuilderError -> Bool
     testCNFBuilderError = validate
 
-cnfBuilderError2 :: TestTree
-cnfBuilderError2 =
-  testProperty "validate (bad CNFBuilderError) == False" $
-  forAll
-  (genCNFInvalidBuilder 10 10 10 10)
-  (not . validate)
-
 canAddLiteralTest1 :: TestTree
 canAddLiteralTest1 =
   testProperty "canAddLiteral == True on valid CNFBuilder" $
   forAll
-  (oneof [genCNFBuilderEmptyClause 10 10 10 10,
-          genCNFBuilderLitInClause 10 10 10 10])
+  (oneof [sized genCNFBuilderEmptyClause,
+          sized genCNFBuilderLitInClause
+          ]
+   )
   canAddLiteral
 
 canAddLiteralTest2 :: TestTree
 canAddLiteralTest2 =
   testProperty "canAddLiteral == False on invalid CNFBuilder" $
   forAll
-  (genCNFBuilderFinalise 10 10 10 10)
+  (sized genCNFBuilderFinalise)
   (not . canAddLiteral)
 
 canFinaliseTest1 :: TestTree
 canFinaliseTest1 =
   testProperty "canFinalise == True on CNFBuilder on final clause" $
   forAll
-  (genCNFBuilderFinalise 10 10 10 10)
+  (sized genCNFBuilderFinalise)
   canFinalise
 
 canFinaliseTest2 :: TestTree
 canFinaliseTest2 =
   testProperty "canFinalise == False on non-final clause builder" $
   forAll
-  (oneof [genCNFBuilderEmptyClause 10 10 10 10,
-          genCNFBuilderLitInClause 10 10 10 10])
+  (oneof [sized genCNFBuilderEmptyClause,
+          sized genCNFBuilderLitInClause])
   (not . canFinalise)
 
 canFinishClauseTest1 :: TestTree
@@ -95,8 +81,8 @@ canFinishClauseTest1 =
   testProperty "canFinishClause == True on valid CNFBuilder" $
   forAll
   (oneof [
-      genCNFBuilderEmptyClause 10 10 10 10,
-      genCNFBuilderLitInClause 10 10 10 10
+      sized genCNFBuilderEmptyClause ,
+      sized genCNFBuilderLitInClause 
       ])
   canFinishClause
 
@@ -104,6 +90,6 @@ canFinishClauseTest2 :: TestTree
 canFinishClauseTest2 =
   testProperty "canFinishClause == False on invalid CNFBuilder" $
   forAll
-  (genCNFBuilderFinalise 10 10 10 10)
+  (sized genCNFBuilderFinalise)
   (not . canFinishClause)
 

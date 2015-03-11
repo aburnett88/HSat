@@ -6,7 +6,7 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-Exports generic functions for generating 'Sign's
+Exports Generator functions for the Sign type
 -}
 
 module TestUtils.Problem.BSP.Common.Sign (
@@ -16,9 +16,6 @@ module TestUtils.Problem.BSP.Common.Sign (
 import HSat.Problem.BSP.Common.Sign
 import TestUtils.Test
 
-{-|
-Generates valid 'Sign's
--}
 genSign :: Gen Sign
 genSign = liftM mkSign arbitrary
 

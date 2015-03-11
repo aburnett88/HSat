@@ -3,8 +3,8 @@ module TestUtils.Problem.BSP.CNF.Builder (
   genCNFBuilderFinalise,
   genCNFBuilderEmptyClause,
   genCNFBuilderLitInClause,
-  genCNFBuilderError,
-  genCNFInvalidBuilder
+  genCNFBuilderError
+ -- genCNFInvalidBuilder
   ) where
 
 import TestUtils.Test
@@ -18,26 +18,30 @@ import qualified Data.Vector as V
 import TestUtils.Validate
 import Debug.Trace
 
-genCNFBuilder :: Word -> Word -> Word -> Word -> Gen CNFBuilder
-genCNFBuilder maxV clauseSize clausesSize maxVarOffset =
+genCNFBuilder :: Int -> Gen CNFBuilder
+genCNFBuilder size =
   oneof [
-    genCNFBuilderFinalise maxV clauseSize clausesSize maxVarOffset,
-    genCNFBuilderEmptyClause maxV clauseSize clausesSize maxVarOffset,
-    genCNFBuilderLitInClause maxV clauseSize clausesSize maxVarOffset
+    genCNFBuilderFinalise size,
+    genCNFBuilderEmptyClause size,
+    genCNFBuilderLitInClause size
     ]
 
 instance Arbitrary CNFBuilder where
-  arbitrary = genCNFBuilder 10 10 10 10
+  arbitrary = sized genCNFBuilder
   shrink (CNFBuilder
           maxVar
           setClNumb
           currClNumb
           currClauses
           currClause) =
-    map (\vect ->
-          let currClNumb' = getSizeClauses vect
-          in CNFBuilder maxVar setClNumb currClNumb' vect currClause) $
-    shrink currClauses
+    let f = (\(vect,clause) ->
+          let size = sizeFunc vect clause
+          in CNFBuilder maxVar setClNumb size vect clause)
+    in map f $ shrink (currClauses,currClause)
+
+sizeFunc :: Clauses -> Clause -> Word
+sizeFunc cl c = (+) (getSizeClauses cl) $ 
+                if clauseIsEmpty c then 0 else 1
     
 instance Arbitrary CNFBuilderError where
   arbitrary = genCNFBuilderError
@@ -47,57 +51,55 @@ instance Arbitrary CNFBuilderError where
   shrink (VarOutsideRange gotten expected) =
     filter validate . map (uncurry VarOutsideRange) $ shrink (gotten,expected)
 
-
-
-genCNFBuilderFinalise :: Word -> Word -> Word -> Word -> Gen CNFBuilder
-genCNFBuilderFinalise maxV clauseSize clausesSize maxVarOffset = do
-  clauses <-genClauses maxV clauseSize clausesSize
+genCNFBuilderFinalise :: Int -> Gen CNFBuilder
+genCNFBuilderFinalise sized = do
+  maxV <- choose (1,sized)
+  clauses <- genClauses (toEnum maxV) sized
   let clNumb = getSizeClauses clauses
       maxVar = findMaxVar clauses
-  maxVar' <- choose (maxVar,maxVarOffset+maxVar)
-  return $ CNFBuilder maxVar' clNumb clNumb clauses emptyClause
+  return $ CNFBuilder maxVar clNumb clNumb clauses emptyClause
 
-combined :: Word -> Word -> Word -> Word -> Gen (Clauses,Word,Word,Word)
-combined maxV clauseSize clausesSize maxVarOffset = do
+combined :: Int -> Gen (Clauses,Word,Word,Word)
+combined sized = undefined
+                 {-do
   clauses <- genClauses maxV clauseSize clausesSize
   targetSize <- choose (getSizeClauses clauses + 1, clausesSize + 1)
   let maxVar = findMaxVar clauses
   maxVar' <- choose (maxVar, maxVarOffset + maxVar)
-  return (clauses,targetSize,maxVar,maxVar')
+  return (clauses,targetSize,maxVar,maxVar')-}
 
-genCNFBuilderEmptyClause :: Word -> Word -> Word -> Word -> Gen CNFBuilder
-genCNFBuilderEmptyClause maxV clauseSize clausesSize maxVarOffset = do
-  (clauses,targetSize,maxVar,maxVar') <-
-    combined maxV clauseSize clausesSize maxVarOffset
+genCNFBuilderEmptyClause :: Int -> Gen CNFBuilder
+genCNFBuilderEmptyClause sized = do
+  (clauses,targetSize,maxVar,maxVar') <- combined sized
   return $
     CNFBuilder maxVar' targetSize (getSizeClauses clauses) clauses emptyClause
 
-genCNFBuilderLitInClause :: Word -> Word -> Word -> Word -> Gen CNFBuilder
-genCNFBuilderLitInClause maxV clauseSize clausesSize maxVarOffset = do
-  (clauses,targetSize,maxVar,maxVar') <-
-    combined maxV clauseSize clausesSize maxVarOffset
-  clause <- genClause clauseSize maxVar
-  let actualSize = getSizeClauses clauses + if clauseIsEmpty clause then
-                                              0 else
-                                              1
-      targetSize' = if clauseIsEmpty clause then
-                      targetSize else
-                      targetSize +1
-  return $ CNFBuilder maxVar' targetSize' actualSize clauses clause
+genCNFBuilderLitInClause :: Int -> Gen CNFBuilder
+genCNFBuilderLitInClause sized = do
+  (clauses,targetSize,maxVarCurr,maxVarAllowed) <- combined sized
+  clause <- genClause maxVarCurr sized
+  let actualSize = sizeFunc clauses clause
+      targetSize' = (+) targetSize (if clauseIsEmpty clause then 0 else 1)
+      builder     = CNFBuilder maxVarAllowed targetSize' actualSize clauses clause
+  return builder
 
 genCNFBuilderError :: Gen CNFBuilderError
-genCNFBuilderError = do
-  typeOf <- choose (0,1) :: Gen Int
-  case typeOf of
-    0 -> do
+genCNFBuilderError =
+  oneof [
+    do
       expected <- choose (0,maxBound)
-      gotten <- choose (1,maxBound)
-      return $ IncorrectClauseNumber (expected+gotten) expected
-    1 -> do
-      expected <- choose (0,100)
-      gotten <- choose (expected+1,maxBound)
-      return $ VarOutsideRange (toInteger gotten) expected
+      gotten   <- choose (1,maxBound)
+      let val  = IncorrectClauseNumber (expected+gotten) expected
+      return val
+    ,
+    do
+      expected <- choose (0,maxBound - 1)
+      gotten   <- choose (expected + 1, maxBound)
+      let val  = VarOutsideRange (toInteger gotten) expected
+      return val
+    ]
 
+{-
 genCNFInvalidBuilder :: Word -> Word -> Word -> Word -> Gen CNFBuilder
 genCNFInvalidBuilder =
   genCNFInvalidBuilderCount
@@ -109,7 +111,7 @@ genCNFInvalidBuilderCount var sizeClause sizeClauses offset = do
   return $ builder {
     getCurrClNumb = getCurrClNumb builder + x
     }
-
+-}
 instance Validate CNFBuilder where
   validate (CNFBuilder
             exptdMaxVar
@@ -117,14 +119,10 @@ instance Validate CNFBuilder where
             currClNumb
             currClauses
             currClause) =
-    let computedSize = (getSizeClauses currClauses + (
-                           if clauseIsEmpty currClause then
-                             0 else
-                             1)
-                        )
-    in (exptdClNumb >= currClNumb)                        &&
+    let computedSize = sizeFunc currClauses currClause
+    in (exptdClNumb >= currClNumb)                      &&
        V.all testVarInRange (getVectClause currClauses) &&
-       (computedSize == currClNumb)                       &&
+       (computedSize == currClNumb)                     &&
        testVarInRange currClause                        &&
        validate currClauses                             &&
        validate currClause
