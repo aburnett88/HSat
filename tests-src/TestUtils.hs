@@ -21,7 +21,6 @@ module TestUtils (
   testEq,               -- ::
   testAllEq,            -- ::
   forceError,           -- ::
-  printTest,             -- ::
   propList              -- :: (a -> Property) -> [a] -> Property
   ) where
 
@@ -231,28 +230,7 @@ forceError correct = do
                ((\_ -> return Nothing) :: ErrorCall -> IO (Maybe a))
   assertBool "Did not throw error" (isNothing maybValue)
 
-printTest :: (Printer a) => String -> IO a -> TestTree
-printTest str getElem =
-  testGroup str [
-    testCase "Compact" $ do
-       elem <- getElem
-       putStrLn ""
-       putDoc $ compact elem
-       putStrLn ""
-       assertBool "" True,
-    testCase "Non unicode" $ do
-      putStrLn ""
-      elem <- getElem
-      putStrLn ""
-      putDoc $ noUnicode elem
-      assertBool "" True,
-    testCase "Unicode" $ do
-      putStrLn ""
-      elem <- getElem
-      putDoc $ unicode elem
-      putStrLn ""
-      assertBool "" True
-      ]
+
 --348 - 267--250
 
 propList :: (Show a) => (a -> Property) -> [a] -> Property

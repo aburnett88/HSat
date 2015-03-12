@@ -1,29 +1,40 @@
+{-|
+Module      : TestUtils.Problem.BSP.CNF.Builder
+Description : Generators for the CNFBuilder type
+Copyright   : (c) Andrew Burnett 2014-2015
+Maintainer  : andyburnett88@gmail.com
+Stability   : experimental
+Portability : Unknown
+
+Exports Generator functions for the CNFBuilder type
+-}
+
 module TestUtils.Problem.BSP.CNF.Builder (
-  genCNFBuilder,
-  genCNFBuilderFinalise,
-  genCNFBuilderEmptyClause,
-  genCNFBuilderLitInClause,
-  genCNFBuilderError
- -- genCNFInvalidBuilder
+  genCNFBuilder,           -- :: Int -> Gen CNFBuilder
+  genCNFBuilderFinalise,   -- :: Int -> Gen CNFBuilder
+  genCNFBuilderEmptyClause,-- :: Int -> Gen CNFBuilder
+  genCNFBuilderLitInClause,-- :: Int -> Gen CNFBuilder
+  genCNFBuilderError       -- :: Int -> Gen CNFBuilderError
   ) where
 
-import TestUtils.Test
-import HSat.Problem.BSP.CNF.Builder.Internal
-import TestUtils.Problem.BSP.Common.Clauses
-import TestUtils.Problem.BSP.Common.Clause
-import Control.Monad (liftM5)
-import Data.Word
-import HSat.Problem.BSP.Common
+import           Control.Monad (liftM5)
 import qualified Data.Vector as V
-import TestUtils.Validate
-import Debug.Trace
+import           Data.Word
+import           Debug.Trace
+import           HSat.Problem.BSP.CNF.Builder.Internal
+import           HSat.Problem.BSP.Common
+import           TestUtils.Problem.BSP.Common.Clause
+import           TestUtils.Problem.BSP.Common.Clauses
+import           TestUtils.Problem.BSP.Common.Literal
+import           TestUtils.Test
+import           TestUtils.Validate
 
-genCNFBuilder :: Int -> Gen CNFBuilder
+genCNFBuilder      :: Int -> Gen CNFBuilder
 genCNFBuilder size =
-  oneof [
-    genCNFBuilderFinalise size,
-    genCNFBuilderEmptyClause size,
-    genCNFBuilderLitInClause size
+  oneof $ map sized [
+    genCNFBuilderFinalise,
+    genCNFBuilderEmptyClause,
+    genCNFBuilderLitInClause
     ]
 
 instance Arbitrary CNFBuilder where
@@ -34,53 +45,80 @@ instance Arbitrary CNFBuilder where
           currClNumb
           currClauses
           currClause) =
-    let f = (\(vect,clause) ->
+    let mkBuilder = \(vect,clause) ->
           let size = sizeFunc vect clause
-          in CNFBuilder maxVar setClNumb size vect clause)
-    in map f $ shrink (currClauses,currClause)
+          in CNFBuilder maxVar setClNumb size vect clause
+    in map mkBuilder $ shrink (currClauses,currClause)
 
-sizeFunc :: Clauses -> Clause -> Word
+sizeFunc      :: Clauses -> Clause -> Word
 sizeFunc cl c = (+) (getSizeClauses cl) $ 
                 if clauseIsEmpty c then 0 else 1
     
 instance Arbitrary CNFBuilderError where
-  arbitrary = genCNFBuilderError
-  shrink (IncorrectClauseNumber gotten expected) =
+  arbitrary         = genCNFBuilderError
+  shrink (IncorrectClauseNumber
+          gotten
+          expected) =
     filter validate . map (uncurry IncorrectClauseNumber) $
     shrink (gotten,expected)
-  shrink (VarOutsideRange gotten expected) =
-    filter validate . map (uncurry VarOutsideRange) $ shrink (gotten,expected)
+  shrink (VarOutsideRange
+          gotten
+          expected) =
+    filter validate . map (uncurry VarOutsideRange) $
+    shrink (gotten,expected)
 
 genCNFBuilderFinalise :: Int -> Gen CNFBuilder
-genCNFBuilderFinalise sized = do
-  maxV <- choose (1,sized)
-  clauses <- genClauses (toEnum maxV) sized
-  let clNumb = getSizeClauses clauses
-      maxVar = findMaxVar clauses
-  return $ CNFBuilder maxVar clNumb clNumb clauses emptyClause
+genCNFBuilderFinalise size = do
+  maxVar'  <- toEnum `liftM` choose (1,size)
+  clauses <- genClauses maxVar' size
+  --Either return what we set as the maximum, or find the true maximum
+  maxVar <- oneof [
+    return maxVar',
+    return $ findMaxVar clauses
+    ]
+  let sizeClauses = getSizeClauses clauses
+      builder     =
+        CNFBuilder maxVar sizeClauses sizeClauses clauses emptyClause
+  return builder
 
-combined :: Int -> Gen (Clauses,Word,Word,Word)
-combined sized = undefined
-                 {-do
-  clauses <- genClauses maxV clauseSize clausesSize
-  targetSize <- choose (getSizeClauses clauses + 1, clausesSize + 1)
-  let maxVar = findMaxVar clauses
-  maxVar' <- choose (maxVar, maxVarOffset + maxVar)
-  return (clauses,targetSize,maxVar,maxVar')-}
+{-
+This function generates a triple which consists of:
 
+A randomly generated Clauses type
+A random Word that is strictly above the size of Clauses
+A random Word that is strictly above the maximum Variable in Clauses
+-}
+genBuilderHelper      :: Int -> Gen (Clauses,Word,Word)
+genBuilderHelper size = do
+  maxVar'    <- toEnum `liftM` choose (1,size)
+  clauses    <- genClauses maxVar' size
+  targetSize <- ((+) (getSizeClauses clauses) . toEnum) `liftM` choose (1,size)
+  maxVar     <- ((+) maxVar' . toEnum ) `liftM` choose (1,size)
+  return (clauses,targetSize,maxVar)
+
+{-
+Generate a CNFBuilder with an empty Clauses. There should be at least a single
+Clause left to add
+-}
 genCNFBuilderEmptyClause :: Int -> Gen CNFBuilder
-genCNFBuilderEmptyClause sized = do
-  (clauses,targetSize,maxVar,maxVar') <- combined sized
-  return $
-    CNFBuilder maxVar' targetSize (getSizeClauses clauses) clauses emptyClause
+genCNFBuilderEmptyClause size = do
+  (clauses,targetSize,maxVar) <- genBuilderHelper size
+  let builder =
+        CNFBuilder maxVar targetSize
+        (getSizeClauses clauses) clauses emptyClause
+  return builder
 
-genCNFBuilderLitInClause :: Int -> Gen CNFBuilder
-genCNFBuilderLitInClause sized = do
-  (clauses,targetSize,maxVarCurr,maxVarAllowed) <- combined sized
-  clause <- genClause maxVarCurr sized
-  let actualSize = sizeFunc clauses clause
-      targetSize' = (+) targetSize (if clauseIsEmpty clause then 0 else 1)
-      builder     = CNFBuilder maxVarAllowed targetSize' actualSize clauses clause
+{-
+Generate a CNFBuilder. We should be on a clause, where we can still add literals
+-}
+genCNFBuilderLitInClause      :: Int -> Gen CNFBuilder
+genCNFBuilderLitInClause size = do
+  (clauses,targetSize,maxVar) <- genBuilderHelper size
+  literal                     <- genLiteral maxVar
+  clause                      <- flip clauseAddLiteral literal `liftM`
+                                 genClause maxVar size
+  let clauseSize = getSizeClauses clauses
+      builder    = CNFBuilder maxVar (targetSize+1) clauseSize clauses clause
   return builder
 
 genCNFBuilderError :: Gen CNFBuilderError
@@ -99,19 +137,6 @@ genCNFBuilderError =
       return val
     ]
 
-{-
-genCNFInvalidBuilder :: Word -> Word -> Word -> Word -> Gen CNFBuilder
-genCNFInvalidBuilder =
-  genCNFInvalidBuilderCount
-
-genCNFInvalidBuilderCount :: Word -> Word -> Word -> Word -> Gen CNFBuilder
-genCNFInvalidBuilderCount var sizeClause sizeClauses offset = do
-  builder <- genCNFBuilder var sizeClause sizeClauses offset
-  x <- choose (1,maxBound)
-  return $ builder {
-    getCurrClNumb = getCurrClNumb builder + x
-    }
--}
 instance Validate CNFBuilder where
   validate (CNFBuilder
             exptdMaxVar

@@ -1,20 +1,20 @@
 {-|
 Module      : TestPrint.Problen.BSP.Common.Variable
-Description : The Variable PrintTest Leaf
+Description : The Variable type Printer tests
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The TestTree Leaf for Variable Test Printing
+The Test Tree Node for the Variable type's Printer Tests
 -}
 
 module TestPrint.Problem.BSP.Common.Variable (
-  printer
+  printer -- :: TestTree
   ) where
 
 import HSat.Problem.BSP.Common.Variable
-import TestUtils
+import TestPrint
 
 name :: String
 name = "Variable"
@@ -22,10 +22,7 @@ name = "Variable"
 printer :: TestTree
 printer =
   testGroup name [
-    printVariableArbitrary
+    printList "Variable" $ map mkVariable [
+       1,10,100,1000,10000,100000,1000000000000,
+       123452456,134753,23845653274556,85]
     ]
-
-printVariableArbitrary :: TestTree
-printVariableArbitrary =
-  printTest "Variable" (
-    generate arbitrary :: IO Variable)

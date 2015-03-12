@@ -1,20 +1,21 @@
 {-|
 Module      : TestPrint.Problen.Source
-Description : The Source PrintTest Leaf
+Description : The Source type Printer tests
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The TestTree Leaf for Source Test Printing
+The Test Tree Node for the Source type's Printer Tests
 -}
 
 module TestPrint.Problem.Source (
-  printer
+  printer, -- :: TestTree
+  sources  -- :: [Source]
   ) where
 
 import HSat.Problem.Source
-import TestUtils
+import TestPrint
 
 name :: String
 name = "Source"
@@ -22,10 +23,15 @@ name = "Source"
 printer :: TestTree
 printer =
   testGroup name [
-    printSourceArbitrary
+    printSources
     ]
 
-printSourceArbitrary :: TestTree
-printSourceArbitrary =
-  printTest "Source" (
-    generate arbitrary :: IO Source)
+printSources :: TestTree
+printSources =
+  printList "Sources" $ sources
+
+sources :: [Source]
+sources = [
+    mkStatic,
+    mkFileSource "/Hello/World/inter.cnf"
+    ]

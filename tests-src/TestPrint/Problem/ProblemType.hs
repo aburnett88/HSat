@@ -1,20 +1,20 @@
 {-|
 Module      : TestPrint.Problen.ProblemType
-Description : The ProblemType PrintTest Leaf
+Description : The ProblemType type Printer tests
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The TestTree Leaf for ProblemType Test Printing
+The Test Tree Node for the ProblemType type's Printer Tests
 -}
 
 module TestPrint.Problem.ProblemType (
-  printer
+  printer -- :: TestTree
   ) where
 
 import HSat.Problem.ProblemType
-import TestUtils
+import TestPrint
 
 name :: String
 name = "ProblemType"
@@ -22,10 +22,9 @@ name = "ProblemType"
 printer :: TestTree
 printer =
   testGroup name [
-    printProblemTypeArbitrary
+    problemTypes
     ]
 
-printProblemTypeArbitrary :: TestTree
-printProblemTypeArbitrary =
-  printTest "ProblemType" (
-    generate arbitrary :: IO ProblemType)
+problemTypes :: TestTree
+problemTypes =
+  printList "Problem Type" [CNF]

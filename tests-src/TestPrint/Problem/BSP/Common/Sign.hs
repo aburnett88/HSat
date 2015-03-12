@@ -1,20 +1,20 @@
 {-|
 Module      : TestPrint.Problen.BSP.Common.Sign
-Description : The Sign Printer Tests
+Description : The Sign type Printer tests
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The TestTree Leaf for the printing tests for Sign
+The Test Tree Node for the Sign type's Printer Tests
 -}
 
 module TestPrint.Problem.BSP.Common.Sign (
-  printer
+  printer -- :: TestTree
   ) where
 
 import HSat.Problem.BSP.Common.Sign
-import TestUtils
+import TestPrint
 
 name :: String
 name = "Sign"
@@ -28,10 +28,8 @@ printer =
 
 printSignPos :: TestTree
 printSignPos =
-  printTest "Positive Sign"
-  (return pos)
+  printTest "Positive Sign" pos
 
 printSignNeg :: TestTree
 printSignNeg =
-  printTest "Negative Sign"
-  (return neg)
+  printTest "Negative Sign" neg
