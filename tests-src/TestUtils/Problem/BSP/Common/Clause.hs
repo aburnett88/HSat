@@ -14,14 +14,10 @@ module TestUtils.Problem.BSP.Common.Clause (
   genClauseFixedSize -- :: Word -> Word -> Gen Clause
   ) where
 
-import           Data.Vector (Vector)
 import qualified Data.Vector as V
-import qualified Data.Vector as V (replicateM,empty)
 import           Data.Word
 import           HSat.Problem.BSP.Common.Clause
 import           HSat.Problem.BSP.Common.Clause.Internal
-import           HSat.Problem.BSP.Common.Literal
-import           TestUtils.Limits
 import           TestUtils.Problem.BSP.Common.Literal
 import           TestUtils.Test
 import           TestUtils.Validate
@@ -30,14 +26,14 @@ import           TestUtils.Validate
 Doesn't work when a maximum variable of zero has been set. An error is thrown
 -}
 genClauseFixedSize             :: Word -> Word -> Gen Clause
-genClauseFixedSize size 0      =
+genClauseFixedSize _ 0         =
   let func = "genClauseFixedSize"
       file = "TestUtils.Problem.BSP.Common.Clause"
       msg  = file ++ ":" ++ func
   in error (msg ++ " Second argument zero")
 genClauseFixedSize size maxVar = do
-  vector <- V.replicateM (fromEnum size) $ genLiteral maxVar
-  return $ mkClause vector
+  litVector <- V.replicateM (fromEnum size) $ genLiteral maxVar
+  return $ mkClause litVector
 
 genClause          :: Word -> Int -> Gen Clause
 genClause 0      _ = return $ mkClause V.empty

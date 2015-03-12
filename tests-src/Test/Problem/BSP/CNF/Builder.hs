@@ -14,7 +14,6 @@ module Test.Problem.BSP.CNF.Builder (
   ) where
 
 import           Control.Monad (liftM)
-import qualified Data.Vector as V
 import           Data.Word
 import           HSat.Problem.BSP.CNF
 import           HSat.Problem.BSP.CNF.Builder
@@ -92,7 +91,7 @@ cnfBuilderTest1 =
 genIntegerOutsideRange :: Gen Integer
 genIntegerOutsideRange = oneof [
   liftM (\a -> if a==0 then -1 else if a < 0 then a else negate a) arbitrary,
-  choose (1 + maxWord',(1+maxWord') ^ 2)
+  choose (1 + maxWord',(1+maxWord') ^ (2 :: Integer))
   ]
 
 maxWord' :: Integer
@@ -108,7 +107,7 @@ cnfBuilderTest2 =
        Left (Initialisation v' c') ->
          v' < 0 .||. v' > maxWord' .||.
          c' < 0 .||. c' > maxWord'
-       Right _ -> counterexample ("not failing " ++ show (cnfBuilder vars clauses)) $ property False
+       _ -> counterexample ("not failing " ++ show (cnfBuilder vars clauses)) $ property False
        )
    
 testCNFBuilderGenTest1 :: Integer -> Integer -> CNFBuilder -> Property
@@ -305,7 +304,7 @@ finishClauseTest2 =
             gotten'    = expected'+1
         in counterexample "Expected: " (expected' === expected) .&&.
            counterexample "Gotten: " (gotten === gotten')
-      Right _ -> property False
+      _ -> property False
       )
 
 finishClause'Test1 :: TestTree
@@ -441,18 +440,18 @@ evaluate cnf [] = cnf >>= finalise
 evaluate cnf (x:xs) = evaluate (evaluation cnf x) xs
   where
     evaluation :: CNFBuildErr -> [Integer] -> CNFBuildErr
-    evaluation cnf [] = cnf >>= finishClause
-    evaluation cnf (y:ys) =
-      evaluation (cnf >>= addLiteral y) ys
+    evaluation cnf' [] = cnf' >>= finishClause
+    evaluation cnf' (y:ys) =
+      evaluation (cnf' >>= addLiteral y) ys
 
 evaluate' :: CNFBuilder -> [[Integer]] -> CNF
 evaluate' cnf [] = finalise' cnf
 evaluate' cnf (x:xs) = evaluate' (evaluation cnf x) xs
   where
     evaluation :: CNFBuilder -> [Integer] -> CNFBuilder
-    evaluation cnf [] = finishClause' cnf
-    evaluation cnf (y:ys) =
-      evaluation (addLiteral' y cnf) ys
+    evaluation cnf' [] = finishClause' cnf'
+    evaluation cnf' (y:ys) =
+      evaluation (addLiteral' y cnf') ys
   
   
         

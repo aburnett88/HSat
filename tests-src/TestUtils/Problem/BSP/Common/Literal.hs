@@ -15,9 +15,7 @@ module TestUtils.Problem.BSP.Common.Literal (
 
 import Data.Word
 import HSat.Problem.BSP.Common.Literal
-import HSat.Problem.BSP.Common.Sign
-import HSat.Problem.BSP.Common.Variable
-import TestUtils.Problem.BSP.Common.Sign
+import TestUtils.Problem.BSP.Common.Sign ()
 import TestUtils.Problem.BSP.Common.Variable
 import TestUtils.Test
 import TestUtils.Validate
@@ -25,10 +23,10 @@ import TestUtils.Validate
 {-
 Generate random sign, random variable (within context) then create a Literal from the parts.
 -}
-genLiteral     :: Word -> Gen Literal
-genLiteral max = do
+genLiteral        :: Word -> Gen Literal
+genLiteral maxVar = do
   sign <- arbitrary
-  var  <- genVariableContext max
+  var  <- genVariableContext maxVar
   return $ mkLiteral sign var
 
 instance Arbitrary Literal where

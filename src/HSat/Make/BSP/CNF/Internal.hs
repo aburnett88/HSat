@@ -32,23 +32,23 @@ mkCNFInit (CNFConfig
   noClauses <- evalBounded clauseSizeBounds
   noVariables <- evalVariableNumber noClauses variableBounds
   clauseSizes <- replicateM (fromEnum noClauses) (evalBounded clauseSizesBounds)
-  return $ CNFInit noClauses clauseSizes varsCanAppearTwice definitelyHasSolution
+  return $ CNFInit noVariables clauseSizes varsCanAppearTwice definitelyHasSolution
 
 evalVariableNumber :: (MonadRandom m) => Word -> VariableNumber -> m Word
 evalVariableNumber x _ = return x
 
 mkCNFInit' :: (MonadRandom m) => CNFConfig -> m (CNFConfig,CNFInit)
 mkCNFInit' c = do
-  init <- mkCNFInit c
-  return (c,init)
+  initial <- mkCNFInit c
+  return (c,initial)
   
 mkCNF :: (MonadRandom m) => CNFInit -> m (Either CNFMakeError CNF)
 mkCNF _ = do
   return . Right . mkCNFFromClauses $ emptyClauses
 
 mkCNF' :: (MonadRandom m) => CNFInit -> m CNF
-mkCNF' init = do
-  result <- mkCNF init
+mkCNF' initial = do
+  result <- mkCNF initial
   return $ case result of
     Left e -> error ("Unexpected error " ++ show e)
     Right cnf -> cnf

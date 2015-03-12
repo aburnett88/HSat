@@ -6,7 +6,6 @@ module Test.Make (
 
 import TestUtils
 import HSat.Make
-import HSat.Problem.ProblemExpr
 import HSat.Problem
 import qualified Test.Make.BSP as BSP
 import qualified Test.Make.Config as Config

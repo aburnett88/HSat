@@ -3,7 +3,7 @@ module TestPrint.Writer (
   printer
   ) where
 
-import TestUtils
+import TestPrint
 
 name :: String
 name = "Writer"

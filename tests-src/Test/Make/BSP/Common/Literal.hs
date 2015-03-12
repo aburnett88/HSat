@@ -41,20 +41,20 @@ instance Arbitrary LiteralSet where
   arbitrary = arbLiteralSet 10 1
 
 arbLiteralSet :: Word -> Word -> Gen LiteralSet
-arbLiteralSet max canGenerate = do
-  n <- choose (1,max)
+arbLiteralSet maxVar _ = do
+  n <- choose (1,maxVar)
   s <- arbitrary
   let vars = map mkVariable [1..n]
-  map <- M.fromList `liftM` mapM (\v -> do
-                                     s <- arbitrary
-                                     return (v,s)) vars
+  mapping <- M.fromList `liftM` mapM (\v -> do
+                                     sign <- arbitrary
+                                     return (v,sign)) vars
   gotten <- choose (0,n-1)
   genTrue <- choose (0,gotten)
   set <- generateSet (S.fromList vars) gotten
-  return $ LiteralSet set map genTrue n s
+  return $ LiteralSet set mapping genTrue n s
 
 f :: (MonadRandom m) => LiteralMake m a -> LiteralSet -> m (Either LiteralMakeError (a,LiteralSet))
-f func init = runEitherT (runStateT func init)
+f func initial = runEitherT (runStateT func initial)
   
 
 mkLiteralSet1 :: TestTree
@@ -89,9 +89,9 @@ mkLiteralSet2 =
 generateNonFullVAppear :: Gen LiteralSet
 generateNonFullVAppear = do
   v <- choose (1,100)
-  m <- M.fromList `liftM` mapM (\v -> do
+  m <- M.fromList `liftM` mapM (\var -> do
                                      s <- arbitrary
-                                     return (mkVariable v,s)) [1..v]
+                                     return (mkVariable var,s)) [1..v]
   removal <- choose (1,v-1)
   s <- generateSet (S.fromList . map mkVariable $ [1..v]) removal
   l <- choose (0,removal)

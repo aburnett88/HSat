@@ -25,9 +25,9 @@ parseComment =
 parseProblemLine :: Parser CNFBuildErr
 parseProblemLine = (do
   skipMany space'
-  char 'p'
+  _ <- char 'p'
   skipMany1 space'
-  string . pack $ "cnf"
+  _ <- string . pack $ "cnf"
   skipMany1 space'
   vars <- P.signed P.decimal
   skipMany1 space'
@@ -50,15 +50,15 @@ choices xs = choice $ fmap char xs
 parseClause :: CNFBuildErr -> Parser CNFBuildErr
 parseClause b = choice [
   do
-    many' space'
-    char '0'
+    _ <- many' space'
+    _ <- char '0'
     return $ b >>= finishClause,
   do
-    many' space'
+    _ <- many' space'
     b' <- (\i -> b >>= addLiteral i) `liftM` parseNonZeroInteger
     parseClause b',
   do
-    many' space'
+    _ <- many' space'
     endOfLine
     parseComments
     parseClause b

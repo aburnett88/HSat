@@ -162,26 +162,26 @@ instance Printer CNFBuilderError where
 Prints the given 'CNFBuilderError' with a gien 'PrinterType'
 -}
 printBuildErr :: CNFBuilderError -> PrinterType -> Doc
-printBuildErr (IncorrectClauseNumber
-               gotten
-               expected) pType =
-  errorDoc pType $
-    text "Incorrect Number of Clauses"               <+>
-    text "Expected"     <> colon <+> word expected <+>
-    text "Actual Value" <> colon                     <+>
-    word gotten
-printBuildErr (VarOutsideRange gotten expected) pType =
-  errorDoc pType $
-    text "Variable outside range"    <> colon  <+>
-    word 0 <+> le <+> (text $ show gotten) <+>   leq  <+>
-    word expected
-  where
-    le :: Doc
-    le = text "<"
-    leq :: Doc
-    leq = text $
-      case pType of
-        Unicode -> "≤"
-        _       -> "<="
-
+printBuildErr builderErr pType =
+  case builderErr of
+    IncorrectClauseNumber gotten expected ->
+      errorDoc pType $
+        text "Incorrect Number of Clauses"               <+>
+        text "Expected"     <> colon <+> word expected <+>
+        text "Actual Value" <> colon                     <+>
+        word gotten
+    VarOutsideRange gotten expected ->
+      let le = text "<"
+          leq = text $
+                case pType of
+                  Unicode -> "≤"
+                  _ -> "<="
+      in errorDoc pType $
+           text "Variable outside range"    <> colon  <+>
+           word 0 <+> le <+> (text $ show gotten) <+>   leq  <+>
+           word expected
+    Initialisation variables clauses ->
+      errorDoc pType $
+        text "Initialisation of arguments incorrect" <+>
+        text "Argumnets:" <+> (text $ show variables) <+> (text $ show clauses)
 

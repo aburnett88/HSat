@@ -6,10 +6,9 @@ import TestUtils.Test
 import HSat.Problem
 import HSat.Problem.Source
 import HSat.Problem.ProblemExpr
-import Control.Monad (liftM2)
-import TestUtils.Problem.ProblemExpr
-import TestUtils.Problem.Source
-import TestUtils.Problem.ProblemType
+import TestUtils.Problem.ProblemExpr ()
+import TestUtils.Problem.Source ()
+import TestUtils.Problem.ProblemType ()
 
 instance Arbitrary Problem where
   arbitrary = mkArbProblem arbitrary arbitrary

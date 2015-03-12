@@ -26,21 +26,13 @@ module TestUtils (
 
 import qualified Control.Exception as E (catch)
 import           Control.Exception.Base (ErrorCall)
-import           Control.Monad (replicateM,liftM,liftM2,when)
+import           Control.Monad
 import           Data.Maybe (isNothing,fromMaybe)
-import           Data.Text (Text,pack,unpack)
-import qualified Data.Vector as V
+import           Data.Text (Text,pack)
 import           Data.Word
 import           HSat.Make.Config
 import           HSat.Make.Internal
-import           HSat.Printer
-import           HSat.Problem
 import           HSat.Problem.BSP.CNF
-import           HSat.Problem.BSP.CNF.Builder.Internal
-import           HSat.Problem.BSP.Common
-import           HSat.Problem.ProblemExpr
-import qualified HSat.Problem.ProblemType as P
-import           HSat.Problem.Source
 import           HSat.Writer.CNF
 import           HSat.Writer.CNF.Internal
 import           HSat.Writer.Internal
@@ -49,7 +41,7 @@ import           Test.Tasty as Test.Extended
 import           Test.Tasty.Golden as Test.Extended
 import           Test.Tasty.HUnit as Test.Extended
 import           Test.Tasty.QuickCheck as Test.Extended
-import           TestUtils.Problem
+import           TestUtils.Problem ()
 
 --The maximum size a clause is able to be in this configuration
 testMaxClauseSize :: Int
@@ -61,33 +53,24 @@ testMaxClausesSize = 100
 
 genBounds :: (Ord a, Bounded a) => Gen a -> Gen (Bounds a)
 genBounds f = do
-  typ <- choose (0,4) :: Gen Int
-  case typ of
-    0 -> return mkNoBounds
-    1 -> do
-      x <- f
-      return . mkMinimum $ x
-    2 -> do
-      x <- f
-      return . mkMaximum $ x
-    3 -> do
-      x <- f
-      return . mkExact $ x
-    4 -> do
-      x <- f
-      y <- f
-      return $ mkBounds x y
+  oneof [
+    return mkNoBounds,
+    mkMinimum `liftM` f,
+    mkMaximum `liftM` f,
+    mkExact `liftM` f,
+    liftM2 mkBounds f f
+    ]
 
 genBounded :: (Ord a, Arbitrary a, Random a, Bounded a) =>
               a -> a -> Gen (Bounds a)
-genBounded min max = do
-  x <- choose (min,max)
-  y <- choose (min,max)
+genBounded min' max' = do
+  x <- choose (min',max')
+  y <- choose (min',max')
   return $ mkBounds x y
 
 instance (Arbitrary a, Ord a, Bounded a) => Arbitrary (Bounds a) where
   arbitrary = genBounds arbitrary
-  shrink bounds = []
+  shrink _ = []
 
 instance Arbitrary PosDouble where
   arbitrary = choose (minBound,maxBound)
@@ -123,20 +106,18 @@ checkBounds x bound =
                                                         
 instance Arbitrary Config where
   arbitrary = do
-    output <- arbitrary
+    out <- arbitrary
     input <- arbitrary
-    return (Config output input)
-  shrink (Config output input) =
-    let xs = shrink (output,input)
+    return (Config out input)
+  shrink (Config out input) =
+    let xs = shrink (out,input)
     in map (uncurry Config) xs
 
 instance Arbitrary ConfigProblemType where
   arbitrary = do
-    index <- choose (0,0) :: Gen Int
-    case index of
-      0 -> do
-        cnf <- arbitrary
-        return . CNFProblemType $ cnf
+    oneof [
+      CNFProblemType `liftM` arbitrary
+      ]
   shrink (CNFProblemType cnf) =
     map CNFProblemType $ shrink cnf
 
@@ -145,18 +126,14 @@ instance Arbitrary CNFConfig where
     clauses <- genBounded 0 (toEnum testMaxClausesSize)
     varsInEach <- genBounded 0 (toEnum testMaxClauseSize)
     vars <- do
-      index <- choose (0,1) :: Gen Int
-      case index of
-        0 -> do
-          y <-genBounded (mkPosDouble 0.0) (mkPosDouble 5.0)
-          return . Left $ y
-        1 -> do
-          y <- genBounded 0 2000
-          return . Right $ y
+      oneof [
+        (Left) `liftM` genBounded (mkPosDouble 0.0) (mkPosDouble 5.0),
+        (Right) `liftM` genBounded 0 2000
+        ]
     posAndNeg <- arbitrary
     x <- arbitrary
     return $ CNFConfig clauses vars varsInEach posAndNeg x
-  shrink (CNFConfig a b c d e) = []
+  shrink (CNFConfig _ _ _ _ _) = []
 --    let xs = shrink (a,b,c,d)
  --   in map (\(a,b,c,d) -> CNFConfig a b c d) xs
 
@@ -169,8 +146,8 @@ testEq s a b =
   counterexample (s ++ ": " ++ show a ++ " /= " ++ show b ++ " ") (a==b)
 
 testAllEq :: (Show a, Eq a) => String -> [a] -> [a] -> Property
-testAllEq _ [] [] = property True
 testAllEq s (x:xs) (y:ys) = testEq s x y .&&. testAllEq s xs ys
+testAllEq _ _ _ = property True
 
 instance Arbitrary Comment where
   arbitrary = do
@@ -211,12 +188,12 @@ instance Arbitrary Text where
     return $ pack x
 
 instance Arbitrary VariablePredicate where
-  arbitrary = do
-    index <- choose (0,2) :: Gen Int
-    return $ case index of
-      0 -> NoPredicate
-      1 -> AtleastOnce
-      2 -> PosAndNeg
+  arbitrary =
+    oneof $ map return [
+      NoPredicate,
+      AtleastOnce,
+      PosAndNeg
+      ]
 
 forceError :: (Eq a, Show a, Arbitrary a) => a -> Assertion
 forceError correct = do
@@ -234,7 +211,7 @@ forceError correct = do
 --348 - 267--250
 
 propList :: (Show a) => (a -> Property) -> [a] -> Property
-propList f xs = once $ propList' xs
+propList f list = once $ propList' list
   where
     propList' [] = property True
     propList' (x:xs) =

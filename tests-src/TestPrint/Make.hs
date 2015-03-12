@@ -2,7 +2,7 @@ module TestPrint.Make (
   printer
   ) where
 
-import TestUtils
+import TestPrint
 
 name :: String
 name = "Make"

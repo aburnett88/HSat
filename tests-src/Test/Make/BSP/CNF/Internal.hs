@@ -2,15 +2,9 @@ module Test.Make.BSP.CNF.Internal (
   tests
   ) where
 
-import           Control.Monad (replicateM)
-import           Control.Monad.Random.Class
-import qualified Data.Set as S
-import qualified Data.Vector as V
 import           HSat.Make.Config
 import           HSat.Make.Internal
-import           HSat.Problem.BSP.Common
 import           TestUtils
-import HSat.Make.BSP.CNF
 import HSat.Make.BSP.CNF.Internal
 import Data.Word
 
@@ -32,21 +26,21 @@ mkCNFInitTest1 :: TestTree
 mkCNFInitTest1 =
   testProperty "testCNFInit values are all correct" $ ioProperty $ do
     config <- generate arbitrary
-    init   <- mkCNFInit config
-    return $ testConfigInit config init
+    initial   <- mkCNFInit config
+    return $ testConfigInit config initial
 
 mkCNFInit'Test1 :: TestTree
 mkCNFInit'Test1 =
   testProperty "testCNFInit' returns correct values" $ ioProperty $ do
     config <- generate arbitrary
-    (config',init) <- mkCNFInit' config
-    let prop1 = testConfigInit config' init
-    result <- mkCNF init
+    (config',initial) <- mkCNFInit' config
+    let prop1 = testConfigInit config' initial
+    result <- mkCNF initial
     let prop2 = case result of
           Left e -> counterexample
                     ("Should not have thrown error: " ++ show e)
                     False
-          Right cnf -> property True
+          Right _ -> property True
     return $ prop1 .&&. prop2
       
 
@@ -76,7 +70,7 @@ toWords :: VariableNumber -> Word -> Bounds Word
 toWords _ w = mkExact w
       
 checkListBounds :: (Ord a, Show a) => Bounds a -> [a] -> Property
-checkListBounds b [] = property True
+checkListBounds _[] = property True
 checkListBounds b (x:xs) = checkBounds b x .&&. checkListBounds b xs
 
 checkBounds :: (Ord a, Show a) => Bounds a -> a -> Property

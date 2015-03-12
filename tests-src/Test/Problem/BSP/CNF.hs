@@ -13,11 +13,7 @@ module Test.Problem.BSP.CNF (
   tests
   ) where
 
-import           Control.Monad (replicateM)
-import qualified Data.Vector as V
-import           Data.Word
 import           HSat.Problem.BSP.CNF
-import           HSat.Problem.BSP.Common
 import qualified Test.Problem.BSP.CNF.Builder as CNFBuilder
 import qualified Test.Problem.BSP.CNF.Internal as Internal
 import           TestUtils

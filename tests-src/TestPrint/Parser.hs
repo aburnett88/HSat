@@ -2,7 +2,7 @@ module TestPrint.Parser (
   printer
   ) where
 
-import TestUtils
+import TestPrint
 
 name :: String
 name = "Parser"

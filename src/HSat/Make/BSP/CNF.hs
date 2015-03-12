@@ -20,8 +20,8 @@ makeCNF' :: (MonadRandom m) =>
             CNFConfig ->
             m (CNFConfig,CNF)
 makeCNF' config = do
-  (config',init) <- mkCNFInit' config
-  cnf <- mkCNF' init
+  (config',initial) <- mkCNFInit' config
+  cnf <- mkCNF' initial
   return (config',cnf)
 
 makeCNFSolution :: (MonadRandom m) =>

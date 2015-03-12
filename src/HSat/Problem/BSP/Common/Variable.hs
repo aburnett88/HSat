@@ -34,7 +34,7 @@ Constructs a 'Variabe' from a 'Word'.
 Throws an error if the argument is zero
 -}
 mkVariable      :: Word -> Variable
-mkVariable 0    = error (name ++ ":mkVariable. Argument " ++ show 0)
+mkVariable 0    = error (name ++ ":mkVariable. Argument zero")
 mkVariable word = Variable word
 
 {-|

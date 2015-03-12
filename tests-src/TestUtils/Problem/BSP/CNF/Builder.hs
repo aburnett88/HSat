@@ -17,10 +17,8 @@ module TestUtils.Problem.BSP.CNF.Builder (
   genCNFBuilderError       -- :: Int -> Gen CNFBuilderError
   ) where
 
-import           Control.Monad (liftM5)
 import qualified Data.Vector as V
 import           Data.Word
-import           Debug.Trace
 import           HSat.Problem.BSP.CNF.Builder.Internal
 import           HSat.Problem.BSP.Common
 import           TestUtils.Problem.BSP.Common.Clause
@@ -31,7 +29,7 @@ import           TestUtils.Validate
 
 genCNFBuilder      :: Int -> Gen CNFBuilder
 genCNFBuilder size =
-  oneof $ map sized [
+  oneof $ map (\f -> f size) [
     genCNFBuilderFinalise,
     genCNFBuilderEmptyClause,
     genCNFBuilderLitInClause
@@ -42,7 +40,7 @@ instance Arbitrary CNFBuilder where
   shrink (CNFBuilder
           maxVar
           setClNumb
-          currClNumb
+          _
           currClauses
           currClause) =
     let mkBuilder = \(vect,clause) ->
@@ -66,6 +64,9 @@ instance Arbitrary CNFBuilderError where
           expected) =
     filter validate . map (uncurry VarOutsideRange) $
     shrink (gotten,expected)
+  shrink (Initialisation vars clauses) =
+    filter validate . map (uncurry Initialisation) $
+    shrink (vars,clauses)
 
 genCNFBuilderFinalise :: Int -> Gen CNFBuilder
 genCNFBuilderFinalise size = do
@@ -162,3 +163,8 @@ instance Validate CNFBuilderError where
   validate (VarOutsideRange gotten expected)       =
     ((toInteger expected) < gotten) ||
     (gotten == 0)
+  validate (Initialisation variables clauses)      =
+    (variables < 0) || (clauses < 0) ||
+    (variables > maxWord) || (clauses > maxWord)
+    where
+      maxWord = toInteger (maxBound :: Word)

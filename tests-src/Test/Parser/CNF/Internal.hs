@@ -3,7 +3,6 @@ module Test.Parser.CNF.Internal (
   ) where
 
 import           Control.Monad (replicateM,liftM)
-import           Data.Attoparsec.Text (Parser)
 import           Data.Attoparsec.Text as P hiding (parseTest)
 import           Data.Either
 import           Data.Text as T hiding (map,replicate)
@@ -144,12 +143,12 @@ parseProblemLineTest2 =
 
 genSpace :: Gen String
 genSpace = do
-  number <- choose (1,10) :: Gen Int
-  replicateM number $ do
-    typ <- choose (0,1) :: Gen Int
-    return $ case typ of
-      0 -> ' '
-      1 -> '\t'
+  n <- choose (1,10) :: Gen Int
+  replicateM n $ do
+    oneof [
+      return ' ',
+      return '\t'
+      ]
 
 parseProblemLineTest3 :: TestTree
 parseProblemLineTest3 =
@@ -162,15 +161,15 @@ parseProblemLineTest3 =
         spc1 <- genSpace
         cnf <- return "cnf"
         spc2 <- genSpace
-        v <- return (show v)
+        v' <- return (show v)
         spc3 <- genSpace
-        c <- return (show c)
+        c' <- return (show c)
         spc4 <- genSpace
         return $
           p   ++ spc1 ++
           cnf ++ spc2 ++
-          v   ++ spc3 ++
-          c   ++ spc4
+          v'   ++ spc3 ++
+          c'   ++ spc4
       return (pack text,v,c)
       )
   (\(text,v,c) ->
@@ -204,6 +203,7 @@ parseNonZeroIntegerTest3 =
     )
   where
     testStr = show word
+    word :: Integer
     word = 0
     
 parseNonZeroIntegerTest4 :: TestTree
@@ -280,20 +280,20 @@ parseClauseTest5 =
   testProperty "parse randomly generated clauses" $
   forAll
   genX
-  (\(before,after,text,c) ->
+  (\(before,after,text) ->
     let gotten = parseTest (parseClause $ before) text
     in  gotten === (return  after)
         )
 
 
-genX :: Gen (CNFBuildErr,CNFBuildErr,Text,Clause)
+genX :: Gen (CNFBuildErr,CNFBuildErr,Text)
 genX = do
   before <- return `liftM` genCNFBuilderEmptyClause 10
   clause <- arbitrary
   let lits = getVectLiteral clause
       after = (V.foldl (\b' l -> b' >>= addLiteral (literalToInteger l)) before lits) >>= finishClause
   text <- generateClause (V.map literalToInteger lits)
-  return ( before,after,text,clause)
+  return ( before,after,text)
 
 generateClause :: V.Vector Integer -> Gen Text
 generateClause v = V.foldM generateClause' T.empty (V.snoc v 0)
@@ -340,8 +340,8 @@ parseClausesTest1 =
               "-7 -8 9 10 0 " ++ "-1 -2 -3 -4 -7 0 " ++
               "1 1 1 1 1 1 0"
     cnf = CNFBuilder 10 10 0 emptyClauses emptyClause
-    cnf' = return $ CNFBuilder 10 10 4 madeClauses emptyClause
-    madeClauses = mkClausesFromIntegers [
+    cnf' = return $ CNFBuilder 10 10 4 clauses emptyClause
+    clauses = mkClausesFromIntegers [
       [1,2,3,-4,-5,-6],
       [-7,-8,9,10],
       [-1,-2,-3,-4,-7],
@@ -363,8 +363,8 @@ parseClausesTest2=
               "-1 -2 -3 -4 -7\nc intermitant\n " ++
               "0 1 1 1 1 1 1 0"
     cnf = CNFBuilder 10 10 0 emptyClauses emptyClause
-    cnf' = return $ CNFBuilder 10 10 4 madeClauses emptyClause
-    madeClauses = mkClausesFromIntegers [
+    cnf' = return $ CNFBuilder 10 10 4 clauses emptyClause
+    clauses = mkClausesFromIntegers [
       [1,2,3,-4,-5,-6],
       [-7,-8,9,10],
       [-1,-2,-3,-4,-7],
@@ -396,9 +396,9 @@ madeClauses = do
   return (before,after,text)
 
 genClausesText :: [[Integer]] -> Gen Text
-genClausesText xs = do
+genClausesText ints = do
   header <- genComments
-  middle <- genClausesText' xs
+  middle <- genClausesText' ints
   footer <- genComments
   return $ header <> middle <> footer
   where
@@ -413,6 +413,6 @@ genClausesText xs = do
 
 genComments :: Gen Text
 genComments = do
-  number <- choose (0,50)
-  comments <- replicateM number genComment
+  n <- choose (0,50)
+  comments <- replicateM n genComment
   return $ T.unlines comments

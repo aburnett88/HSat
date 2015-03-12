@@ -36,7 +36,7 @@ makeClauseTest1 =
     size <- generate $ choose (0,100)
     s <- generate arbitrary
     set <- mkLiteralSet 100 s
-    result <- f (makeClause Any size) set
+    result <- run (makeClause Any size) set
     return $ case result of
       Left e ->
         counterexample ("Unexpected Left: " ++ show e) False
@@ -50,8 +50,8 @@ makeClauseTest1 =
               True else
               n >= 1)) .&&. trivial
 
-f :: (MonadRandom m) => LiteralMake m a -> LiteralSet -> m (Either LiteralMakeError (a,LiteralSet))
-f func init = runEitherT (runStateT func init)
+run :: (MonadRandom m) => LiteralMake m a -> LiteralSet -> m (Either LiteralMakeError (a,LiteralSet))
+run func initial = runEitherT (runStateT func initial)
 
 checkClause :: Clause -> (Map Variable Sign) -> Word
 checkClause (Clause vect _) m =
@@ -67,7 +67,7 @@ makeClauseTest2 =
     size <- generate $ choose (0,100)
     s <- generate arbitrary
     set <- mkLiteralSet 100 s
-    result <- f (makeClause All size) set
+    result <- run (makeClause All size) set
     return $ case result of
       Left e ->
         counterexample ("Unexpected Left: " ++ show e) False
@@ -85,7 +85,7 @@ makeClauseTest3 =
     size <- generate $ choose (0,100)
     s <- generate arbitrary
     set <- mkLiteralSet 100 s
-    result <- f (makeClause None size) set
+    result <- run (makeClause None size) set
     return $ case result of
       Left e ->
         counterexample ("Unexpected Left: " ++ show e) False
@@ -98,7 +98,7 @@ makeClauseTest3 =
             True) .&&. trivial
 
 triviallyTrue :: Clause -> Bool
-triviallyTrue (Clause vect _) = triviallyTrue' vect S.empty
+triviallyTrue (Clause vectLits _) = triviallyTrue' vectLits S.empty
   where
     triviallyTrue' :: V.Vector Literal -> Set Variable -> Bool
     triviallyTrue' vect s =

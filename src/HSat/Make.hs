@@ -53,8 +53,8 @@ makeProblemFromExpr config =
 
 makeList :: (MonadRandom m) => Int -> Config -> m [Problem]
 makeList number config =
-  map (\either ->
-        case either of
+  map (\arg ->
+        case arg of
           Left _ -> error "makeList error"
           Right problem -> problem)
   `liftM` replicateM number (make config True)

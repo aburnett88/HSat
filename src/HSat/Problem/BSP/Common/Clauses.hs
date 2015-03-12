@@ -92,11 +92,11 @@ clausesToIntegers =
 A generic method for accumilating information from
 each 'Literal' in a 'Clauses'
 -}
-clFold                       :: (a -> Literal -> a) -> a -> Clauses -> a
-clFold function init clauses =
+clFold                          :: (a -> Literal -> a) -> a -> Clauses -> a
+clFold function initial clauses =
   V.foldl (\o cl ->
             V.foldl function o $ getVectLiteral cl
-          ) init $ getVectClause clauses
+          ) initial $ getVectClause clauses
 
 {-|
 Returns the maximum 'Word' represented in a 'Variab'e within the 'Clauses'

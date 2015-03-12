@@ -15,7 +15,6 @@ module Test.Problem.ProblemType (
   ) where
 
 import TestUtils
-import HSat.Problem.ProblemType
 
 name :: String
 name = "ProblemType"

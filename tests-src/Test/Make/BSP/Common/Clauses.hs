@@ -28,8 +28,8 @@ tests =
        ]
     ]
 
-f :: (MonadRandom m) => LiteralMake m a -> LiteralSet -> m (Either LiteralMakeError (a,LiteralSet))
-f func init = runEitherT (runStateT func init)
+run :: (MonadRandom m) => LiteralMake m a -> LiteralSet -> m (Either LiteralMakeError (a,LiteralSet))
+run func initial = runEitherT (runStateT func initial)
 
 makeClausesTest1 :: TestTree
 makeClausesTest1 =
@@ -37,7 +37,7 @@ makeClausesTest1 =
     sizes <- generate $ listOf $ choose (0,100)
     s <- generate arbitrary
     set <- mkLiteralSet 100 s
-    result <- f (makeClauses sizes None) set
+    result <- run (makeClauses sizes None) set
     return $ case result of
       Left e ->
         counterexample ("Unexpected Left: " ++ show e) False
@@ -54,7 +54,7 @@ makeClausesTest2 =
     sizes <- generate $ listOf $ choose (0,100)
     s <- generate arbitrary
     set <- mkLiteralSet 100 s
-    result <- f (makeClauses sizes All) set
+    result <- run (makeClauses sizes All) set
     return $ case result of
       Left e ->
         counterexample ("Unexpected left: " ++ show e) False
@@ -74,7 +74,7 @@ makeClausesTest3 =
     sizes <- generate $ listOf $ choose (0,100)
     s <- generate arbitrary
     set <- mkLiteralSet 100 s
-    result <- f (makeClauses sizes Any) set
+    result <- run (makeClauses sizes Any) set
     return $ case result of
       Left e ->
         counterexample ("Unexpected Left: " ++ show e) False

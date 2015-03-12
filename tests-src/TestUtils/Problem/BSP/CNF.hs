@@ -13,20 +13,11 @@ module TestUtils.Problem.BSP.CNF (
   genCNF -- :: Int -> Gen CNF
   ) where
 
-import           TestUtils.Problem.BSP.CNF.Builder
 import           TestUtils.Test
 import           HSat.Problem.BSP.CNF
 import           HSat.Problem.BSP.Common.Clauses
-import           Control.Monad (liftM3)
-import qualified Data.Vector as V
-import           Data.Word
 import           HSat.Problem.BSP.CNF.Internal
-import           HSat.Problem.BSP.Common
-import           TestUtils.Problem.BSP.Common.Clause
 import           TestUtils.Problem.BSP.Common.Clauses
-import           TestUtils.Problem.BSP.Common.Literal
-import           TestUtils.Problem.BSP.Common.Sign
-import           TestUtils.Problem.BSP.Common.Variable
 import           TestUtils.Validate
 
 {-

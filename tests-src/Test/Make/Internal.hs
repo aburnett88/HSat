@@ -4,8 +4,6 @@ module Test.Make.Internal (
 
 import TestUtils
 import HSat.Make.Internal
-import Control.Monad.Random
-import Control.Monad (liftM)
 import Data.Word
 
 name :: String

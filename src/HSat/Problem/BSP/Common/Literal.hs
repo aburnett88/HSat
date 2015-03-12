@@ -54,9 +54,9 @@ Constructs a 'Literal' from an 'Integer'.
 It is possible that this may throw an error if the 'Integer' is outside the
 range allowed by the underlying representation within 'Variable'
 -}
-mkLiteralFromInteger         :: Integer -> Literal
-mkLiteralFromInteger integer =
-  Literal (mkSignFromInteger integer) (mkVariableFromInteger integer)
+mkLiteralFromInteger   :: Integer -> Literal
+mkLiteralFromInteger i =
+  Literal (mkSignFromInteger i) (mkVariableFromInteger i)
 
 {-|
 Constructs an 'Integer' from a 'Literal'

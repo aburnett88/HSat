@@ -4,7 +4,7 @@ module HSat.Make.BSP.Common.Literal (
   reset,
   getTrueLiteral,
   getRandomLiteral,
-  LiteralMake(..),
+  LiteralMake,
   LiteralMakeError(..),
   LiteralPredicate(..)
   ) where
@@ -120,6 +120,7 @@ getRandomLiteral = do
                     modify changeTrueLiteralCreated
                     return lit else
                     return lit
+    Nothing -> lift $ left CannotFindMapping
   
 data LiteralPredicate =
   Any |

@@ -13,13 +13,10 @@ module TestUtils.Problem.BSP.Common.Clauses (
   genClauses -- :: Word -> Int -> Gen Clauses
   ) where
 
-import           Data.Vector (Vector)
 import qualified Data.Vector as V
 import           Data.Word
-import           HSat.Problem.BSP.Common.Clause
 import           HSat.Problem.BSP.Common.Clauses
 import           HSat.Problem.BSP.Common.Clauses.Internal
-import           TestUtils.Limits
 import           TestUtils.Problem.BSP.Common.Clause
 import           TestUtils.Test
 import           TestUtils.Validate
@@ -27,8 +24,8 @@ import           TestUtils.Validate
 genClauses :: Word -> Int -> Gen Clauses
 genClauses maxVar size = do
   sizeOf <- choose (0,size)
-  vector <- V.replicateM (fromEnum sizeOf) $ genClause maxVar size
-  return $ mkClauses vector
+  clauseVector <- V.replicateM (fromEnum sizeOf) $ genClause maxVar size
+  return $ mkClauses clauseVector
 
 instance Arbitrary Clauses where
   arbitrary      = sized $ genClauses maxBound
@@ -39,7 +36,7 @@ instance Arbitrary Clauses where
 Checks that the length of the Clauses is consistent with the length of the vector containing the Clause, then checks each element to confirm that it is valid
 -}
 instance Validate Clauses where
-  validate (Clauses vector sizeClauses) =
-    let actualSize = toEnum $ V.length vector
+  validate (Clauses clauseVector sizeClauses) =
+    let actualSize = toEnum $ V.length clauseVector
     in (actualSize == sizeClauses) &&
-       V.all validate vector
+       V.all validate clauseVector

@@ -46,9 +46,9 @@ addPreambleComment c writer =
                        }
 
 runCNFWriter :: CNFWriter -> Text
-runCNFWriter (CNFWriter p c) = T.unlines $ 
+runCNFWriter (CNFWriter p c') = T.unlines $ 
   runProblemLine p ++
-  (Prelude.concat . V.toList . V.map runClauses $ c)
+  (Prelude.concat . V.toList . V.map runClauses $ c')
   where
     runProblemLine :: WrittenProblemLine -> [Text]
     runProblemLine (WPL v c comments) = ls ++ [m] ++ rs

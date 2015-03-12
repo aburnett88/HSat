@@ -49,7 +49,7 @@ fromFileTest1 =
   testProperty "Write random file. Read back in" $ ioProperty $ do
     problem <- generate arbitrary
     let fp = "fromFileTest1"
-    plainProblemToFile problem fp
+    _ <- plainProblemToFile problem fp
     result <- fromFile (fp ++ ".cnf")
     removeFile (fp ++ ".cnf")
     return $ case result of
@@ -67,5 +67,5 @@ fromFolderTest1 =
       list <- getDirectoryContents folder
       mapM_ removeFile list
       removeDirectory folder
-      return $ property (False === True) else
+      return $ property (problems' === (map Right problems)) else
       return $ counterexample "Folder parsing failed" (False==True)
