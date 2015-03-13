@@ -11,6 +11,8 @@ import HSat.Parser.CNF
 import Data.Attoparsec.Text (parseOnly)
 import HSat.Writer.CNF
 import Data.Either
+import Test.Writer.CNF ()
+import Test.Problem ()
 
 name :: String
 name = "CNF"

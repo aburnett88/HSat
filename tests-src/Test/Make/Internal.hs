@@ -40,3 +40,12 @@ genBounded = do
   a <- arbitrary
   b <- arbitrary
   return (a,b)
+
+{-
+genBounded :: (Ord a, Arbitrary a, Random a, Bounded a) =>
+              a -> a -> Gen (Bounds a)
+genBounded min' max' = do
+  x <- choose (min',max')
+  y <- choose (min',max')
+  return $ mkBounds x y
+-}

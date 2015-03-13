@@ -16,8 +16,12 @@ module Test.Problem.ProblemExpr (
 import           HSat.Problem.ProblemExpr
 import           HSat.Problem.ProblemType
 import qualified Test.Problem.BSP.CNF as CNF
+import HSat.Problem.BSP.CNF (CNF)
 import qualified Test.Problem.BSP.Common as Common
 import           TestUtils
+import TestUtils.Validate
+import Control.Applicative
+import Test.Problem.ProblemType ()
 
 name :: String
 name = "ProblemExpr"
@@ -70,4 +74,15 @@ problemToCNFTest1 =
     (problemToCNF . mkCNFProblem $ cnf) == cnf
     )
 
+instance Validate ProblemExpr where
+  validate (CNFExpr cnf) = validate cnf
 
+instance Arbitrary ProblemExpr where
+  arbitrary = oneof [
+    mkArbCNFProblem arbitrary
+    ]
+  shrink (CNFExpr cnf) =
+    map mkCNFProblem $ shrink cnf
+
+mkArbCNFProblem :: Gen CNF -> Gen ProblemExpr
+mkArbCNFProblem = liftA mkCNFProblem

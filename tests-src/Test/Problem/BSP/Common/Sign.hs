@@ -6,7 +6,7 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The Test Tree Node for the Sign module
+Contains the Test Tree Node for the Sign module, as well as associated Generator functions
 -}
 
 module Test.Problem.BSP.Common.Sign (
@@ -15,6 +15,7 @@ module Test.Problem.BSP.Common.Sign (
 
 import HSat.Problem.BSP.Common.Sign
 import TestUtils
+import Control.Applicative
 
 name :: String
 name = "Sign"
@@ -148,3 +149,14 @@ isNegTest2 :: TestTree
 isNegTest2 =
   testCase "isNeg $ mkSign False == True" $
   True @=? isNeg (mkSign False)
+
+{-
+Generators and Arbitrary instances
+-}
+genSign :: Gen Sign
+genSign = liftA mkSign arbitrary
+
+instance Arbitrary Sign where
+  arbitrary   = genSign
+  shrink sign =
+    map mkSign $ shrink . getBool $ sign

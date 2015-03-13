@@ -15,9 +15,17 @@ module Test.Problem.ProblemType (
   ) where
 
 import TestUtils
+import HSat.Problem.ProblemType
 
 name :: String
 name = "ProblemType"
 
 tests :: TestTree
 tests = testGroup name []
+
+instance Arbitrary ProblemType where
+  arbitrary =
+    oneof [
+      return CNF
+      ]
+  shrink CNF = []

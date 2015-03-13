@@ -10,7 +10,8 @@ The Test Tree Node for the Clause module
 -}
 
 module Test.Problem.BSP.Common.Clause (
-  tests
+  tests,
+  Internal.genClause
   ) where
 
 import qualified Data.Vector as V
@@ -54,9 +55,9 @@ mkClauseTest1 =
   testProperty ("let getSizeClause == (length cl), getLiterals == cl in" ++
                 "mkClause cl") $ property
   (\vectLiterals ->
-    let clause    = mkClause vectLiterals
-        valLits   = getVectLiteral clause
-        exptdSize = toEnum $ V.length vectLiterals
+    let clause    = mkClause $ V.fromList vectLiterals
+        valLits   = V.toList $ getVectLiteral clause
+        exptdSize = toEnum $ length vectLiterals
         valSize   = getSizeClause clause
     in (valSize === exptdSize) .&&.
        (valLits === vectLiterals)

@@ -10,12 +10,15 @@ The Test Tree Node for the internal Variable module
 -}
 
 module Test.Problem.BSP.Common.Variable.Internal (
-  tests
+  tests,
+  genVariableContext
   ) where
 
 import HSat.Problem.BSP.Common.Variable.Internal
 import TestUtils
 import TestUtils.Validate
+import Data.Word
+import Control.Applicative
 
 name :: String
 name = "Internal"
@@ -41,3 +44,21 @@ variableTest2 :: TestTree
 variableTest2 =
   testCase "validate (Variable 0) == False" $
   assertBool "Validation should " (not . validate $ Variable 0)
+
+genVariable :: Gen Variable
+genVariable = genVariableContext maxBound
+
+genVariableContext         :: Word -> Gen Variable
+genVariableContext maxWord = liftA Variable $ choose (1,maxWord) 
+
+instance Arbitrary Variable where
+  arbitrary = genVariable
+  shrink v  =
+    map Variable $ filter (/=0) . shrink . getWord $ v
+
+{-
+Only a Variable with a value of zero is an invalid Variable
+-}
+instance Validate Variable where
+  validate (Variable 0) = False
+  validate _            = True

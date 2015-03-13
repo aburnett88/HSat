@@ -10,6 +10,7 @@ import Data.Either
 import HSat.Writer
 import HSat.Parser
 import Control.Monad (liftM)
+import Test.Problem ()
 
 name :: String
 name = "Writer"

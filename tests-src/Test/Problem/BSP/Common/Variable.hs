@@ -10,7 +10,8 @@ The Test Tree Node for the Variable module
 -}
 
 module Test.Problem.BSP.Common.Variable (
-  tests
+  tests,
+  Internal.genVariableContext
   ) where
 
 import           Data.Word

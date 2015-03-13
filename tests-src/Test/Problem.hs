@@ -18,6 +18,9 @@ import qualified Test.Problem.ProblemExpr as ProblemExpr
 import qualified Test.Problem.ProblemType as ProblemType
 import qualified Test.Problem.Source as Source
 import           TestUtils
+import HSat.Problem.Source
+import HSat.Problem.ProblemExpr
+import Control.Applicative
 
 name :: String
 name = "Problem"
@@ -47,3 +50,13 @@ mkProblemTest2 =
     \(source,problem) ->
     problem == getProblemExpr (mkProblem source problem)
     )
+
+instance Arbitrary Problem where
+  arbitrary = mkArbProblem arbitrary arbitrary
+  shrink problem =
+    let source      = getSource problem
+        problemExpr = getProblemExpr problem
+    in map (uncurry mkProblem) $ shrink (source,problemExpr)
+
+mkArbProblem :: Gen Source -> Gen ProblemExpr -> Gen Problem
+mkArbProblem = liftA2 mkProblem

@@ -6,17 +6,22 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The Test Tree Node for the internal Clause module
+Contains the Test Tree Node for the internal Clause module, as well as associated Generator functions
 -}
 
 module Test.Problem.BSP.Common.Clause.Internal (
-  tests
+  tests,
+  genClause -- :: Word -> Int -> Gen Clause
   ) where
 
 import HSat.Problem.BSP.Common.Clause
 import HSat.Problem.BSP.Common.Clause.Internal
 import TestUtils
 import TestUtils.Validate
+import qualified Data.Vector as V
+import Data.Word
+import Test.Problem.BSP.Common.Literal (genLiteral)
+import Control.Applicative
 
 name :: String
 name = "Internal"
@@ -44,7 +49,7 @@ clauseTest2 =
                 "== False") $
   forAll
   (do
-      litList  <- arbitrary
+      litList  <- V.fromList `liftA` arbitrary
       wrongLen <- choose (1,maxBound)
       return (litList,wrongLen)
   )
@@ -52,3 +57,38 @@ clauseTest2 =
     let val = Clause litList wrongLen
     in  not $ validate val
   )
+
+genClauseFixedSize             :: Word -> Word -> Gen Clause
+genClauseFixedSize _ 0         =
+  let func = "genClauseFixedSize"
+      file = "Test.Problem.BSP.Common.Clause.Internal"
+      msg  = file ++ ":" ++ func
+  in error (msg ++ " Second argument zero")
+genClauseFixedSize size maxVar = do
+  litVector <- V.replicateM (fromEnum size) $ genLiteral maxVar
+  return $ mkClause litVector
+
+genClause          :: Word -> Int -> Gen Clause
+genClause 0      _ = return $ mkClause V.empty
+genClause maxVar size = do
+  sizeOf <- choose (0,size)
+  genClauseFixedSize (toEnum sizeOf) maxVar
+
+{-
+We pass the size parameter to determine the size of the Clause
+-}
+instance Arbitrary Clause where
+  arbitrary = sized $ genClause maxBound
+  shrink cl =
+    map (mkClause . V.fromList) $ shrink . V.toList . getVectLiteral $ cl
+
+{-
+Validation checks the size of the Clause is identical to the size of the
+vector containing the elements. All the Literal's are also checked to make
+sure that they are all valid
+-}
+instance Validate Clause where
+  validate (Clause vect n) =
+    let actualSize = toEnum $ V.length vect
+    in (actualSize == n) &&
+       V.all validate vect

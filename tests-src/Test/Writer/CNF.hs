@@ -11,7 +11,10 @@ import HSat.Problem.BSP.Common
 import Control.Monad (liftM,replicateM,foldM)
 import Data.Attoparsec.Text
 import HSat.Parser.CNF
-import Data.Maybe (fromJust)
+import Data.Maybe (fromJust,fromMaybe)
+import Data.Word
+import HSat.Writer.Internal
+import Test.Problem.BSP.CNF ()
 
 name :: String
 name = "CNF"
@@ -153,3 +156,23 @@ runCNFWriterTest1 =
         gotten = parseOnly cnfParser (runCNFWriter cnfWriter)
     in gotten === exptd
        )
+
+instance Arbitrary CNFWriter where
+  arbitrary = do
+    cnf <- arbitrary
+    let writer = mkCNFWriter cnf
+    noPreCommentsToAdd <- choose (0,100) :: Gen Int
+    commentsPreamble <- replicateM noPreCommentsToAdd arbitrary
+    noNormalCommentsToAdd <- choose (0,100) :: Gen Int
+    commentsClauses <- replicateM noNormalCommentsToAdd (
+      choose (0,getClauseNumb cnf))
+    comments2 <- replicateM noNormalCommentsToAdd arbitrary
+    let writer2 = foldl (flip addPreambleComment) writer commentsPreamble
+        writer3 = foldl (\aaa (a,b) -> retain aaa a b) writer2 (
+          zip commentsClauses comments2)
+    return writer3
+
+retain :: CNFWriter -> Word -> Comment -> CNFWriter
+retain cnf w c =
+  let cnf' = addClauseComment w c cnf
+  in fromMaybe cnf cnf'

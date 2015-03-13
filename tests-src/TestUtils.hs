@@ -26,22 +26,19 @@ module TestUtils (
 
 import qualified Control.Exception as E (catch)
 import           Control.Exception.Base (ErrorCall)
-import           Control.Monad
-import           Data.Maybe (isNothing,fromMaybe)
+import           Control.Monad hiding (liftM,liftM2,liftM3,liftM4,liftM5)
+import Control.Applicative
+import           Data.Maybe (isNothing)
 import           Data.Text (Text,pack)
 import           Data.Word
 import           HSat.Make.Config
 import           HSat.Make.Internal
-import           HSat.Problem.BSP.CNF
-import           HSat.Writer.CNF
-import           HSat.Writer.CNF.Internal
 import           HSat.Writer.Internal
-import           System.Random
 import           Test.Tasty as Test.Extended
 import           Test.Tasty.Golden as Test.Extended
 import           Test.Tasty.HUnit as Test.Extended
 import           Test.Tasty.QuickCheck as Test.Extended
-import           TestUtils.Problem ()
+import qualified Data.Vector as V
 
 --The maximum size a clause is able to be in this configuration
 testMaxClauseSize :: Int
@@ -55,18 +52,13 @@ genBounds :: (Ord a, Bounded a) => Gen a -> Gen (Bounds a)
 genBounds f = do
   oneof [
     return mkNoBounds,
-    mkMinimum `liftM` f,
-    mkMaximum `liftM` f,
-    mkExact `liftM` f,
-    liftM2 mkBounds f f
+    mkMinimum `liftA` f,
+    mkMaximum `liftA` f,
+    mkExact `liftA` f,
+    liftA2 mkBounds f f
     ]
 
-genBounded :: (Ord a, Arbitrary a, Random a, Bounded a) =>
-              a -> a -> Gen (Bounds a)
-genBounded min' max' = do
-  x <- choose (min',max')
-  y <- choose (min',max')
-  return $ mkBounds x y
+
 
 instance (Arbitrary a, Ord a, Bounded a) => Arbitrary (Bounds a) where
   arbitrary = genBounds arbitrary
@@ -82,11 +74,11 @@ instance Arbitrary PosDouble where
 
 mkPosIntegerNonZero :: Gen Integer
 mkPosIntegerNonZero =
-  ((1+) . abs) `liftM` arbitrary
+  ((1+) . abs) `liftA` arbitrary
 
 mkNegIntegerNonZero :: Gen Integer
 mkNegIntegerNonZero =
-  ((-1)*) `liftM` mkPosIntegerNonZero
+  ((-1)*) `liftA` mkPosIntegerNonZero
 
 mkIntegerNonZero :: Gen Integer
 mkIntegerNonZero = oneof [
@@ -104,38 +96,11 @@ checkBounds x bound =
   in counterexample (
     show l ++ " <= " ++ show x ++ " <= " ++ show g) $ (x <= g) && (x >= l)
                                                         
-instance Arbitrary Config where
-  arbitrary = do
-    out <- arbitrary
-    input <- arbitrary
-    return (Config out input)
-  shrink (Config out input) =
-    let xs = shrink (out,input)
-    in map (uncurry Config) xs
 
-instance Arbitrary ConfigProblemType where
-  arbitrary = do
-    oneof [
-      CNFProblemType `liftM` arbitrary
-      ]
-  shrink (CNFProblemType cnf) =
-    map CNFProblemType $ shrink cnf
 
-instance Arbitrary CNFConfig where
-  arbitrary = do
-    clauses <- genBounded 0 (toEnum testMaxClausesSize)
-    varsInEach <- genBounded 0 (toEnum testMaxClauseSize)
-    vars <- do
-      oneof [
-        (Left) `liftM` genBounded (mkPosDouble 0.0) (mkPosDouble 5.0),
-        (Right) `liftM` genBounded 0 2000
-        ]
-    posAndNeg <- arbitrary
-    x <- arbitrary
-    return $ CNFConfig clauses vars varsInEach posAndNeg x
-  shrink (CNFConfig _ _ _ _ _) = []
---    let xs = shrink (a,b,c,d)
- --   in map (\(a,b,c,d) -> CNFConfig a b c d) xs
+
+
+
 
 testList :: (Show a, Ord a) => Bounds a -> [a] -> Property
 testList _ [] = property True
@@ -162,26 +127,10 @@ instance Arbitrary Orientation where
       0 -> return Above
       _ -> return Below
 
-instance Arbitrary CNFWriter where
-  arbitrary = do
-    cnf <- arbitrary
-    let writer = mkCNFWriter cnf
-    noPreCommentsToAdd <- choose (0,100) :: Gen Int
-    commentsPreamble <- replicateM noPreCommentsToAdd arbitrary
-    noNormalCommentsToAdd <- choose (0,100) :: Gen Int
-    commentsClauses <- replicateM noNormalCommentsToAdd (
-      choose (0,getClauseNumb cnf))
-    comments2 <- replicateM noNormalCommentsToAdd arbitrary
-    let writer2 = foldl (flip addPreambleComment) writer commentsPreamble
-        writer3 = foldl (\aaa (a,b) -> retain aaa a b) writer2 (
-          zip commentsClauses comments2)
-    return writer3
-    
-retain :: CNFWriter -> Word -> Comment -> CNFWriter
-retain cnf w c =
-  let cnf' = addClauseComment w c cnf
-  in fromMaybe cnf cnf'
 
+    {-
+
+-}
 instance Arbitrary Text where
   arbitrary = do
     x <- arbitrary
@@ -216,3 +165,8 @@ propList f list = once $ propList' list
     propList' [] = property True
     propList' (x:xs) =
       (counterexample ("Failed on input " ++ show x) (f x)) .&&. propList' xs
+
+instance Arbitrary a => Arbitrary (V.Vector a) where
+  arbitrary = V.fromList `liftA` arbitrary
+  shrink x =
+    map V.fromList $ shrink $ V.toList x

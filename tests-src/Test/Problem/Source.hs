@@ -4,6 +4,9 @@ module Test.Problem.Source (
 
 import TestUtils
 import HSat.Problem.Source
+import Control.Applicative
+import HSat.Make.Config
+import Test.Make.Config ()
 
 name :: String
 name = "Source"
@@ -30,3 +33,25 @@ mkFileSourceTest1 =
       FileSource filePath' -> filePath == filePath'
       _                    -> False
       )
+
+instance Arbitrary Source where
+  arbitrary =
+    oneof [
+      mkArbStaticSource,
+      mkArbFileSource arbitrary,
+      mkArbMakeConfig arbitrary
+      ]
+  shrink StaticSource          = []
+  shrink (FileSource filePath) =
+    map mkFileSource $ shrink filePath
+  shrink (MakeConfiguration config) =
+    map mkMakeConfig $ shrink config
+
+mkArbFileSource :: Gen FilePath -> Gen Source
+mkArbFileSource = liftA mkFileSource
+
+mkArbStaticSource :: Gen Source
+mkArbStaticSource = return StaticSource
+
+mkArbMakeConfig :: Gen Config -> Gen Source
+mkArbMakeConfig = liftA mkMakeConfig

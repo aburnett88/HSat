@@ -78,4 +78,3 @@ mkCNFFromIntegersTest1 =
     ints === cnfToIntegers (mkCNFFromIntegers ints)
     )
 
-

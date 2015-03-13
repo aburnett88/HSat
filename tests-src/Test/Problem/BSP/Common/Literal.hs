@@ -6,15 +6,20 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The Test Tree Node for the Literal module
+Contains the Test Tree Node for the Literal module, as well as associated Generator functions
 -}
 
 module Test.Problem.BSP.Common.Literal (
-  tests
+  tests,     -- :: TestTree
+  genLiteral -- :: Word -> Gen Literal 
   ) where
 
 import HSat.Problem.BSP.Common.Literal
 import TestUtils
+import TestUtils.Validate
+import Test.Problem.BSP.Common.Sign ()
+import Data.Word
+import Test.Problem.BSP.Common.Variable (genVariableContext)
 
 name :: String
 name = "Literal"
@@ -61,3 +66,18 @@ literalToIntegerTest1 =
     let val = mkLiteralFromInteger $ literalToInteger lit
     in lit === val
   )
+
+genLiteral        :: Word -> Gen Literal
+genLiteral maxVar = do
+  sign <- arbitrary
+  var  <- genVariableContext maxVar
+  return $ mkLiteral sign var
+
+instance Arbitrary Literal where
+  arbitrary            = genLiteral maxBound
+  shrink (Literal s v) =
+    map (uncurry mkLiteral) $ shrink (s,v)
+
+instance Validate Literal where
+  validate (Literal _ v) =
+    validate v

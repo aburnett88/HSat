@@ -13,7 +13,7 @@ import           HSat.Problem.BSP.CNF.Builder.Internal
 import           TestUtils
 import Control.Applicative
 import HSat.Problem.BSP.Common
-import TestUtils.Problem.BSP.CNF.Builder
+import Test.Problem.BSP.CNF.Builder.Internal hiding (tests)
 import Data.Monoid
 
 name :: String

@@ -10,13 +10,18 @@ The Test Tree Node for the internal Clauses module
 -}
 
 module Test.Problem.BSP.Common.Clauses.Internal (
-  tests
+  tests,
+  genClauses
   ) where
 
 import HSat.Problem.BSP.Common.Clauses
 import HSat.Problem.BSP.Common.Clauses.Internal
 import TestUtils
 import TestUtils.Validate
+import qualified Data.Vector as V
+import Control.Applicative
+import Test.Problem.BSP.Common.Clause (genClause)
+import Data.Word
 
 name :: String
 name = "Internal"
@@ -45,7 +50,7 @@ clausesTest2 =
                 "== False") $
   forAll
   (do
-      clauseList <- arbitrary
+      clauseList <- V.fromList `liftA` arbitrary
       wrongLen   <- choose (1,maxBound)
       return (clauseList,wrongLen)
   )
@@ -53,3 +58,23 @@ clausesTest2 =
     let val = Clauses clauseList wrongLen
     in  not $ validate val
   )
+
+{-
+Checks that the length of the Clauses is consistent with the length of the vector containing the Clause, then checks each element to confirm that it is valid
+-}
+instance Validate Clauses where
+  validate (Clauses clauseVector sizeClauses) =
+    let actualSize = toEnum $ V.length clauseVector
+    in (actualSize == sizeClauses) &&
+       V.all validate clauseVector
+
+genClauses :: Word -> Int -> Gen Clauses
+genClauses maxVar size = do
+  sizeOf <- choose (0,size)
+  clauseVector <- V.replicateM (fromEnum sizeOf) $ genClause maxVar size
+  return $ mkClauses clauseVector
+
+instance Arbitrary Clauses where
+  arbitrary      = sized $ genClauses maxBound
+  shrink clauses =
+    map mkClauses $ shrink . getVectClause $ clauses

@@ -21,10 +21,11 @@ import           HSat.Problem.BSP.CNF.Builder.Internal
 import           HSat.Problem.BSP.Common
 import HSat.Problem.BSP.CNF.Internal
 import           TestUtils
-import qualified Test.Problem.BSP.CNF.Builder.Internal as Internal
-import TestUtils.Problem.BSP.CNF.Builder
-import TestUtils.Problem.BSP.Common.Literal
+import qualified Test.Problem.BSP.CNF.Builder.Internal as Internal (tests)
+import Test.Problem.BSP.CNF.Builder.Internal hiding (tests)
+import Test.Problem.BSP.Common.Literal (genLiteral)
 import TestUtils.Validate
+import Test.Problem.BSP.CNF.Internal ()
 
 name :: String
 name = "Builder"

@@ -10,7 +10,8 @@ The Test Tree Node for the Clauses module
 -}
 
 module Test.Problem.BSP.Common.Clauses (
-  tests
+  tests,
+  Internal.genClauses
   ) where
 
 import qualified Data.Set as S
