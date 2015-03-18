@@ -35,27 +35,39 @@ fromCNFFileTest1 =
     cnf <- generate arbitrary
     let problem = mkProblem mkStatic $ mkCNFProblem cnf
         fp = "fromCNFFileTest1"
+        fp' = fp ++ ".cnf"
     didWriteSuceed <- plainProblemToFile problem fp
     if didWriteSuceed then do
-      result <- fromFile (fp ++ ".cnf")
-      removeFile (fp ++ ".cnf")
-      return $ case result of
-       Right problem' -> property $ problem === problem'
-       _ -> property False else
-      return $ counterexample "File write unsucessful" $ False===True
+      result <- runReadFile $ fromFile fp'
+      case result of
+        Right problem' -> do
+          removeFile fp'
+          return $ property $ problem === problem'
+        Left err ->
+          return $ counterexample
+           ("Unexpected reading error " ++ show err)
+           False else
+      return $ counterexample
+        "File write unsuccessful"
+        False
         
 fromFileTest1 :: TestTree
 fromFileTest1 =
   testProperty "Write random file. Read back in" $ ioProperty $ do
     problem <- generate arbitrary
     let fp = "fromFileTest1"
+        fp' = fp ++ ".cnf"
     _ <- plainProblemToFile problem fp
-    result <- fromFile (fp ++ ".cnf")
-    removeFile (fp ++ ".cnf")
-    return $ case result of
-      Right problem' -> problem === problem'
-      _ -> property False
-
+    result <- runReadFile $ fromFile fp'
+    case result of
+      Right problem' -> do
+        removeFile fp'
+        return $ problem === problem'
+      Left err ->
+        return $ counterexample
+          ("Failure with error" ++ show err)
+          False
+          
 fromFolderTest1 :: TestTree
 fromFolderTest1 =
   testProperty "Write random files. Read them all back in" $ ioProperty $ do

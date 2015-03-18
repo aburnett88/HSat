@@ -198,9 +198,10 @@ A random Word that is strictly above the maximum Variable in Clauses
 -}
 genBuilderHelper      :: Int -> Gen (Clauses,Word,Word)
 genBuilderHelper size = do
-  maxVar'    <- toEnum `liftA` choose (1,size)
+  maxVar'    <- toEnum `liftA` (1+) `liftA` choose (0,size)
   clauses    <- genClauses maxVar' size
-  targetSize <- ((+) (getSizeClauses clauses) . toEnum) `liftA` choose (1,size)
+  let baseVal = 1 + (getSizeClauses clauses)
+  targetSize <- ((+) baseVal) `liftA` toEnum `liftA` choose (0,size)
   maxVar     <- ((+) maxVar' . toEnum ) `liftA` choose (1,size)
   return (clauses,targetSize,maxVar)
 
@@ -226,7 +227,7 @@ genCNFBuilderLitInClause size = do
   clause                      <- flip clauseAddLiteral literal `liftA`
                                  genClause maxVar size
   let clauseSize = getSizeClauses clauses
-      builder    = CNFBuilder maxVar (targetSize+1) clauseSize clauses clause
+      builder    = CNFBuilder maxVar (targetSize+1) (clauseSize+1) clauses clause
   return builder
 
 genCNFBuilderError :: Gen CNFBuilderError

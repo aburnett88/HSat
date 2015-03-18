@@ -13,7 +13,7 @@ module HSat.Parser.CNF (
   cnfParser
   ) where
 
-import Data.Attoparsec.Text (Parser,endOfInput)
+import Data.Attoparsec.Text (Parser,endOfInput,skipMany,char)
 import HSat.Problem.BSP.CNF.Builder
 import HSat.Problem.BSP.CNF
 import HSat.Parser.CNF.Internal
@@ -25,5 +25,6 @@ cnfParser = do
   b3 <- parseClauses b2
   let b4 = b3 >>= finalise
   parseComments
+  skipMany (char '\n')
   endOfInput
   return $ b4

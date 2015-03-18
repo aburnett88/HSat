@@ -8,6 +8,7 @@ import HSat.Problem.BSP.CNF
 import HSat.Make.BSP.CNF.Internal
 import HSat.Problem.BSP.Common
 import Data.Map (Map)
+import qualified Data.Map as M
 import Control.Monad.Random
 import HSat.Make.Config
 
@@ -27,28 +28,7 @@ makeCNF' config = do
 makeCNFSolution :: (MonadRandom m) =>
                    CNFConfig ->
                    m (Map Variable Sign,CNF)
-makeCNFSolution = undefined
-
-{-
-
-makeCNF :: (MonadRandom m) => CNFInit -> m (Either LiteralMakeError CNF)
-makeCNF init = do
-  let maxVar = getSetMaxVar init
-      sizes  = getSizes init
-      varsCanAppearTwice = getVarsCanAppearTwice init
-      solvable = getWillBeSolvable init
-  literalSet <- mkLiteralSet maxVar varsCanAppearTwice
-  let predicate = if solvable then All else None
-  clauses <- runEitherT (runStateT (makeClauses sizes predicate) literalSet)
-  return $ fmap (mkCNFFromClauses . fst) clauses
-
-makeCNFSolution :: (MonadRandom m) => CNFInit -> m (Either LiteralMakeError (Map Variable Sign,CNF))
-makeCNFSolution = undefined
-
-makeCNF' :: (MonadRandom m) => CNFInit -> m CNF
-makeCNF' init = do
-  cnf <- makeCNF init
-  return $ case cnf of
-    Left e -> error ("makeCNF': " ++ show e)
-    Right cnf -> cnf
--}
+makeCNFSolution config = do
+  (_,initial) <- mkCNFInit' config
+  cnf <- mkCNF' initial
+  return (M.empty, cnf)

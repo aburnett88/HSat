@@ -7,6 +7,7 @@ import HSat.Make.Config
 import Control.Applicative
 import System.Random
 import Test.Problem.ProblemType ()
+import HSat.Make.Internal
 
 name :: String
 name = "Config"
@@ -48,5 +49,5 @@ instance Arbitrary CNFConfig where
 --    let xs = shrink (a,b,c,d)
  --   in map (\(a,b,c,d) -> CNFConfig a b c d) xs
 
-genBounded :: (Random a) => a -> a -> Gen (Bounds a)
-genBounded = undefined
+genBounded :: (Random a, Ord a, Bounded a) => a -> a -> Gen (Bounds a)
+genBounded a b = return (mkBounds a b)

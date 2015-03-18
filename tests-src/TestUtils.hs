@@ -21,7 +21,8 @@ module TestUtils (
   testEq,               -- ::
   testAllEq,            -- ::
   forceError,           -- ::
-  propList              -- :: (a -> Property) -> [a] -> Property
+  propList,              -- :: (a -> Property) -> [a] ->
+  listsContainSame,
   ) where
 
 import qualified Control.Exception as E (catch)
@@ -39,6 +40,7 @@ import           Test.Tasty.Golden as Test.Extended
 import           Test.Tasty.HUnit as Test.Extended
 import           Test.Tasty.QuickCheck as Test.Extended
 import qualified Data.Vector as V
+import Data.List (delete)
 
 --The maximum size a clause is able to be in this configuration
 testMaxClauseSize :: Int
@@ -170,3 +172,13 @@ instance Arbitrary a => Arbitrary (V.Vector a) where
   arbitrary = V.fromList `liftA` arbitrary
   shrink x =
     map V.fromList $ shrink $ V.toList x
+
+listsContainSame :: (Eq a, Show a) => [a] -> [a] -> Property
+listsContainSame [] [] = property True
+listsContainSame (x:xs) ys =
+  if elem x ys then
+    listsContainSame xs (delete x ys) else
+    counterexample ("Second list does not contain element" ++ show x) False
+listsContainSame a b =
+  counterexample ("Lists inconsistant" ++ (show a) ++ (show b)) False
+      

@@ -92,7 +92,7 @@ mkVariableFromIntegerTest4 =
 
 {-
 only if a variable is outside the range is it invalid. Zero is a valid variable
-for now, however at the moment this is undefined behaviour
+for now, however this test will not catch this fact
 -}
 varInRangeTest1 :: TestTree
 varInRangeTest1 =

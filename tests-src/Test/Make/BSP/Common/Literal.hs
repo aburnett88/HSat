@@ -98,7 +98,7 @@ generateNonFullVAppear = do
   l <- choose (0,removal)
   if (toEnum $ S.size s) == (v-removal) then
     return (LiteralSet s m l v False) else
-    undefined
+    return (LiteralSet s m l v False)
 
 generateSet :: (Ord a) => Set a -> Word -> Gen (Set a)
 generateSet s n =

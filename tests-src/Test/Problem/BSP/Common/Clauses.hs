@@ -160,10 +160,10 @@ findMaxVarTest1 =
   testProperty "maxVar clauses == maximum . toList $ clauses" $ property
   (\clauses ->
     let litList = map abs . concat $ clausesToIntegers clauses
-        exptd   = fromEnum $ if null litList then
+        exptd   = if null litList then
                   0 else
                   maximum litList
-        val     = fromEnum $ findMaxVar clauses
+        val     = toInteger $ findMaxVar clauses
     in exptd === val
   )
 

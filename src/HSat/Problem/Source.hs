@@ -56,11 +56,20 @@ instance Printer Source where
         LT -> fp
         _ -> take 20 fp ++ "..."
         )
+  compact (MakeConfiguration m) =
+    text "MAKE:" <+>
+    (text . show $ m)
   noUnicode StaticSource = text "Static Source"
   noUnicode (FileSource fp) =
     text "FilePath:" <+>
     text fp
+  noUnicode (MakeConfiguration m) =
+    text "Make Config:" <+>
+    (text . show $ m)
   unicode StaticSource = green (text "StaticSource")
   unicode (FileSource fp) =
     text "FilePath:" <+>
     (yellow . text $ fp)
+  unicode (MakeConfiguration m) =
+    text "Make Configuration:" <+>
+    (text . show $ m)

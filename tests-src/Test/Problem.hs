@@ -41,7 +41,7 @@ mkProblemTest1 :: TestTree
 mkProblemTest1 =
   testProperty "getSource . mkProblem s p == s" $ property (
     \(source,problem) ->
-    source == getSource (mkProblem source problem)
+    source === getSource (mkProblem source problem)
     )
 
 mkProblemTest2 :: TestTree

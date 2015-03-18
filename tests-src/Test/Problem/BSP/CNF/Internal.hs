@@ -64,7 +64,8 @@ instance Validate CNF where
     let valClauseNumb = getSizeClauses clauses
         valMaxVar     = findMaxVar clauses
     in (valClauseNumb == clauseNumb) &&
-       (valMaxVar == maxVar)
+       (valMaxVar <= maxVar) &&
+       validate clauses
 
 {-
 The process to generate a valid CNF is rather complicated, and has been

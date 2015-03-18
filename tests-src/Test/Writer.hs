@@ -9,8 +9,10 @@ import qualified Test.Writer.Internal as Internal
 import Data.Either
 import HSat.Writer
 import HSat.Parser
-import Control.Monad (liftM)
 import Test.Problem ()
+import HSat.Problem
+import HSat.Problem.Source
+import System.Directory
 
 name :: String
 name = "Writer"
@@ -18,7 +20,7 @@ name = "Writer"
 tests :: TestTree
 tests =
   testGroup name [
-    testGroup "planProblemToFile" [
+    testGroup "plainProblemToFile" [
        plainProblemToFileTest1
        ],
     testGroup "writeFolder" [
@@ -31,27 +33,41 @@ tests =
 plainProblemToFileTest1 :: TestTree
 plainProblemToFileTest1 =
   testProperty "Write random Problem to file" $ ioProperty $ do
-    problem <- generate arbitrary
-    success <- plainProblemToFile problem "plainProblemFileTest1"
+    let fileName = "plainProblemFileTest1"
+    problemExpr <- generate arbitrary
+    let problem = mkProblem mkStatic problemExpr
+    success <- plainProblemToFile problem fileName
+    let fileName' = createFileName fileName problemExpr
     case success of
       True -> do
-        returnProblem <- fromFile ""
+        returnProblem <- runReadFile $ fromFile fileName'
+        removeFile fileName'
         return $ case returnProblem of
           Left err -> counterexample
                       ("Unexpected Error: " ++ show err)
                       False
-          Right problem' -> problem' === problem
+          Right problem' ->
+            (getProblemExpr problem') === problemExpr
       False -> do
-        return $ counterexample "planFileWriteTest1 returned False. Please see log file" False
+        return $
+          counterexample
+          "Could not write file. Exiting"
+          False
 
 
 writeFolderTest1 :: TestTree
 writeFolderTest1 =
   testProperty "Write Folder test" $ ioProperty $ do
-    problems <- generate arbitrary
-    success <- writeFolder plainProblemToFile problems "writeFolderTest1"
+    let fp = "writeFolderTest1"
+    problemExprs <- generate arbitrary
+    let problems = map (mkProblem mkStatic) problemExprs
+    success <- writeFolder plainProblemToFile problems fp
     if success then do
-      returnProblems <- rights `liftM` fromFolder fromFile "writeFolderTest1"
-      return $ returnProblems === problems else
-      return $ counterexample "writeFolderTest1 failed. Please see log file" False
+      returnProblemss <- (fromFolder fromFile fp)
+      let returnProblems = rights returnProblemss
+      print returnProblemss
+      removeDirectoryRecursive fp
+      let problemExprs' = map getProblemExpr returnProblems
+      return $ listsContainSame problemExprs' problemExprs else
+      return $ counterexample ("writeFolderTest1 failed. Could not sucesfully write to file " ++ show fp) False
       
