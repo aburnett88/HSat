@@ -12,15 +12,18 @@ import HSat.Problem.BSP.CNF.Builder
 import Control.Monad (void,liftM)
 import Data.Text
 
+
 parseComments :: Parser ()
 parseComments =
-  skipMany (parseComment >> endOfLine >> return ()) <?>
-  "parseComments"
+  skipMany (parseComment >> endOfLine) >> return ()
 
+{-|
+Skips comment lines, or lines with no text on them (only tabs and spaces)
+-}
 parseComment :: Parser ()
-parseComment =
-  many' space' >> P.char 'c' >> skipWhile (\a -> not $ isEndOfLine a ) <?>
-  "parseComment"
+parseComment = do
+  many' space' >> option () (
+    char 'c' >> skipWhile (not . isEndOfLine))
 
 parseProblemLine :: Parser CNFBuildErr
 parseProblemLine = (do
@@ -68,7 +71,7 @@ parseClauses :: CNFBuildErr -> Parser CNFBuildErr
 parseClauses cnf = do
   parseComments >> choice [
     parseClause cnf >>= parseClauses,
-    return cnf
+    parseComments >> return cnf
     ]
                              
 

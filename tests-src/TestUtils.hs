@@ -120,19 +120,11 @@ instance Arbitrary Comment where
   arbitrary = do
     x <- arbitrary
     y <- arbitrary
-    return $ Comment x (pack y)
+    return $ mkComment x (pack y)
 
 instance Arbitrary Orientation where
-  arbitrary = do
-    x <- choose (0,1) :: Gen Int
-    case x of
-      0 -> return Above
-      _ -> return Below
+  arbitrary = oenof $ map return [Above,Below]
 
-
-    {-
-
--}
 instance Arbitrary Text where
   arbitrary = do
     x <- arbitrary

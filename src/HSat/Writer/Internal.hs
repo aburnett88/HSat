@@ -5,8 +5,9 @@ module HSat.Writer.Internal (
   runComment
   ) where
 
-import Data.Text
-import HSat.Printer
+import Data.Text as T 
+import HSat.Printer hiding ((<>))
+import Data.Monoid
 
 data Orientation =
   Above |
@@ -33,7 +34,7 @@ instance Show Comment where
   showsPrec = show'
 
 instance Printer Comment where
-  compact (Comment orientation commentText) = compact orientation <+> compact commentText
+  compact (Comment orient commText) = compact orient <+> compact commText
   noUnicode comment = compact comment
   unicode comment = compact comment
 
@@ -43,14 +44,19 @@ instance Printer Text where
   unicode t = compact t
 
 mkComment :: Orientation -> Text -> Comment
-mkComment = Comment
+mkComment o t = Comment o (T.filter f t)
+  where
+    f :: Char -> Bool
+    f c = (c/='\n' && c/='\r')
 
 runComment :: [Comment] -> ([Text],[Text])
-runComment xs = runComment' xs ([],[])
+runComment comments = runComment' comments ([],[])
   where
     runComment' :: [Comment] -> ([Text],[Text]) -> ([Text],[Text])
     runComment' [] result = result
     runComment' (x:xs) (l,r) =
       case orientation x of
-        Above -> runComment' xs (l ++ [commentText x],r)
-        Below -> runComment' xs (l,r ++ [commentText x])
+        Above -> runComment' xs (l ++ [c <> (commentText x)],r)
+        Below -> runComment' xs (l,r ++ [c <> (commentText x)])
+    c :: Text
+    c = (pack "c ")

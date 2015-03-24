@@ -171,6 +171,15 @@ instance Arbitrary CNFWriter where
         writer3 = foldl (\aaa (a,b) -> retain aaa a b) writer2 (
           zip commentsClauses comments2)
     return writer3
+  shrink _ = []
+
+instance Arbitrary WrittenClauseLine where
+  arbitrary = do
+    clause <- arbitrary
+    comment <- arbitrary
+    return $ WCL clause comment
+  shrink (WCL c com) =
+    map (WCL c) . shrink $ com
 
 retain :: CNFWriter -> Word -> Comment -> CNFWriter
 retain cnf w c =

@@ -2,10 +2,10 @@ module Test.Parser.CNF.Internal (
   tests
   ) where
 
-import           Control.Monad (replicateM,liftM)
-import           Data.Attoparsec.Text as P hiding (parseTest)
+import           Control.Monad (replicateM,foldM)
+import           Data.Attoparsec.Text as P hiding (parseTest,take)
 import           Data.Either
-import           Data.Text as T hiding (map,replicate)
+import           Data.Text as T hiding (map,replicate,take,foldl)
 import qualified Data.Vector as V
 import           HSat.Parser.CNF.Internal
 import           HSat.Problem.BSP.CNF.Builder
@@ -15,6 +15,7 @@ import Control.Applicative
 import HSat.Problem.BSP.Common
 import Test.Problem.BSP.CNF.Builder.Internal hiding (tests)
 import Data.Monoid
+import Test.Problem.BSP.Common.Clauses hiding (tests)
 
 name :: String
 name = "Internal"
@@ -57,34 +58,26 @@ tests =
       ]
     ]
 
-parseTest :: Parser a -> Text -> Either String a
+--General function used to parse all the input given
+parseTest   :: Parser a -> Text -> Either String a
 parseTest p = parseOnly (p <* endOfInput)
-
-genComment :: Gen Text
-genComment = do
-  str <- (pack . filterSpaces) `liftM` arbitrary
-  indent <- choose (0,100)
-  return ((pack "c") `append` (pack (replicate indent ' ')) `append` str)
-
-filterSpaces :: String -> String
-filterSpaces [] = []
-filterSpaces ('\n':xs) = filterSpaces xs
-filterSpaces ('\r':xs) = filterSpaces xs
-filterSpaces (x:xs) = x : filterSpaces xs
-
-parseCommentGen :: String -> TestTree
-parseCommentGen str =
-  testCase ("parseComment \"" ++ str ++ "\"") $ assert (
-    parseTest parseComment (pack str) == Right ()
-    )
 
 parseCommentTest1 :: TestTree
 parseCommentTest1 =
-  parseCommentGen "c hello world"
+  parseCommentGen
+    "parse simple comment"
+    "c hello world"
 
 parseCommentTest2 :: TestTree
 parseCommentTest2 =
-  parseCommentGen "   c hello world"
+  parseCommentGen
+    "Parse comment with additional spaces"
+    "   c hello world"
+
+--General framework for above two tests
+parseCommentGen           :: String -> String -> TestTree
+parseCommentGen title str =
+  testCase title $ (parseTest parseComment $ pack str) @=? Right ()
 
 parseCommentTest3 :: TestTree
 parseCommentTest3 =
@@ -94,11 +87,28 @@ parseCommentTest3 =
   where
     testStr = "c hello world\nf"
 
+
+genComment :: Int -> Gen Text
+genComment _ = do
+  str <- genStr
+  let start = pack "c "
+  return $ start <> str
+  where
+    genStr :: Gen Text
+    genStr = T.filter f `liftA` arbitrary
+    f :: Char -> Bool
+    f t = (t /= '\n' && t/='\r')
+
+
+
+
+
+
 parseCommentTest4 :: TestTree
 parseCommentTest4 =
   testProperty "Parse random comments" $
   forAll
-  genComment
+  (sized genComment)
   (\text ->
     parseTest parseComment text == Right ()
     )
@@ -114,9 +124,9 @@ parseCommentsTest1 =
 parseCommentsTest2 :: TestTree
 parseCommentsTest2 =
   testProperty "parseComments randomly generated" $ forAll
-  (do
-      x <- choose (0,50)
-      y <- replicateM x genComment
+  (sized $ \size -> do
+      x <- choose (0,size)
+      y <- replicateM x (genComment size)
       return $ T.unlines y
       )
   (\text ->
@@ -141,36 +151,41 @@ parseProblemLineTest2 =
     testStr = "   p    cnf    24 \t2424"
     cnf' = CNFBuilder 24 2424 0 emptyClauses emptyClause
 
-genSpace :: Gen String
-genSpace = do
-  n <- choose (1,10) :: Gen Int
-  replicateM n $ do
+genSpace' :: Int -> Int -> Gen String
+genSpace' offSet size = do
+  n <- (offSet +) `liftA` choose (0,size)
+  replicateM n $ (
     oneof [
-      return ' ',
-      return '\t'
-      ]
+       return ' ',
+       return '\t'
+       ]
+    )
+
+genSpace :: Int -> Gen String
+genSpace = genSpace' 0
 
 parseProblemLineTest3 :: TestTree
 parseProblemLineTest3 =
   testProperty "parseProblemLine parses correctly" $ forAll
-  (do
-      v <- arbitrary
-      c <- arbitrary
+  (sized $ \size -> do
+      vars <- arbitrary
+      clauses <- arbitrary
+      let genSpace0 = genSpace' 1 size
       text <- do
         p <- return "p"
-        spc1 <- genSpace
+        spc1 <- genSpace0
         cnf <- return "cnf"
-        spc2 <- genSpace
-        v' <- return (show v)
-        spc3 <- genSpace
-        c' <- return (show c)
-        spc4 <- genSpace
+        spc2 <- genSpace0
+        v' <- return (show vars)
+        spc3 <- genSpace0
+        c' <- return (show clauses)
+        spc4 <- genSpace size
         return $
-          p   ++ spc1 ++
+          p ++ spc1 ++
           cnf ++ spc2 ++
-          v'   ++ spc3 ++
-          c'   ++ spc4
-      return (pack text,v,c)
+          v' ++ spc3 ++
+          c' ++ spc4
+      return (pack text, vars, clauses)
       )
   (\(text,v,c) ->
     let cnf' = CNFBuilder v c 0 emptyClauses emptyClause
@@ -279,55 +294,48 @@ parseClauseTest5 :: TestTree
 parseClauseTest5 =
   testProperty "parse randomly generated clauses" $
   forAll
-  genX
+  (sized genX)
   (\(before,after,text) ->
     let gotten = parseTest (parseClause $ before) text
     in  gotten === (return  after)
         )
 
 
-genX :: Gen (CNFBuildErr,CNFBuildErr,Text)
-genX = do
-  before <- return `liftM` genCNFBuilderEmptyClause 10
+genX :: Int -> Gen (CNFBuildErr,CNFBuildErr,Text)
+genX size = do
+  before <- return `liftA` genCNFBuilderEmptyClause 10
   clause <- arbitrary
-  let lits = getVectLiteral clause
-      after = (V.foldl (\b' l -> b' >>= addLiteral (literalToInteger l)) before lits) >>= finishClause
-  text <- generateClause (V.map literalToInteger lits)
-  return ( before,after,text)
+  let lits = clauseToIntegers clause
+      after = (foldl (\b' l -> b' >>= addLiteral l) before lits) >>= finishClause
+  text <- generateClause size lits
+  return (before,after,text)
 
-generateClause :: V.Vector Integer -> Gen Text
-generateClause v = V.foldM generateClause' T.empty (V.snoc v 0)
+generateClause :: Int -> [Integer] -> Gen Text
+generateClause size ints = foldM generateClause' T.empty ((++) ints [0])
   where
     generateClause' :: Text -> Integer -> Gen Text
-    generateClause' t i = append t `liftM` oneof [
-      empty'              >>=              showNumb i,
-      empty' >>=  ret     >>=              showNumb i,
-      empty' >>= addSpace >>=              showNumb i,
-      empty' >>= ret      >>= addSpace >>= showNumb i,
-      empty' >>= ret                   >>= showNumb i,
-      empty' >>= addSpace >>= ret      >>= showNumb i,
-      empty' >>= addSpace >>= ret      >>= addComs   >>= addSpace >>= showNumb i,
-      empty' >>= addSpace >>= ret      >>= addComs   >>= showNumb i,
-      empty' >>= ret      >>= addComs  >>= addSpace  >>= showNumb i,
-      empty' >>= ret      >>= addComs  >>= showNumb i
+    generateClause' t int = (t <>) `liftA` oneof [
+      empty' >>= showNumb int,
+      empty' >>= ret >>= showNumb int,
+      empty' >>= addSpace >>= showNumb int,
+      empty' >>= ret >>= addSpace >>= showNumb int,
+      empty' >>= ret >>= showNumb int,
+      empty' >>= addSpace >>= ret >>= showNumb int,
+      empty' >>= addSpace >>= ret >>= addComs >>= addSpace >>= showNumb int,
+      empty' >>= addSpace >>= ret >>= addComs >>= showNumb int,
+      empty' >>= ret >>= addComs >>= addSpace >>= showNumb int,
+      empty' >>= ret >>= addComs >>= showNumb int
       ]
     empty' :: Gen Text
-    empty' = return T.empty
+    empty' = return mempty
     ret,addSpace,addComs :: Text -> Gen Text
-    ret t = return $ t `append` (pack "\n")
-    addSpace t = do
-      s <- genSpace
-      return $ t `append` (pack s)
-    addComs t = do
-      x <- choose (0,50)
-      y <- replicateM x genComment
-      return $ t `append` (T.unlines y)
+    ret t = return $ t <> (pack "\n")
+    addSpace t = (\a -> t <> pack a) `liftA` genSpace' 1 size
+    addComs t = (\a -> t <> T.unlines a) `liftA` ((choose (0,size) >>= flip replicateM (genComment size)))
     showNumb :: Integer -> Text -> Gen Text
     showNumb i t = do
-      s <- genSpace
-      return $ t `append` (pack (show i ++ (if i==0 then
-                                              "" else
-                                              [(Prelude.head s)])))
+      s <- genSpace' 1 size
+      return $ t <> (pack ((++) (show i) ((if i==0 then const "" else take 1) $ s)))
 
 parseClausesTest1 :: TestTree
 parseClausesTest1 =
@@ -375,44 +383,41 @@ parseClausesTest3 :: TestTree
 parseClausesTest3 =
   testProperty "parse randomly generated Clauses" $
   forAll
-  madeClauses
+  (sized madeClauses)
   (\(before,after,text) ->
     let gotten = parseTest (parseClauses $ before) text
     in gotten === (return after)
        )
 
-madeClauses :: Gen (CNFBuildErr,CNFBuildErr,Text)
-madeClauses = do
-  clauses <- Prelude.take 20 `liftM` listOf (
-    listOf (do
-    s <- arbitrary
-    x <- choose (1,20)
-    return $ if s then x else (negate x)
-    )
-    )
-  let before = cnfBuilder 20 20
-      after = return $ CNFBuilder 20 20 (toEnum $ Prelude.length clauses) (mkClausesFromIntegers clauses) emptyClause
-  text <- genClausesText clauses
+madeClauses :: Int -> Gen (CNFBuildErr,CNFBuildErr,Text)
+madeClauses size = do
+  clauses <- genClauses maxBound size
+  let setSize = getSizeClauses clauses
+      setSize' = toInteger setSize
+      maxVar = findMaxVar clauses
+      maxVar' = toInteger maxVar
+      before = cnfBuilder maxVar' setSize'
+      after = return $ CNFBuilder maxVar setSize setSize clauses emptyClause
+  text <- genClausesText size clauses
   return (before,after,text)
 
-genClausesText :: [[Integer]] -> Gen Text
-genClausesText ints = do
-  header <- genComments
-  middle <- genClausesText' ints
-  footer <- genComments
+genClausesText :: Int -> Clauses -> Gen Text
+genClausesText size clauses = do
+  header <- genComments size
+  middle <- genClausesText' (clausesToIntegers clauses)
+  footer <- genComments size
   return $ header <> middle <> footer
   where
     genClausesText' :: [[Integer]] -> Gen Text
     genClausesText' [] = return mempty
     genClausesText' (x:xs) = do
-      header <- genComments
-      middle <- generateClause (V.fromList x)
-      footer <- genComments
+      header <- genComments size
+      middle <- generateClause size x
+      footer <- genComments size
       rest <- genClausesText' xs
       return $ header <> middle <> footer <> rest
 
-genComments :: Gen Text
-genComments = do
-  n <- choose (0,50)
-  comments <- replicateM n genComment
-  return $ T.unlines comments
+genComments :: Int -> Gen Text
+genComments size = do
+  m <- choose (0,size)
+  T.unlines `liftA` replicateM m (genComment size)

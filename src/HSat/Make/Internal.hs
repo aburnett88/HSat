@@ -37,7 +37,7 @@ mkNoBounds :: (Ord a, Bounded a) => Bounds a
 mkNoBounds = Bounds minBound maxBound
 
 getLesser :: Bounds a -> a
-getLesser (Bounds a b) = a
+getLesser (Bounds a _) = a
 
 getGreater :: Bounds a -> a
-getGreater (Bounds a b) = b
+getGreater (Bounds _ b) = b

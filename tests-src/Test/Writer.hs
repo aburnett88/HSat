@@ -65,7 +65,6 @@ writeFolderTest1 =
     if success then do
       returnProblemss <- (fromFolder fromFile fp)
       let returnProblems = rights returnProblemss
-      print returnProblemss
       removeDirectoryRecursive fp
       let problemExprs' = map getProblemExpr returnProblems
       return $ listsContainSame problemExprs' problemExprs else

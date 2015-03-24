@@ -58,7 +58,8 @@ fileTests = map (\(a,b) -> fileTestGen (prepare a) b) [
   ("test11-bad", Just . Left $ VarOutsideRange 6 3),
   ("test12-bad", Nothing),
   ("test13-bad", Just . Left $ Initialisation (-3) (-2)),
-  ("test14-bad", Nothing)
+  --This test used to fail. But we updated our parser, it shoudl now pass
+  ("test14-bad",testCNF)
   ]
 
 testCNF :: Maybe (Either CNFBuilderError CNF)
@@ -69,16 +70,12 @@ testCNF = Just . Right . mkCNFFromIntegers $ [
 testWriter1 :: TestTree
 testWriter1 =
   testProperty "Write random CNF, then read and get back same CNF" $
-  forAll
-  (do
-      writer <- arbitrary
-      let cnf = getCNFFromWriter writer
-      return (writer,cnf)
-      )
-  (\(writer,cnf) ->
-    let text = runCNFWriter writer
-        cnf' = parseOnly cnfParser text
-    in case cnf' of
-      Right (Right newCnf) -> cnf === newCnf
-      _ -> property False
-  )
+  property
+  (\writer ->
+    let expectedCNF = getCNFFromWriter writer
+        text        = runCNFWriter writer
+        parseResult = parseOnly cnfParser text
+    in case parseResult of
+      Right (Right gottenCNF) -> gottenCNF === expectedCNF
+      _ -> counterexample (show parseResult) False
+    )

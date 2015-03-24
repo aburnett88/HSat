@@ -19,6 +19,7 @@ import HSat.Parser.CNF
 import Control.Monad.Trans
 import HSat.Problem.ProblemExpr
 import HSat.Problem.Source
+import Data.List (delete)
 
 type ReadFile a = EitherT ProblemParseError IO a
 
@@ -46,8 +47,17 @@ fromFile filePath = do
     P.CNF -> mkCNFProblem `liftA` fromCNFFile filePath
   return $ mkProblem (mkFileSource filePath) expr
 
-fromFolder :: (FilePath -> ReadFile Problem) -> FilePath -> IO [Either ProblemParseError a]
-fromFolder _ _ = return []
+fromFolder :: (FilePath -> ReadFile Problem) -> FilePath -> IO [Either ProblemParseError Problem]
+fromFolder f folder = do
+  exists <- doesDirectoryExist folder
+  contents <- if exists then
+                getDirectoryContents folder else
+                return []
+  let contents' = delete "." . delete ".." $ contents
+  setCurrentDirectory folder
+  xs <- mapM (runEitherT . f) contents'
+  setCurrentDirectory ".."
+  return xs
 
 getProblemType :: FilePath -> Either ProblemParseError ProblemType
 getProblemType str =
