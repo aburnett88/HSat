@@ -9,9 +9,9 @@ module HSat.Parser.CNF.Internal (
 
 import Data.Attoparsec.Text as P
 import HSat.Problem.BSP.CNF.Builder
-import Control.Monad (void,liftM)
+import Control.Monad (void)
 import Data.Text
-
+import Control.Applicative
 
 parseComments :: Parser ()
 parseComments =
@@ -58,7 +58,7 @@ parseClause b = choice [
     return $ b >>= finishClause,
   do
     _ <- many' space'
-    b' <- (\i -> b >>= addLiteral i) `liftM` parseNonZeroInteger
+    b' <- (\i -> b >>= addLiteral i) <$> parseNonZeroInteger
     parseClause b',
   do
     _ <- many' space'
