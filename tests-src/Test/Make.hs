@@ -11,6 +11,8 @@ import qualified Test.Make.BSP as BSP
 import qualified Test.Make.Config as Config
 import qualified Test.Make.Internal as Internal
 import HSat.Make.Config
+import Test.Make.BSP.CNF (testCNFError)
+import HSat.Problem.ProblemExpr
 
 name :: String
 name = "Make"
@@ -38,7 +40,7 @@ makeTest1 =
     return $ case problem of
       Left e -> counterexample
                 ("Unexpected Left: " ++ show e) False
-      Right p -> testProblemAndConfig1 config p
+      Right p -> testCorrectType config p
 
 makeTest2 :: TestTree
 makeTest2 =
@@ -47,7 +49,7 @@ makeTest2 =
     problem <- make config False
     return $ case problem of
       Left e -> testError config e
-      Right r -> testProblemAndConfig r config
+      Right r -> testCorrectType config r
 
   {-ioProperty (
       result <- make config
@@ -56,16 +58,14 @@ makeTest2 =
 -}
 
 testError :: Config -> MakeError -> Property
-testError _ _ =
-  counterexample "testError not written yet" False
+testError (Config p config) err =
+  case (p,config,err) of
+    (_,(CNFProblemType cnfConfig),CNFError e) ->
+      testCNFError cnfConfig e
 
-testProblemAndConfig1 :: Config -> Problem -> Property
-testProblemAndConfig1 _ _ =
-  counterexample "testProblemAndConfig1 not written yet" False
-
-testProblemAndConfig :: Problem -> Config -> Property
-testProblemAndConfig _ _ =
-  counterexample "testProblemAndConfig not written yet" False
+testCorrectType :: Config -> Problem -> Property
+testCorrectType (Config p _) problem =
+  (problemType . getProblemExpr $ problem) === p
     
 makeListTest1 :: TestTree
 makeListTest1 =
@@ -78,5 +78,5 @@ makeListTest1 =
       testProblemsAndConfig :: [Problem] -> Config -> Property
       testProblemsAndConfig [] _ = property True
       testProblemsAndConfig (x:xs) c =
-        (testProblemAndConfig1 c x) .&&.
+        (testCorrectType c x) .&&.
         (testProblemsAndConfig xs c)

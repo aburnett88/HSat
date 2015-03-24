@@ -123,7 +123,7 @@ instance Arbitrary Comment where
     return $ mkComment x (pack y)
 
 instance Arbitrary Orientation where
-  arbitrary = oenof $ map return [Above,Below]
+  arbitrary = oneof $ map return [Above,Below]
 
 instance Arbitrary Text where
   arbitrary = do

@@ -1,9 +1,12 @@
 module Test.Make.BSP.CNF (
-  tests
+  tests,
+  testCNFError
   ) where
 
 import TestUtils
 import qualified Test.Make.BSP.CNF.Internal as Internal
+import HSat.Make.Config
+import HSat.Make.BSP.CNF.Internal
 
 name :: String
 name = "CNF"
@@ -13,6 +16,10 @@ tests =
   testGroup name [
     Internal.tests
     ]
+
+testCNFError :: CNFConfig -> CNFMakeError -> Property
+testCNFError _ _ = counterexample "" False
+
   {-
     testGroup "evaluateCNFConfig" [
        evaluateCNFConfigTest1
