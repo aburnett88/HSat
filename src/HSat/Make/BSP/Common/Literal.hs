@@ -18,6 +18,7 @@ import HSat.Problem.BSP.Common
 import Data.Word
 import Control.Monad.Trans.Either
 import Control.Monad.State
+import Control.Applicative
 
 data LiteralSet = LiteralSet {
   getVarsThatCanAppear :: Set Variable,
@@ -27,22 +28,17 @@ data LiteralSet = LiteralSet {
   getVarsAppearTwice   :: Bool
   } deriving (Eq,Show)
 
-mkLiteralSet :: (MonadRandom m) => Word -> Bool -> m LiteralSet
+mkLiteralSet :: (MonadRandom m, Applicative m) => Word -> Bool -> m LiteralSet
 mkLiteralSet 0 vAppearTwice = return $
                  LiteralSet S.empty M.empty 0 0 vAppearTwice
-mkLiteralSet maxVar vAppearTwice = do
-  trueSet <- mkTrueSet
-  return $ LiteralSet vars trueSet 0 maxVar vAppearTwice
+mkLiteralSet maxVar vAppearTwice =
+  (\ts -> LiteralSet vars ts 0 maxVar vAppearTwice) <$> mkTrueSet
   where
     vars = S.fromList varList
     varList = map mkVariable $ [1..maxVar]
-    mkTrueSet :: (MonadRandom m) => m (Map Variable Sign)
-    mkTrueSet = M.fromList `liftM` mapM (
-      \var -> do
-        bool <- getRandom
-        let sign = mkSign bool
-        return (var,sign)
-        ) varList
+    mkTrueSet :: (MonadRandom m, Applicative m) => m (Map Variable Sign)
+    mkTrueSet = M.fromList <$>
+                mapM (\var -> ((,) var . mkSign) <$> getRandom) varList
 
 data LiteralMakeError =
   CannotFindMapping |
