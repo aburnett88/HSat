@@ -24,7 +24,7 @@ import Data.List (delete)
 type ReadFile a = EitherT ProblemParseError IO a
 
 runReadFile :: ReadFile a -> IO (Either ProblemParseError a)
-runReadFile f = runEitherT f
+runReadFile = runEitherT
 
 fromCNFFile :: FilePath -> ReadFile CNF
 fromCNFFile fp = do
