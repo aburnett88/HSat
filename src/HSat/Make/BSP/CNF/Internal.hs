@@ -1,3 +1,5 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module HSat.Make.BSP.CNF.Internal (
   mkCNFInit,
   mkCNFInit',
@@ -22,17 +24,20 @@ data CNFInit = CNFInit {
   getWillBeSolvable :: Bool
   } deriving (Eq,Show)
 
-mkCNFInit :: (MonadRandom m) => CNFConfig -> m CNFInit
-mkCNFInit (CNFConfig
-           clauseSizeBounds
-           variableBounds
-           clauseSizesBounds
-           varsCanAppearTwice
-           definitelyHasSolution) = do
-  noClauses <- evalBounded clauseSizeBounds
-  noVariables <- evalVariableNumber noClauses variableBounds
-  clauseSizes <- replicateM (fromEnum noClauses) (evalBounded clauseSizesBounds)
-  return $ CNFInit noVariables clauseSizes varsCanAppearTwice definitelyHasSolution
+{-|
+Takes a 'CNFConfig' and, in a 'Random' context, creates a 'CNFInit' data
+type within the bounds set out by the 'CNFConfig' type.
+-}
+mkCNFInit                  :: (MonadRandom m) => CNFConfig -> m CNFInit
+mkCNFInit (CNFConfig {..}) = do
+  numbClauses    <- evalBounded getClauseSizeBounds
+  numbVariables  <- evalVariableNumber numbClauses getVariableBounds
+  sizesOfClauses <- replicateM
+                      (fromEnum numbClauses) $
+                      evalBounded getClauseSizeBounds
+  return $ CNFInit
+    numbVariables sizesOfClauses
+    getVarsCanAppearTwice getDefinitelyHasSolution
 
 evalVariableNumber :: (MonadRandom m) => Word -> VariableNumber -> m Word
 evalVariableNumber x _ = return x

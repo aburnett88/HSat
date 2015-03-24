@@ -46,7 +46,7 @@ data CNFConfig = CNFConfig {
   getVariableBounds   :: VariableNumber,
   getClauseSizesBounds :: ClauseSizeNumber,
   getVarsCanAppearTwice :: Bool,
-  getDefinitielyHasSolution :: Bool
+  getDefinitelyHasSolution :: Bool
   } deriving (Eq,Show)
 
 data VariablePredicate =
