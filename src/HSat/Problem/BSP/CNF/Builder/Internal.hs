@@ -1,3 +1,5 @@
+{-# LANGUAGE RecordWildCards #-}
+
 {-|
 Module      : HSat.Problem.BSP.CNF.Builder.Internal
 Description : The Internal CNFBuilder module
@@ -6,16 +8,19 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-This module provides the definition for the CNFBuidler and CNFBuilderError
-types
+This module exports the definition of the CNFBuilder and CNFBuilderError
+data types, as well as helper functions that define what actions can be
+performed on a CNFBuilder
 -}
 
 module HSat.Problem.BSP.CNF.Builder.Internal (
+  -- * Definitions
   CNFBuilder(..),
   CNFBuilderError(..),
-  canAddLiteral,
-  canFinishClause,
-  canFinalise
+  -- * Query Functions
+  canAddLiteral,       -- :: CNFBuilder -> Bool
+  canFinishClause,     -- :: CNFBuilder -> Bool
+  canFinalise          -- :: CNFBuilder -> Bool
   ) where
 
 import           Data.Word
@@ -37,7 +42,7 @@ data CNFBuilder = CNFBuilder {
   getExptdMaxVar :: Word   ,
   -- | The expected number of 'Clauses'
   getExptdClNumb :: Word   ,
-  -- | The current number of 'Clauses'genCNFBuilderFinalise 10 10 10 10)
+  -- | The current number of 'Clauses'
   getCurrClNumb  :: Word   ,
   -- | The current 'Clauses'
   getCurrClauses :: Clauses,
@@ -54,32 +59,24 @@ Denotes whether a 'Literal' can be added to the 'CNFBuilder' and it
 remains a valid 'CNFBuilder'
 -}
 canAddLiteral :: CNFBuilder -> Bool
-canAddLiteral builder =
-  let curr       = getCurrClNumb builder
-      exptd      = getExptdClNumb builder
-      currClause = getCurrClause builder
-  in (curr <  exptd) || (
-     (curr == exptd) &&
-     not (clauseIsEmpty currClause)
-     )
+canAddLiteral (CNFBuilder{..}) =
+  (getCurrClNumb < getExptdClNumb) ||
+  ((getCurrClNumb == getExptdClNumb) &&
+   (not $ clauseIsEmpty getCurrClause))
 
 {-|
 Returns 'True' if the CNFBuilder can be finalised (turned into a 'CNF')
 -}
 canFinalise         :: CNFBuilder -> Bool
-canFinalise builder =
-  let curr  = getCurrClNumb builder
-      exptd = getExptdClNumb builder
-  in (curr  == exptd)
-
+canFinalise (CNFBuilder{..}) =
+  getCurrClNumb == getExptdClNumb
+  
 {-|
 Returns 'True' if a 'Clause' can be finished. Empty clauses can also be added
 to the 'CNFBuilder'
 -}
 canFinishClause :: CNFBuilder -> Bool
 canFinishClause = canAddLiteral
-
-
 
 instance Printer CNFBuilder where
   compact builder   = printCNFBuilder builder   Compact
@@ -90,12 +87,7 @@ instance Printer CNFBuilder where
 Prints the CNFBuilder with a given 'PrinterType'
 -}
 printCNFBuilder :: CNFBuilder -> PrinterType -> Doc
-printCNFBuilder (CNFBuilder
-                 exptdMaxVar
-                 exptdClNumb
-                 currClNumb
-                 currClauses
-                 currClause) pType =
+printCNFBuilder (CNFBuilder{..}) pType =
   title          <> line <>
   maxVar         <> line <>
   clauses        <> line <>
@@ -110,26 +102,26 @@ printCNFBuilder (CNFBuilder
       case pType of
         Compact -> text "Max Var"
         _       -> text "Maximum Variable"
-      <> colon <+> word exptdMaxVar
+      <> colon <+> word getExptdMaxVar
     clauses :: Doc
     clauses =
       case pType of
         Compact -> text "Clauses" <> colon               <+>
-                   word currClNumb                        <>
+                   word getCurrClNumb                        <>
                    text "/"                               <>
-                   word exptdClNumb
+                   word getExptdClNumb
         _       -> text "Clauses"   <> colon             <+>
-                   word exptdClNumb <> line               <>
+                   word getExptdClNumb <> line               <>
                    text "Current Clause Counnt" <> colon <+>
-                   word currClNumb
+                   word getCurrClNumb
     currentClauses :: Doc
     currentClauses = case pType of
-      Compact -> compact currClauses
-      _ -> printClausesWithContext "and" "or" exptdMaxVar func currClauses
+      Compact -> compact getCurrClauses
+      _ -> printClausesWithContext "and" "or" getExptdMaxVar func getCurrClauses
     currentClause :: Doc
     currentClause = case pType of
-      Compact -> compact currClause
-      _ -> printClauseWithContext "OR" exptdMaxVar func currClause
+      Compact -> compact getCurrClause
+      _ -> printClauseWithContext "OR" getExptdMaxVar func getCurrClause
     func :: Literal -> Doc
     func = case pType of
       Compact -> compact
