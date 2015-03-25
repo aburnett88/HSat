@@ -38,7 +38,7 @@ printBuilders =
     ]
 
 clauses :: Clauses
-clauses = mkClausesFromIntegers $ [
+clauses = mkClausesFromIntegers [
   [-24,-185,63,56,46,32,4,-47,-5,-1],
   [134,45,63,67,88,-91,100],
   [1,1,1,1,1],
@@ -47,7 +47,7 @@ clauses = mkClausesFromIntegers $ [
   ]
 
 clause :: Clause
-clause = mkClauseFromIntegers $ [
+clause = mkClauseFromIntegers [
   23,-65,11,199,-198]
 
 printErrors1 :: TestTree

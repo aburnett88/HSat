@@ -34,11 +34,11 @@ fileTestGen fp val =
     let result = parseOnly cnfParser fileContent
     case val of
       Nothing ->
-        assertBool ("This should not have parsed: " ++ (show result))
+        assertBool ("This should not have parsed: " ++ show result)
         (isLeft result)
       Just exptdVal -> case result of
         Right cnf' -> exptdVal @=? cnf'
-        _ -> assertBool ("Parser failed when it should not have done so:" ++ (show result)) False
+        _ -> assertBool ("Parser failed when it should not have done so:" ++ show result) False
 
 prepare :: FilePath -> FilePath
 prepare fp = "tests-src/Files/" ++ fp ++ ".cnf"

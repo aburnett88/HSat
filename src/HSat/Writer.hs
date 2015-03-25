@@ -30,9 +30,9 @@ plainProblemToFile problem fp = do
   let text = toPlainText expr
       fileName = createFileName fp expr
   exists <- doesFileExist fileName
-  case exists of
-    False -> T.writeFile fileName text >> return True
-    True -> return False
+  if exists then
+    T.writeFile fileName text >> return True else
+    return False
 
 createFileName :: FilePath -> ProblemExpr -> FilePath
 createFileName fp expr =
@@ -50,7 +50,8 @@ toPlainText expr =
   case problemType expr of
     CNF -> runCNFWriter . mkCNFWriter . problemToCNF $ expr
 
-writeFolder :: (Problem -> FilePath -> IO Bool) -> [Problem] -> FilePath -> IO Bool
+writeFolder :: (Problem -> FilePath -> IO Bool) -> [Problem] -> FilePath ->
+               IO Bool
 writeFolder f problems folder = do
   folderExists <- doesDirectoryExist folder
   if folderExists then
@@ -63,5 +64,5 @@ writeFolder f problems folder = do
   where
     f' :: Bool -> (Problem,Integer) -> IO Bool
     f' False _ = return False
-    f' _ (p,i) = f p ("file" ++ (show i))
+    f' _ (p,i) = f p ("file" ++ show i)
       

@@ -41,11 +41,12 @@ type CNFBuildErr = Either CNFBuilderError CNFBuilder
 Creates an initial CNFBuilder with a set number of variables and clauses
 -}
 cnfBuilder     :: Integer -> Integer -> CNFBuildErr
-cnfBuilder v c =
-  if v < 0 || v > (toInteger (maxBound :: Word)) || c < 0 || c > (toInteger (maxBound :: Word)) then
+cnfBuilder v c = 
+  if v < 0 || v > toInteger (maxBound :: Word) ||
+     c < 0 || c > toInteger (maxBound :: Word) then
     Left $ Initialisation v c else
     return $ cnfBuilder' v c
-    
+
 {-|
 Creates an initial CNFBuilder with a set number of varialbes and clauses, but
 returns the result purely
@@ -72,9 +73,9 @@ Finishes the current 'Clause' and moves the pointer onto the next one
 finishClause'     :: CNFBuilder -> CNFBuilder
 finishClause' cnf = g . f $ 
   cnf {
-     getCurrClauses = newClauses,
-     getCurrClause  = emptyClause
-     }
+    getCurrClauses = newClauses,
+    getCurrClause  = emptyClause
+    }
   where
     f          = if clauseIsEmpty currClause then
                    incrClause else
@@ -126,10 +127,12 @@ addLiteral       :: Integer -> CNFBuilder -> CNFBuildErr
 addLiteral lit cnf =
   let lit' = abs lit
       maxVar = getExptdMaxVar cnf
-  in if lit' == 0 || lit' > (toInteger maxVar) then
+  in if lit' == 0 || lit' > toInteger maxVar then
        Left $ VarOutsideRange lit' maxVar else
-       if (getExptdClNumb cnf) == (getCurrClNumb cnf) && (clauseIsEmpty $ getCurrClause cnf) then
-         Left $ IncorrectClauseNumber ((getExptdClNumb cnf) + 1) (getExptdClNumb cnf) else
+       if getExptdClNumb cnf == getCurrClNumb cnf && clauseIsEmpty (
+         getCurrClause cnf) then 
+         Left $ IncorrectClauseNumber
+         (getExptdClNumb cnf + 1) (getExptdClNumb cnf) else
          return . addLiteral' lit $ cnf
 
 {-|

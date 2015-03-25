@@ -115,8 +115,8 @@ testCNFBuilderGenTest1 :: Integer -> Integer -> CNFBuilder -> Property
 testCNFBuilderGenTest1 vars cl builder =
   let valMaxVar = getExptdMaxVar builder
       valClNumb = getExptdClNumb builder
-  in (valMaxVar === (fromInteger vars)) .&&.
-     (valClNumb === (fromInteger cl))
+  in (valMaxVar === fromInteger vars) .&&.
+     (valClNumb === fromInteger cl)
 
 cnfBuilder'Test1 :: TestTree
 cnfBuilder'Test1 =
@@ -127,7 +127,7 @@ cnfBuilder'Test1 =
     )
 
 genVarsOrClausesOutsideRange :: Gen (Integer,Integer)
-genVarsOrClausesOutsideRange =   (oneof [
+genVarsOrClausesOutsideRange =  oneof [
       do
         vars <- choose (0,maxWord')
         clauses <- genIntegerOutsideRange
@@ -141,7 +141,6 @@ genVarsOrClausesOutsideRange =   (oneof [
         clauses <- genIntegerOutsideRange
         return (vars,clauses)
         ]
-                                  )
 
 cnfBuilder'Test2 :: TestTree
 cnfBuilder'Test2 =

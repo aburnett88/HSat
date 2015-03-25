@@ -10,8 +10,8 @@ The 'Sign' type is a binary data structure that, when paired with a second
 element, yields either the positive or negative occurrence of that second
 element.
 
-For example, when paired with a positive number (that is non-zero), it can be used to describe a
-literal within a Boolean Formula.
+For example, when paired with a positive number (that is non-zero), it can be
+used to describe a literal within a Boolean Formula.
 -}
 module HSat.Problem.BSP.Common.Sign (
   -- * Sign
@@ -90,7 +90,8 @@ neg = Sign False
 {-|
 Constructs a 'Sign' from an 'Integer'.
 
-A positive 'Integer' will construct a positive 'Sign' while a negative 'Integer' will construct a negative 'Sign'.
+A positive 'Integer' will construct a positive 'Sign' while a negative
+'Integer' will construct a negative 'Sign'.
 
 An 'Integer' of zero will throw a run-time error. 
 -}
@@ -106,7 +107,8 @@ mkSignFromInteger intgr
 {-|
 Converts a 'Sign' into an 'Integer'.
 
-Will return the value '1' if the 'Sign' is positive and the value '-1' if the 'Sign' is negative.
+Will return the value '1' if the 'Sign' is positive and the value '-1' if the
+'Sign' is negative.
 -}
 signToInteger      :: Sign -> Integer
 signToInteger sign = if isPos sign then

@@ -30,81 +30,76 @@ tests =
        ]
     ]
 
+sss :: IO (Bool,LiteralSet,Word)
+sss = do
+  size <- generate $ choose (0,100)
+  s <- generate arbitrary
+  set <- mkLiteralSet 100 s
+  return (s,set,size)
+
 makeClauseTest1 :: TestTree
 makeClauseTest1 =
   testProperty "makeClause >=1 True" $ ioProperty $ do
-    size <- generate $ choose (0,100)
-    s <- generate arbitrary
-    set <- mkLiteralSet 100 s
+    (s,set,size) <- sss
     result <- run (makeClause Any size) set
     return $ case result of
       Left e ->
         counterexample ("Unexpected Left: " ++ show e) False
       Right ((b,clause),_) ->
         let n = checkClause clause (getTrueSet set)
-            trivial = property $ if (not s) then not $ triviallyTrue clause else True
-        in (property $ (
+            trivial = property $ s || not (triviallyTrue clause)
+        in (property (
           if b then
-            (n == size) else
-            if size == 0 then
-              True else
-              n >= 1)) .&&. trivial
+            n == size else
+            size == 0 || (n >= 1)) .&&. trivial)
 
 run :: (MonadRandom m) => LiteralMake m a -> LiteralSet -> m (Either LiteralMakeError (a,LiteralSet))
 run func initial = runEitherT (runStateT func initial)
 
-checkClause :: Clause -> (Map Variable Sign) -> Word
+checkClause :: Clause -> Map Variable Sign -> Word
 checkClause (Clause vect _) m =
   V.foldl f 0 vect
   where
     f :: Word -> Literal -> Word
     f n l =
-      if (m M.! (getVariable l) == (getSign l)) then (n+1) else n
+      if m M.! getVariable l == getSign l then n+1
+      else n
       
 makeClauseTest2 :: TestTree
 makeClauseTest2 =
   testProperty "checkClause All" $ ioProperty $ do
-    size <- generate $ choose (0,100)
-    s <- generate arbitrary
-    set <- mkLiteralSet 100 s
+    (s,set,size) <- sss
     result <- run (makeClause All size) set
     return $ case result of
       Left e ->
         counterexample ("Unexpected Left: " ++ show e) False
       Right ((b,clause),_) ->
         let n = checkClause clause (getTrueSet set)
-            trivial = property $ if (not s) then not $ triviallyTrue clause else True
-        in property $ (
-          if b then
-            (n==size) else
-            False) .&&. trivial
-
+            trivial = property (s || not (triviallyTrue clause)) 
+        in property $ (b && n==size) .&&. trivial
+           
 makeClauseTest3 :: TestTree
 makeClauseTest3 =
   testProperty "checkClause None" $ ioProperty $ do
-    size <- generate $ choose (0,100)
-    s <- generate arbitrary
-    set <- mkLiteralSet 100 s
+    (s,set,size) <- sss
     result <- run (makeClause None size) set
     return $ case result of
       Left e ->
         counterexample ("Unexpected Left: " ++ show e) False
       Right ((b,clause),_) ->
         let n = checkClause clause (getTrueSet set)
-            trivial = property $ if (not s) then not $ triviallyTrue clause else True
+            trivial = property $ s || not (triviallyTrue clause) 
         in property $ (
-          if b then
-            (n==size) else
-            True) .&&. trivial
+          not b || (n == size)) .&&. trivial
 
 triviallyTrue :: Clause -> Bool
 triviallyTrue (Clause vectLits _) = triviallyTrue' vectLits S.empty
   where
     triviallyTrue' :: V.Vector Literal -> Set Variable -> Bool
     triviallyTrue' vect s =
-      if vect == V.empty then False else
-        let var = getVariable . V.head $ vect
-            vect' = V.tail vect
-        in if S.member var s then
-             True else
-             triviallyTrue' vect' (S.insert var s)
+      (vect /= V.empty) &&
+      (let var = getVariable . V.head $ vect
+           vect' = V.tail vect
+       in S.member var s ||
+          triviallyTrue' vect' (S.insert var s)
+          )

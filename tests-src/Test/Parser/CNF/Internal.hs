@@ -77,7 +77,7 @@ parseCommentTest2 =
 --General framework for above two tests
 parseCommentGen           :: String -> String -> TestTree
 parseCommentGen title str =
-  testCase title $ (parseTest parseComment $ pack str) @=? Right ()
+  testCase title $ parseTest parseComment (pack str) @=? Right ()
 
 parseCommentTest3 :: TestTree
 parseCommentTest3 =
@@ -97,12 +97,7 @@ genComment _ = do
     genStr :: Gen Text
     genStr = T.filter f `liftA` arbitrary
     f :: Char -> Bool
-    f t = (t /= '\n' && t/='\r')
-
-
-
-
-
+    f t = t /= '\n' && t/='\r'
 
 parseCommentTest4 :: TestTree
 parseCommentTest4 =
@@ -154,12 +149,11 @@ parseProblemLineTest2 =
 genSpace' :: Int -> Int -> Gen String
 genSpace' offSet size = do
   n <- (offSet +) `liftA` choose (0,size)
-  replicateM n $ (
+  replicateM n $
     oneof [
        return ' ',
        return '\t'
        ]
-    )
 
 genSpace :: Int -> Gen String
 genSpace = genSpace' 0
@@ -172,13 +166,13 @@ parseProblemLineTest3 =
       clauses <- arbitrary
       let genSpace0 = genSpace' 1 size
       text <- do
-        p <- return "p"
+        let p = "p"
+            cnf = "cnf"
+            v' = show vars
+            c' = show clauses
         spc1 <- genSpace0
-        cnf <- return "cnf"
         spc2 <- genSpace0
-        v' <- return (show vars)
         spc3 <- genSpace0
-        c' <- return (show clauses)
         spc4 <- genSpace size
         return $
           p ++ spc1 ++
@@ -196,7 +190,7 @@ parseNonZeroIntegerTest1 :: TestTree
 parseNonZeroIntegerTest1 =
   testCase ("parseNonZeroInteger \"" ++ testStr ++ "\"") $ assert (
     parseTest parseNonZeroInteger (pack testStr) ==
-    (Right word)
+    Right word
     )
   where
     testStr = show word
@@ -228,7 +222,7 @@ parseNonZeroIntegerTest4 =
   mkIntegerNonZero
   (\word ->
     let exptd = return word
-    in (parseTest parseNonZeroInteger (pack $ show word)) === exptd
+    in parseTest parseNonZeroInteger (pack $ show word) === exptd
        )
 
 parseClauseTest1 :: TestTree
@@ -238,11 +232,7 @@ parseClauseTest1 =
     (Right $ finishClause cnf')
     )
   where
-    cnf = CNFBuilder 10 10 0 emptyClauses emptyClause
-    cnf' = V.foldl (flip addLiteral') cnf . V.map literalToInteger $ (getVectLiteral cl)
-    cl = mkClauseFromLits $ map mkLiteralFromInteger [
-      1,2,3,-4,-5,6,-7,8,9
-                         ]
+    (cnf,cnf') = getTuple
     testStr = "1 2 3 -4 -5 6 -7 8 9 0"
     
 
@@ -250,14 +240,10 @@ parseClauseTest2 :: TestTree
 parseClauseTest2 =
   testCase ("parseClause \"" ++ testStr ++ "\"") $ assert (
     parseTest (parseClause $ return cnf) (pack testStr) ==
-    (Right  $ finishClause $ cnf')
+    (Right $ finishClause cnf')
     )
     where
-      cnf = CNFBuilder 10 10 0 emptyClauses emptyClause
-      cnf' = V.foldl (flip addLiteral') cnf . V.map literalToInteger $ (getVectLiteral cl)
-      cl = mkClauseFromLits $ map mkLiteralFromInteger [
-        1,2,3,-4,-5,6,-7,8,9
-                           ]
+      (cnf,cnf') = getTuple
       testStr = "1   2   3   -4 -5    6 -7   8            9 0"
 
 parseClauseTest3 :: TestTree
@@ -267,11 +253,7 @@ parseClauseTest3 =
     (Right $ finishClause cnf')
     )
     where
-      cnf = CNFBuilder 10 10 0 emptyClauses emptyClause
-      cnf' = V.foldl (flip addLiteral') cnf . V.map literalToInteger $ (getVectLiteral cl)
-      cl = mkClauseFromLits $ map mkLiteralFromInteger [
-        1,2,3,-4,-5,6,-7,8,9
-                           ]
+      (cnf,cnf') = getTuple
       testStr = "1   2   3   -4 -5 \n   6 -7   8    \n        9 0"
 
 parseClauseTest4 :: TestTree
@@ -281,12 +263,17 @@ parseClauseTest4 =
     (Right $ finishClause cnf')
     )
     where
-      cnf = CNFBuilder 10 10 0 emptyClauses emptyClause
-      cnf' = V.foldl (flip addLiteral') cnf . V.map literalToInteger $ (getVectLiteral cl)
-      cl = mkClauseFromLits $ map mkLiteralFromInteger [
-        1,2,3,-4,-5,6,-7,8,9
-                           ]
+      (cnf,cnf') = getTuple
       testStr = "1   2 \nc initial\n  3   -4 -5 \nc hello world\n   6 -7   8    \n        9 0"
+
+getTuple :: (CNFBuilder,CNFBuilder)
+getTuple = (cnf,cnf')
+  where
+    cnf = CNFBuilder 10 10 0 emptyClauses emptyClause
+    cnf' = V.foldl (flip addLiteral') cnf . V.map literalToInteger $ getVectLiteral cl
+    cl = mkClauseFromLits $ map mkLiteralFromInteger [
+      1,2,3,-4,-5,6,7,8,9]
+    
 
 --282
 
@@ -296,17 +283,16 @@ parseClauseTest5 =
   forAll
   (sized genX)
   (\(before,after,text) ->
-    let gotten = parseTest (parseClause $ before) text
-    in  gotten === (return  after)
+    let gotten = parseTest (parseClause before) text
+    in  gotten === return after
         )
-
 
 genX :: Int -> Gen (CNFBuildErr,CNFBuildErr,Text)
 genX size = do
   before <- return `liftA` genCNFBuilderEmptyClause 10
   clause <- arbitrary
   let lits = clauseToIntegers clause
-      after = (foldl (\b' l -> b' >>= addLiteral l) before lits) >>= finishClause
+      after = foldl (\b' l -> b' >>= addLiteral l) before lits >>= finishClause
   text <- generateClause size lits
   return (before,after,text)
 
@@ -329,24 +315,29 @@ generateClause size ints = foldM generateClause' T.empty ((++) ints [0])
     empty' :: Gen Text
     empty' = return mempty
     ret,addSpace,addComs :: Text -> Gen Text
-    ret t = return $ t <> (pack "\n")
+    ret t = return $ t <> pack "\n"
     addSpace t = (\a -> t <> pack a) `liftA` genSpace' 1 size
-    addComs t = (\a -> t <> T.unlines a) `liftA` ((choose (0,size) >>= flip replicateM (genComment size)))
+    addComs t = (\a -> t <> T.unlines a) `liftA` (choose (0,size) >>= flip replicateM (genComment size))
     showNumb :: Integer -> Text -> Gen Text
     showNumb i t = do
       s <- genSpace' 1 size
-      return $ t <> (pack ((++) (show i) ((if i==0 then const "" else take 1) $ s)))
+      return $ t <> pack ((++) (show i) ((if i==0 then const "" else take 1) s))
 
 parseClausesTest1 :: TestTree
 parseClausesTest1 =
   testCase ("parseClauses \"" ++ testStr ++ "\"") $ assert (
     parseOnly (parseClauses $ return cnf) (pack testStr) @=?
-    (Right cnf')
+    Right cnf'
     )
   where
     testStr = "1 2 3 -4 -5 -6 0 " ++
               "-7 -8 9 10 0 " ++ "-1 -2 -3 -4 -7 0 " ++
               "1 1 1 1 1 1 0"
+    (cnf,cnf') = getTripple
+
+getTripple :: (CNFBuilder,Either l CNFBuilder)
+getTripple = (cnf,cnf')
+  where
     cnf = CNFBuilder 10 10 0 emptyClauses emptyClause
     cnf' = return $ CNFBuilder 10 10 4 clauses emptyClause
     clauses = mkClausesFromIntegers [
@@ -360,7 +351,7 @@ parseClausesTest2:: TestTree
 parseClausesTest2=
   testCase ("parseClauses \"" ++ testStr ++ "\"") $ assert (
     parseTest (parseClauses $ return cnf) (pack testStr) @=?
-    (Right cnf')
+    Right cnf'
     )
   where
     testStr = "c the evil is hardest to find\n" ++
@@ -370,14 +361,7 @@ parseClausesTest2=
               "c finding the last one is the easiest\n" ++
               "-1 -2 -3 -4 -7\nc intermitant\n " ++
               "0 1 1 1 1 1 1 0"
-    cnf = CNFBuilder 10 10 0 emptyClauses emptyClause
-    cnf' = return $ CNFBuilder 10 10 4 clauses emptyClause
-    clauses = mkClausesFromIntegers [
-      [1,2,3,-4,-5,-6],
-      [-7,-8,9,10],
-      [-1,-2,-3,-4,-7],
-      [1,1,1,1,1,1]
-      ]
+    (cnf,cnf') = getTripple
 
 parseClausesTest3 :: TestTree
 parseClausesTest3 =
@@ -385,8 +369,8 @@ parseClausesTest3 =
   forAll
   (sized madeClauses)
   (\(before,after,text) ->
-    let gotten = parseTest (parseClauses $ before) text
-    in gotten === (return after)
+    let gotten = parseTest (parseClauses before) text
+    in gotten === return after
        )
 
 madeClauses :: Int -> Gen (CNFBuildErr,CNFBuildErr,Text)

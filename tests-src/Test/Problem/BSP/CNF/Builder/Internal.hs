@@ -125,7 +125,7 @@ instance Validate CNFBuilderError where
   validate (IncorrectClauseNumber gotten expected) =
     expected /= gotten
   validate (VarOutsideRange gotten expected)       =
-    ((toInteger expected) < gotten) ||
+    (toInteger expected < gotten) ||
     (gotten == 0)
   validate (Initialisation variables clauses)      =
     (variables < 0) || (clauses < 0) ||
@@ -150,7 +150,7 @@ instance Arbitrary CNFBuilder where
           _
           currClauses
           currClause) =
-    let mkBuilder = \(vect,clause) ->
+    let mkBuilder (vect, clause) =
           let size = sizeFunc vect clause
           in CNFBuilder maxVar setClNumb size vect clause
     in map mkBuilder $ shrink (currClauses,currClause)
@@ -200,8 +200,8 @@ genBuilderHelper      :: Int -> Gen (Clauses,Word,Word)
 genBuilderHelper size = do
   maxVar'    <- toEnum `liftA` (1+) `liftA` choose (0,size)
   clauses    <- genClauses maxVar' size
-  let baseVal = 1 + (getSizeClauses clauses)
-  targetSize <- ((+) baseVal) `liftA` toEnum `liftA` choose (0,size)
+  let baseVal = 1 + getSizeClauses clauses
+  targetSize <- (baseVal +) `liftA` toEnum `liftA` choose (0,size)
   maxVar     <- ((+) maxVar' . toEnum ) `liftA` choose (1,size)
   return (clauses,targetSize,maxVar)
 

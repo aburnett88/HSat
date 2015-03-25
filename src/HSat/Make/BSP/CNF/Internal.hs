@@ -48,7 +48,7 @@ mkCNFInit' c = do
   return (c,initial)
   
 mkCNF :: (MonadRandom m) => CNFInit -> m (Either CNFMakeError CNF)
-mkCNF _ = do
+mkCNF _ =
   return . Right . mkCNFFromClauses $ emptyClauses
 
 mkCNF' :: (MonadRandom m) => CNFInit -> m CNF

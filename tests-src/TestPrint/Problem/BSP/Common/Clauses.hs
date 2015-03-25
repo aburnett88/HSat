@@ -33,7 +33,7 @@ printer =
 splitter :: Int -> [Integer] -> [[Integer]]
 splitter n xs = if length xs < n then
                   [xs] else
-                  (take n xs) : splitter n (drop n xs)
+                  take n xs : splitter n (drop n xs)
 
 printEmptyClauses :: TestTree
 printEmptyClauses =
@@ -42,17 +42,17 @@ printEmptyClauses =
 printManyClausesAllShort :: TestTree
 printManyClausesAllShort =
   printTest "Short Clauses" $
-  mkClausesFromIntegers . (splitter 3) . filter (/=0) $ [-100..100]
+  mkClausesFromIntegers . splitter 3 . filter (/=0) $ [-100..100]
 
 printManyClausesAllLong :: TestTree
 printManyClausesAllLong =
   printTest "Long Clauses" $
-  mkClausesFromIntegers . (splitter 40) . filter (/=0) $ [-100..100]
+  mkClausesFromIntegers . splitter 40 . filter (/=0) $ [-100..100]
 
 printManyClausesLongAndVarsLong :: TestTree
 printManyClausesLongAndVarsLong =
   printTest "Long clauses, vars long" $
-  mkClausesFromIntegers . (splitter 40) $ [n .. (n + 500)] ++ [
+  mkClausesFromIntegers . splitter 40 $ [n .. (n + 500)] ++ [
     (negate n) .. (negate (n + 500))]
   where
     n = 134589734958734859
@@ -60,7 +60,7 @@ printManyClausesLongAndVarsLong =
 printManyClausesVarsLong :: TestTree
 printManyClausesVarsLong =
   printTest "Many clauses vars long" $
-  mkClausesFromIntegers . (splitter 3) $ [n .. (n + 50)] ++ [
+  mkClausesFromIntegers . splitter 3 $ [n .. (n + 50)] ++ [
     (negate n) .. (negate (n + 500))]
   where
     n = 345783495734895

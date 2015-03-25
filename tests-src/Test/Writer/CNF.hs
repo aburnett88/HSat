@@ -49,7 +49,7 @@ getCNFFromWriterTest1 =
       commentsToAdd <- choose (0,100)
       let w = mkCNFWriter cnf
       preambles <- replicateM preamblesToAdd arbitrary
-      let p = foldl (\wr c -> addPreambleComment c wr) w preambles
+      let p = foldl (flip addPreambleComment) w preambles
       comments <-replicateM commentsToAdd arbitrary
       c <- foldM (\wr c -> 
                      case wplClauses . writeProblemLine $ wr of
@@ -100,13 +100,13 @@ addClauseCommentTest1 =
                   writeClauses = newClauses
                   }
                 (l,r) = V.splitAt (fromEnum index) $ writeClauses writer
-                newClauses = l V.++ (V.cons newCl (V.tail r))
+                newClauses = l V.++ V.cons newCl (V.tail r)
                 newCl = (V.head r) {
-                  wpClause = (wpClause . V.head $ r),
+                  wpClause = wpClause . V.head $ r,
                   wclComments = (wclComments . V.head $ r) ++ [comment]
                                 }
             in counterexample
-               ("Should have been equal")
+               "Should have been equal"
                (exptd === written)
           Nothing ->
             counterexample
@@ -130,7 +130,7 @@ addClauseCommentTest2 =
   (\(comment,writer,w) ->
     let writer' = addClauseComment w comment writer
     in counterexample
-       ("Value excepted, should not have been")
+       "Value excepted, should not have been"
        (writer' === Nothing)
        )
 
@@ -140,17 +140,17 @@ addPreambleCommentTest1 =
     \(comment,writer) ->
     let preamble = writeProblemLine writer
         exptdPreamble = preamble {
-          wplComments = (wplComments preamble) ++ [comment]
+          wplComments = wplComments preamble ++ [comment]
           }
         exptd = writer {
           writeProblemLine = exptdPreamble
           }
-    in exptd === (addPreambleComment comment writer)
+    in exptd === addPreambleComment comment writer
        )
 
 runCNFWriterTest1 :: TestTree
 runCNFWriterTest1 =
-  testProperty "read . write == cnf" $ property $
+  testProperty "read . write == cnf" $ property
   (\cnfWriter ->
     let exptd = return . return $ getCNFFromWriter cnfWriter
         gotten = parseOnly cnfParser (runCNFWriter cnfWriter)

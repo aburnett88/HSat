@@ -28,7 +28,7 @@ printer =
 
 printSources :: TestTree
 printSources =
-  printList "Sources" $ sources
+  printList "Sources" sources
 
 sources :: [Source]
 sources = [

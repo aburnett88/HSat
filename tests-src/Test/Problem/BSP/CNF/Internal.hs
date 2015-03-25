@@ -90,5 +90,5 @@ instance Arbitrary CNF where
   shrink cnf =
     let maxVar  = getMaxVar cnf
         clauses = getClauses cnf
-        cnfFunc = \cl -> CNF maxVar (getSizeClauses cl) cl
+        cnfFunc cl = CNF maxVar (getSizeClauses cl) cl
     in map cnfFunc $ shrink clauses

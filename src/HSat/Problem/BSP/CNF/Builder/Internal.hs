@@ -62,7 +62,7 @@ canAddLiteral :: CNFBuilder -> Bool
 canAddLiteral (CNFBuilder{..}) =
   (getCurrClNumb < getExptdClNumb) ||
   ((getCurrClNumb == getExptdClNumb) &&
-   (not $ clauseIsEmpty getCurrClause))
+   not (clauseIsEmpty getCurrClause))
 
 {-|
 Returns 'True' if the CNFBuilder can be finalised (turned into a 'CNF')
@@ -117,7 +117,8 @@ printCNFBuilder (CNFBuilder{..}) pType =
     currentClauses :: Doc
     currentClauses = case pType of
       Compact -> compact getCurrClauses
-      _ -> printClausesWithContext "and" "or" getExptdMaxVar func getCurrClauses
+      _ -> printClausesWithContext "and" "or"
+           getExptdMaxVar func getCurrClauses
     currentClause :: Doc
     currentClause = case pType of
       Compact -> compact getCurrClause
@@ -138,7 +139,8 @@ data CNFBuilderError =
   IncorrectClauseNumber Word Word |
   -- | When a 'Literal' is constructed outside the range specified
   VarOutsideRange Integer Word    |
-  -- | When the number of 'Variable's or 'Clause's are not within the bounds of a word
+  -- | When the number of 'Variable's or
+  -- | 'Clause's are not within the bounds of a word
   Initialisation Integer Integer
   deriving (Eq)
 
@@ -170,10 +172,10 @@ printBuildErr builderErr pType =
                   _ -> "<="
       in errorDoc pType $
            text "Variable outside range"    <> colon  <+>
-           word 0 <+> le <+> (text $ show gotten) <+>   leq  <+>
+           word 0 <+> le <+> text (show gotten) <+>   leq  <+>
            word expected
     Initialisation variables clauses ->
       errorDoc pType $
         text "Initialisation of arguments incorrect" <+>
-        text "Argumnets:" <+> (text $ show variables) <+> (text $ show clauses)
+        text "Argumnets:" <+> text (show variables) <+> text (show clauses)
 

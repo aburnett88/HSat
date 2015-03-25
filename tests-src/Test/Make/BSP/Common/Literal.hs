@@ -96,9 +96,9 @@ generateNonFullVAppear = do
   removal <- choose (1,v-1)
   s <- generateSet (S.fromList . map mkVariable $ [1..v]) removal
   l <- choose (0,removal)
-  if (toEnum $ S.size s) == (v-removal) then
-    return (LiteralSet s m l v False) else
-    return (LiteralSet s m l v False)
+ -- if toEnum $ S.size s == (v-removal) then
+  return (LiteralSet s m l v False) --else
+  --  return (LiteralSet s m l v False)
 
 generateSet :: (Ord a) => Set a -> Word -> Gen (Set a)
 generateSet s n =
@@ -109,7 +109,7 @@ generateSet s n =
       generateSet s' (n-1)
 
 resetTest1 :: TestTree
-resetTest1 = do
+resetTest1 =
   testProperty "reset has correct vals" $ ioProperty $ do
     literalset <- generate generateNonFullVAppear
     result <- f reset literalset
@@ -120,7 +120,7 @@ resetTest1 = do
               getVarsThatCanAppear = S.fromList . map mkVariable $ [1..(getMaximumVariable ls)],
               getHasGeneratedTrue  = 0
               }
-        return $ property $ (exptd === ls)
+        return $ property $ exptd === ls
 
 genericRunOutOfVars :: LiteralMake IO Literal ->
                        TestTree
@@ -132,7 +132,7 @@ genericRunOutOfVars function =
               }
     result <- f function ls
     case result of
-      Left NoVariables -> assert $ True
+      Left NoVariables -> assert True
       _ -> assert False
 
 getRandomLiteralTest1 :: TestTree
@@ -146,8 +146,8 @@ getRandomLiteralTest1 =
       Right (l,newLs) -> 
         let newHasGen = getHasGeneratedTrue newLs
         in if newHasGen > hasGen then
-          (checkTrue l ls newLs) else
-          (checkGeneral l ls newLs)
+          checkTrue l ls newLs else
+          checkGeneral l ls newLs
 
 checkGeneral :: Literal -> LiteralSet -> LiteralSet -> Property
 checkGeneral l oldLs newLs =
@@ -156,7 +156,7 @@ checkGeneral l oldLs newLs =
       exptdCanAppear = if vAppearTwice then
                          oldSet else
                          S.delete (getVariable l) oldSet
-  in property $ (exptdCanAppear == (getVarsThatCanAppear newLs))
+  in property $ exptdCanAppear == getVarsThatCanAppear newLs
 
 getTrueLiteralTest1 :: TestTree
 getTrueLiteralTest1 =
@@ -177,10 +177,10 @@ checkTrue l oldLs newLs =
       mapping = getTrueSet oldLs
       sameSign = case M.lookup (getVariable l) mapping of
         Nothing -> False
-        Just s' -> s' == (getSign l)
-      exptdNumb = (getHasGeneratedTrue oldLs) + 1
+        Just s' -> s' == getSign l
+      exptdNumb = getHasGeneratedTrue oldLs + 1
       exptdLs = oldLs {
         getVarsThatCanAppear = exptdVCanAppear,
         getHasGeneratedTrue = exptdNumb
                               }
-   in counterexample ("Non equal on literal" ++ (show l)) $ (exptdLs === newLs) .&&. (sameSign === True)
+   in counterexample ("Non equal on literal" ++ show l) $ (exptdLs === newLs) .&&. (sameSign === True)

@@ -60,7 +60,7 @@ makeTest2 =
 testError :: Config -> MakeError -> Property
 testError (Config p config) err =
   case (p,config,err) of
-    (_,(CNFProblemType cnfConfig),CNFError e) ->
+    (_, CNFProblemType cnfConfig,CNFError e) ->
       testCNFError cnfConfig e
 
 testCorrectType :: Config -> Problem -> Property
@@ -78,5 +78,5 @@ makeListTest1 =
       testProblemsAndConfig :: [Problem] -> Config -> Property
       testProblemsAndConfig [] _ = property True
       testProblemsAndConfig (x:xs) c =
-        (testCorrectType c x) .&&.
-        (testProblemsAndConfig xs c)
+        testCorrectType c x .&&.
+        testProblemsAndConfig xs c

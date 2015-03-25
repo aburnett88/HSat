@@ -36,7 +36,7 @@ testPrintEmpty =
 testPrintLongVars :: TestTree
 testPrintLongVars =
   printTest "Long variables in Clause" $
-  mkClauseFromIntegers $ [
+  mkClauseFromIntegers [
     10000000000000000000000000000000000000000000000000000,
     -22222222222222222222222222222222222222222222222222222222222222,
     44444444444444444444444444444444444444444444444444444444444444444,
@@ -48,20 +48,20 @@ testPrintLongVars =
 testPrintLong :: TestTree
 testPrintLong =
   printTest "Long Clause" $
-  mkClauseFromIntegers $ (replicate 100 l) ++ (replicate 100 (negate l))
+  mkClauseFromIntegers $ replicate 100 l ++ replicate 100 (negate l)
   where
     l = 1345
 
 testPrintNormal :: TestTree
 testPrintNormal =
   printTest "Normal Clause" $
-  mkClauseFromIntegers $ [
+  mkClauseFromIntegers [
     100,785,452,52,-358,-247,-572,-754
                                   ]
 
 testPrintAllLong :: TestTree
 testPrintAllLong =
   printTest "Long Clauses and Variables" $
-  mkClauseFromIntegers $ (replicate 100 l) ++ (replicate 100 (negate l))
+  mkClauseFromIntegers $ replicate 100 l ++ replicate 100 (negate l)
   where
     l = 1345897234895672345897234895723489578923572435234567

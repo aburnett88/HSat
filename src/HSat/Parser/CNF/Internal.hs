@@ -15,13 +15,13 @@ import Control.Applicative
 
 parseComments :: Parser ()
 parseComments =
-  skipMany (parseComment >> endOfLine) >> return ()
+  void (skipMany (parseComment >> endOfLine))
 
 {-|
 Skips comment lines, or lines with no text on them (only tabs and spaces)
 -}
 parseComment :: Parser ()
-parseComment = do
+parseComment =
   many' space' >> option () (
     char 'c' >> skipWhile (not . isEndOfLine))
 
@@ -68,7 +68,7 @@ parseClause b = choice [
     ]
     
 parseClauses :: CNFBuildErr -> Parser CNFBuildErr
-parseClauses cnf = do
+parseClauses cnf =
   parseComments >> choice [
     parseClause cnf >>= parseClauses,
     parseComments >> return cnf

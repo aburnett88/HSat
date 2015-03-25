@@ -144,6 +144,4 @@ clauseIsEmptyTest2 =
       lit <- arbitrary
       return (clauseAddLiteral clause lit)
   )
-  (\clause ->
-    not $ clauseIsEmpty clause
-  )
+  (not . clauseIsEmpty)

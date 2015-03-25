@@ -41,8 +41,8 @@ fromCNFFileTest1 =
       result <- runReadFile $ fromFile fp'
       removeFile fp'
       case result of
-        Right problem' -> do
-          return $ property $ (mkCNFProblem cnf) === (getProblemExpr problem')
+        Right problem' ->
+          return $ property $ mkCNFProblem cnf === getProblemExpr problem'
         Left err ->
           return $ counterexample
            ("Unexpected reading error " ++ show err)
@@ -62,8 +62,8 @@ fromFileTest1 =
       result <- runReadFile $ fromFile fp'
       removeFile fp'
       case result of
-       Right problem' -> do
-         return $ (getProblemExpr problem) === (getProblemExpr problem')
+       Right problem' ->
+         return $ getProblemExpr problem === getProblemExpr problem'
        Left err ->
          return $ counterexample
            ("Failure with error" ++ show err)
@@ -85,5 +85,5 @@ fromFolderTest1 =
                            Left err -> Left err
                            ) problems'
       removeDirectoryRecursive folder
-      return $ listsContainSame (map (\a -> return a) exprs) exprs' else
-      return $ counterexample "Folder parsing failed" (False==True)
+      return $ listsContainSame (map return exprs) exprs' else
+      return $ counterexample "Folder parsing failed" False

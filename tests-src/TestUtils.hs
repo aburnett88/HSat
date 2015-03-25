@@ -51,7 +51,7 @@ testMaxClausesSize :: Int
 testMaxClausesSize = 100
 
 genBounds :: (Ord a, Bounded a) => Gen a -> Gen (Bounds a)
-genBounds f = do
+genBounds f =
   oneof [
     return mkNoBounds,
     mkMinimum `liftA` f,
@@ -140,25 +140,23 @@ instance Arbitrary VariablePredicate where
 
 forceError :: (Eq a, Show a, Arbitrary a) => a -> Assertion
 forceError correct = do
-  dummyVal <- generate arbitrary
+  dummyVal  <- generate arbitrary
   maybValue <- E.catch (
     do
-      let ans = Just correct
-          dv = Just dummyVal
-      when (dv==ans) (print ans) >> return ans
+      let ans   = Just correct
+          dVal' = Just dummyVal
+      when (dVal' == ans) (print ans) >> return ans
       )
-               ((\_ -> return Nothing) :: ErrorCall -> IO (Maybe a))
+               (
+                 (\_ -> return Nothing)
+                 :: ErrorCall -> IO (Maybe a)
+               )
   assertBool "Did not throw error" (isNothing maybValue)
-
-
---348 - 267--250
 
 propList :: (Show a) => (a -> Property) -> [a] -> Property
 propList f list = once $ propList' list
   where
-    propList' [] = property True
-    propList' (x:xs) =
-      (counterexample ("Failed on input " ++ show x) (f x)) .&&. propList' xs
+    propList' = foldr (\x -> (.&&.) (counterexample ("Failure on input" ++ show x) (f x))) (property True)
 
 instance Arbitrary a => Arbitrary (V.Vector a) where
   arbitrary = V.fromList `liftA` arbitrary
@@ -168,9 +166,9 @@ instance Arbitrary a => Arbitrary (V.Vector a) where
 listsContainSame :: (Eq a, Show a) => [a] -> [a] -> Property
 listsContainSame [] [] = property True
 listsContainSame (x:xs) ys =
-  if elem x ys then
+  if x `elem` ys then
     listsContainSame xs (delete x ys) else
     counterexample ("Second list does not contain element" ++ show x) False
 listsContainSame a b =
-  counterexample ("Lists inconsistant" ++ (show a) ++ (show b)) False
+  counterexample ("Lists inconsistant" ++ show a ++ show b) False
       

@@ -35,7 +35,7 @@ mkLiteralSet maxVar vAppearTwice =
   (\ts -> LiteralSet vars ts 0 maxVar vAppearTwice) <$> mkTrueSet
   where
     vars = S.fromList varList
-    varList = map mkVariable $ [1..maxVar]
+    varList = map mkVariable [1..maxVar]
     mkTrueSet :: (MonadRandom m, Applicative m) => m (Map Variable Sign)
     mkTrueSet = M.fromList <$>
                 mapM (\var -> ((,) var . mkSign) <$> getRandom) varList
@@ -49,13 +49,13 @@ type LiteralMake random result =
   StateT LiteralSet (EitherT LiteralMakeError random) result
 
 reset :: (MonadRandom m) => LiteralMake m ()
-reset = do
+reset =
   modify reset'
   where
     reset' :: LiteralSet -> LiteralSet
     reset' ls =
       ls {
-        getVarsThatCanAppear = (fullSet ls),
+        getVarsThatCanAppear = fullSet ls,
         getHasGeneratedTrue  = 0
         }
 
@@ -76,9 +76,7 @@ makeVariable = do
       vAppearTwice <- gets getVarsAppearTwice
       index <- getRandomR (0,n-1)
       let var = S.elemAt index vars
-      if vAppearTwice then
-        return () else
-        modify $ removeVariable var
+      unless vAppearTwice $ modify $ removeVariable var
       return var
 
 removeVariable :: Variable -> LiteralSet -> LiteralSet
@@ -95,13 +93,13 @@ getTrueLiteral = do
   case M.lookup var mapping of
     Nothing -> lift $ left CannotFindMapping
     Just sign -> do
-      modify $ changeTrueLiteralCreated
+      modify changeTrueLiteralCreated
       return $ mkLiteral sign var
 
 changeTrueLiteralCreated :: LiteralSet -> LiteralSet
 changeTrueLiteralCreated ls =
   ls {
-    getHasGeneratedTrue = (getHasGeneratedTrue) ls + 1
+    getHasGeneratedTrue = getHasGeneratedTrue ls + 1
   }
 
 getRandomLiteral :: (MonadRandom m) => LiteralMake m Literal

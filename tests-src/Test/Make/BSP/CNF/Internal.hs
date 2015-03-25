@@ -68,7 +68,7 @@ testConfigInit
       propClauseSizes .&&. propVarsTwice .&&. propSolution
 
 toWords :: VariableNumber -> Word -> Bounds Word
-toWords _ w = mkExact w
+toWords _ = mkExact
       
 checkListBounds :: (Ord a, Show a) => Bounds a -> [a] -> Property
 checkListBounds _[] = property True

@@ -26,7 +26,7 @@ instance Arbitrary Config where
     in map (uncurry Config) xs
 
 instance Arbitrary ConfigProblemType where
-  arbitrary = do
+  arbitrary =
     oneof [
       CNFProblemType `liftA` arbitrary
       ]
@@ -37,15 +37,15 @@ instance Arbitrary CNFConfig where
   arbitrary = do
     clauses <- genBounded 0 (toEnum testMaxClausesSize)
     varsInEach <- genBounded 0 (toEnum testMaxClauseSize)
-    vars <- do
+    vars <-
       oneof [
-        (Left) `liftA` genBounded (mkPosDouble 0.0) (mkPosDouble 5.0),
-        (Right) `liftA` genBounded 0 2000
+        Left `liftA` genBounded (mkPosDouble 0.0) (mkPosDouble 5.0),
+        Right `liftA` genBounded 0 2000
         ]
     posAndNeg <- arbitrary
     x <- arbitrary
     return $ CNFConfig clauses vars varsInEach posAndNeg x
-  shrink (CNFConfig _ _ _ _ _) = []
+  shrink (CNFConfig {}) = []
 --    let xs = shrink (a,b,c,d)
  --   in map (\(a,b,c,d) -> CNFConfig a b c d) xs
 

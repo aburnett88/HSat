@@ -20,6 +20,7 @@ import Control.Monad.Trans
 import HSat.Problem.ProblemExpr
 import HSat.Problem.Source
 import Data.List (delete)
+import Control.Monad (unless)
 
 type ReadFile a = EitherT ProblemParseError IO a
 
@@ -36,9 +37,7 @@ fromCNFFile fp = do
 doesFileExist' :: FilePath -> ReadFile ()
 doesFileExist' fp = do
   exists <- lift $ doesFileExist fp
-  case exists of
-    True -> return ()
-    False -> left $ (FileNotFound fp)
+  unless exists $ left $ FileNotFound fp
 
 fromFile :: FilePath -> ReadFile Problem
 fromFile filePath = do
@@ -47,7 +46,8 @@ fromFile filePath = do
     P.CNF -> mkCNFProblem `liftA` fromCNFFile filePath
   return $ mkProblem (mkFileSource filePath) expr
 
-fromFolder :: (FilePath -> ReadFile Problem) -> FilePath -> IO [Either ProblemParseError Problem]
+fromFolder :: (FilePath -> ReadFile Problem) -> FilePath ->
+              IO [Either ProblemParseError Problem]
 fromFolder f folder = do
   exists <- doesDirectoryExist folder
   contents <- if exists then

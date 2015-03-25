@@ -22,7 +22,7 @@ instance Printer Orientation where
   compact Above = text "ABV"
   noUnicode Above = text "Above"
   noUnicode Below = text "Below"
-  unicode a = noUnicode a
+  unicode = noUnicode
   
 
 data Comment = Comment {
@@ -35,19 +35,19 @@ instance Show Comment where
 
 instance Printer Comment where
   compact (Comment orient commText) = compact orient <+> compact commText
-  noUnicode comment = compact comment
-  unicode comment = compact comment
+  noUnicode  = compact 
+  unicode  = compact 
 
 instance Printer Text where
   compact t = text (unpack t)
-  noUnicode t = compact t
-  unicode t = compact t
+  noUnicode = compact
+  unicode = compact
 
 mkComment :: Orientation -> Text -> Comment
 mkComment o t = Comment o (T.filter f t)
   where
     f :: Char -> Bool
-    f c = (c/='\n' && c/='\r')
+    f c = c/='\n' && c/='\r'
 
 runComment :: [Comment] -> ([Text],[Text])
 runComment comments = runComment' comments ([],[])
@@ -56,7 +56,7 @@ runComment comments = runComment' comments ([],[])
     runComment' [] result = result
     runComment' (x:xs) (l,r) =
       case orientation x of
-        Above -> runComment' xs (l ++ [c <> (commentText x)],r)
-        Below -> runComment' xs (l,r ++ [c <> (commentText x)])
+        Above -> runComment' xs (l ++ [c <> commentText x],r)
+        Below -> runComment' xs (l,r ++ [c <> commentText x])
     c :: Text
-    c = (pack "c ")
+    c = pack "c "

@@ -38,21 +38,19 @@ plainProblemToFileTest1 =
     let problem = mkProblem mkStatic problemExpr
     success <- plainProblemToFile problem fileName
     let fileName' = createFileName fileName problemExpr
-    case success of
-      True -> do
-        returnProblem <- runReadFile $ fromFile fileName'
-        removeFile fileName'
-        return $ case returnProblem of
-          Left err -> counterexample
-                      ("Unexpected Error: " ++ show err)
-                      False
-          Right problem' ->
-            (getProblemExpr problem') === problemExpr
-      False -> do
-        return $
-          counterexample
-          "Could not write file. Exiting"
-          False
+    if success then do
+      returnProblem <- runReadFile $ fromFile fileName'
+      removeFile fileName'
+      return $ case returnProblem of
+        Left err -> counterexample
+                    ("Unexpected Error: " ++ show err)
+                    False
+        Right problem' ->
+          getProblemExpr problem' === problemExpr else
+      return $
+        counterexample
+        "Could not write file. Exiting"
+        False
 
 
 writeFolderTest1 :: TestTree
@@ -63,7 +61,7 @@ writeFolderTest1 =
     let problems = map (mkProblem mkStatic) problemExprs
     success <- writeFolder plainProblemToFile problems fp
     if success then do
-      returnProblemss <- (fromFolder fromFile fp)
+      returnProblemss <- fromFolder fromFile fp
       let returnProblems = rights returnProblemss
       removeDirectoryRecursive fp
       let problemExprs' = map getProblemExpr returnProblems
