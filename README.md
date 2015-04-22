@@ -5,6 +5,7 @@ Instances using stochastic local search.
 
 The Boolean Satisfiability Problem (BSP) is a difficult combinatorial problem. This piece of software intends to evaluate difering methods of solving it, as well as generating 'toy' problems to show how they perform.
 
+
 ## Latest Release Features
 
 * Nothing. This is not suitable for anything yet, other than learning
