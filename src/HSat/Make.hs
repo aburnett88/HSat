@@ -35,7 +35,7 @@ import HSat.Problem.Source
 This data type describes errors that can be thrown when creating 'Problem's.
 -}
 data MakeError =
-  -- ^ Describes problems' thrown when creating 'CNF' expressions
+  -- | Describes problems' thrown when creating 'CNF' expressions
   CNFError CNFMakeError
   deriving (Eq,Show)
 
