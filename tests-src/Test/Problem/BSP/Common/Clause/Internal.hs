@@ -19,7 +19,6 @@ import HSat.Problem.BSP.Common.Clause.Internal
 import TestUtils
 import TestUtils.Validate
 import qualified Data.Vector as V
-import Data.Word
 import Test.Problem.BSP.Common.Literal (genLiteral)
 import Control.Applicative
 

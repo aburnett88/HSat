@@ -17,7 +17,6 @@ module Test.Problem.BSP.Common.Variable.Internal (
 import HSat.Problem.BSP.Common.Variable.Internal
 import TestUtils
 import TestUtils.Validate
-import Data.Word
 import Control.Applicative
 
 name :: String

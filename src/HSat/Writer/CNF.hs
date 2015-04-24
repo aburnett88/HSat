@@ -8,7 +8,6 @@ module HSat.Writer.CNF (
 
 import HSat.Writer.CNF.Internal
 import HSat.Writer.Internal
-import Data.Word
 import Data.Text as T
 import HSat.Problem.BSP.CNF.Internal
 import qualified Data.Vector as V

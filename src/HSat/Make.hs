@@ -20,7 +20,6 @@ module HSat.Make (
   MakeError(..)
   ) where
 
-import Control.Applicative
 import Control.Monad (replicateM)
 import Control.Monad.Random.Class
 import Data.Bifunctor
@@ -39,6 +38,7 @@ data MakeError =
   -- ^ Describes problems' thrown when creating 'CNF' expressions
   CNFError CNFMakeError
   deriving (Eq,Show)
+
 
 liftCNF :: Either CNFMakeError CNF -> Either MakeError ProblemExpr
 liftCNF = bimap CNFError mkCNFProblem

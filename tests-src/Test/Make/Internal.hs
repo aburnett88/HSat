@@ -4,7 +4,6 @@ module Test.Make.Internal (
 
 import TestUtils
 import HSat.Make.Internal
-import Data.Word
 
 name :: String
 name = "Internal"

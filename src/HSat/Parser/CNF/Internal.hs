@@ -11,7 +11,6 @@ import Data.Attoparsec.Text as P
 import HSat.Problem.BSP.CNF.Builder
 import Control.Monad (void)
 import Data.Text
-import Control.Applicative
 
 parseComments :: Parser ()
 parseComments =

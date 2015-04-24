@@ -18,7 +18,6 @@ import HSat.Problem.BSP.Common.Literal
 import TestUtils
 import TestUtils.Validate
 import Test.Problem.BSP.Common.Sign ()
-import Data.Word
 import Test.Problem.BSP.Common.Variable (genVariableContext)
 
 name :: String

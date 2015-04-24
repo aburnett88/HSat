@@ -12,7 +12,6 @@ import Control.Monad (liftM,replicateM,foldM)
 import Data.Attoparsec.Text
 import HSat.Parser.CNF
 import Data.Maybe (fromJust,fromMaybe)
-import Data.Word
 import HSat.Writer.Internal
 import Test.Problem.BSP.CNF ()
 

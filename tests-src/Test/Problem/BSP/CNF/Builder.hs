@@ -14,7 +14,6 @@ module Test.Problem.BSP.CNF.Builder (
   ) where
 
 import           Control.Monad (liftM)
-import           Data.Word
 import           HSat.Problem.BSP.CNF
 import           HSat.Problem.BSP.CNF.Builder
 import           HSat.Problem.BSP.CNF.Builder.Internal

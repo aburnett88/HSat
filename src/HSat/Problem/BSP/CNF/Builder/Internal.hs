@@ -23,7 +23,6 @@ module HSat.Problem.BSP.CNF.Builder.Internal (
   canFinalise          -- :: CNFBuilder -> Bool
   ) where
 
-import           Data.Word
 import           HSat.Printer
 import           HSat.Problem.BSP.Common
 import           HSat.Problem.BSP.Common.Clause.Internal (

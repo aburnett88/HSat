@@ -24,7 +24,6 @@ module HSat.Problem.BSP.Common.Clause.Internal (
 
 import           Data.Vector (Vector)
 import qualified Data.Vector as V
-import           Data.Word
 import           HSat.Printer
 import           HSat.Problem.BSP.Common.Literal
 import           HSat.Problem.BSP.Common.Variable (getWord)

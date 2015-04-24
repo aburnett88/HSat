@@ -14,7 +14,6 @@ module Test.Problem.BSP.Common.Variable (
   Internal.genVariableContext
   ) where
 
-import           Data.Word
 import           HSat.Problem.BSP.Common.Variable
 import qualified Test.Problem.BSP.Common.Variable.Internal as Internal
 import           TestUtils

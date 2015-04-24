@@ -24,7 +24,6 @@ module HSat.Printer (
   errorDoc
   ) where
 
-import Data.Word
 import Text.PrettyPrint.ANSI.Leijen
 
 {-|

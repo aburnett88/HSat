@@ -31,7 +31,6 @@ module HSat.Problem.BSP.Common.Clauses (
 import qualified Data.Set as S
 import           Data.Vector                    (Vector)
 import qualified Data.Vector                    as V
-import           Data.Word
 import           HSat.Problem.BSP.Common.Clause
 import           HSat.Problem.BSP.Common.Clauses.Internal
 import           HSat.Problem.BSP.Common.Literal

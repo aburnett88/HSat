@@ -11,7 +11,6 @@ import Control.Monad.State
 import Data.Map (Map)
 import qualified Data.Map as M
 import HSat.Problem.BSP.Common
-import Data.Word
 import HSat.Problem.BSP.Common.Clause.Internal
 import qualified Data.Vector as V
 import qualified Data.Set as S

@@ -2,7 +2,6 @@ module HSat.Make.BSP.Common.Clause (
   makeClause
   ) where
 
-import Data.Word
 import Control.Monad.State
 import Control.Monad.Random
 import HSat.Problem.BSP.Common

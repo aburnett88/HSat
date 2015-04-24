@@ -15,10 +15,8 @@ import qualified Data.Set as S
 import qualified Data.Map as M
 import Control.Monad.Random
 import HSat.Problem.BSP.Common
-import Data.Word
 import Control.Monad.Trans.Either
 import Control.Monad.State
-import Control.Applicative
 
 data LiteralSet = LiteralSet {
   getVarsThatCanAppear :: Set Variable,

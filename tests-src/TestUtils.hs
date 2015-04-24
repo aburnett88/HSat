@@ -31,7 +31,6 @@ import           Control.Monad hiding (liftM,liftM2,liftM3,liftM4,liftM5)
 import Control.Applicative
 import           Data.Maybe (isNothing)
 import           Data.Text (Text,pack)
-import           Data.Word
 import           HSat.Make.Config
 import           HSat.Make.Internal
 import           HSat.Writer.Internal

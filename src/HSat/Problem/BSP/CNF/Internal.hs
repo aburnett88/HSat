@@ -13,7 +13,6 @@ module HSat.Problem.BSP.CNF.Internal (
   CNF(..)
   ) where
 
-import Data.Word
 import HSat.Printer
 import HSat.Problem.BSP.Common
 import HSat.Problem.BSP.Common.Clauses.Internal (printClausesWithContext)

@@ -9,7 +9,6 @@ module HSat.Make.BSP.CNF.Internal (
   mkCNF'
   ) where
 
-import Data.Word
 import HSat.Make.Config
 import HSat.Make.Internal
 import Control.Monad (replicateM)

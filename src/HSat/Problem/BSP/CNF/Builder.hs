@@ -26,7 +26,6 @@ module HSat.Problem.BSP.CNF.Builder (
   finalise'
   ) where
 
-import Data.Word
 import HSat.Problem.BSP.CNF.Internal
 import HSat.Problem.BSP.CNF.Builder.Internal
 import HSat.Problem.BSP.Common

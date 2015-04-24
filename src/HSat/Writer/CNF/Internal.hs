@@ -6,7 +6,6 @@ module HSat.Writer.CNF.Internal (
 
 import qualified Data.Vector as V
 import HSat.Writer.Internal
-import Data.Word
 import HSat.Problem.BSP.Common
 
 data CNFWriter = CNFWriter {

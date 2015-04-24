@@ -5,7 +5,6 @@ module HSat.Make.BSP.Common.Clauses (
 import Control.Monad.Random
 import HSat.Problem.BSP.Common
 import HSat.Make.BSP.Common.Clause
-import Data.Word
 import HSat.Make.BSP.Common.Literal
 
 makeClauses :: (MonadRandom m) => [Word] -> LiteralPredicate ->

@@ -6,7 +6,6 @@ import           HSat.Make.Config
 import           HSat.Make.Internal
 import           TestUtils
 import HSat.Make.BSP.CNF.Internal
-import Data.Word
 import Test.Make.Config ()
 
 name :: String

@@ -21,7 +21,6 @@ import TestUtils.Validate
 import qualified Data.Vector as V
 import Control.Applicative
 import Test.Problem.BSP.Common.Clause (genClause)
-import Data.Word
 
 name :: String
 name = "Internal"

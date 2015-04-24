@@ -24,7 +24,6 @@ module HSat.Make.Config (
   VariablePredicate(..)
   ) where
 
-import Data.Word
 import HSat.Problem.ProblemType
 import HSat.Make.Internal
 import System.Random

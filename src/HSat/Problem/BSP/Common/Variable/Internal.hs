@@ -13,7 +13,6 @@ module HSat.Problem.BSP.Common.Variable.Internal (
   Variable(..)
   ) where
 
-import Data.Word
 import HSat.Printer
 
 {-|

@@ -22,7 +22,6 @@ module HSat.Problem.BSP.Common.Variable (
   variableToInteger      -- :: Variable -> Integer
   ) where
 
-import Data.Word
 import HSat.Problem.BSP.Common.Variable.Internal
 
 name :: String

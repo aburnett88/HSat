@@ -11,7 +11,6 @@ import Control.Monad.State
 import Control.Monad.Trans.Either
 import qualified Data.Set as S
 import qualified Data.Map as M
-import Data.Word
 import Data.Set (Set)
 import Test.Problem.BSP.Common.Sign ()
 

@@ -34,8 +34,8 @@ printTest str x =
     ]
   where
     func         :: String -> Doc -> TestTree
-    func str doc =
-      testCase str $ do
+    func str' doc =
+      testCase str' $ do
         putStrLn ""
         putDoc doc
         putStrLn ""

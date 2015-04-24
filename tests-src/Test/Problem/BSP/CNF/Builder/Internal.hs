@@ -10,7 +10,6 @@ import HSat.Problem.BSP.CNF.Builder.Internal
 import TestUtils.Validate
 import qualified Data.Vector as V
 import HSat.Problem.BSP.Common
-import Data.Word
 import Control.Applicative
 import Test.Problem.BSP.Common.Clauses (genClauses)
 import Test.Problem.BSP.Common.Literal (genLiteral)

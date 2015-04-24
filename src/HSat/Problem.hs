@@ -18,9 +18,9 @@ module HSat.Problem (
   mkProblem    --  :: Source -> ProblemExpr -> Problem
   ) where
 
-import HSat.Printer
-import HSat.Problem.ProblemExpr
-import HSat.Problem.Source
+import           HSat.Printer
+import           HSat.Problem.ProblemExpr
+import           HSat.Problem.Source
 
 {- |
 Used to contain a 'ProblemExpr' and the 'Problem's 'Source'.
@@ -42,16 +42,16 @@ mkProblem = Problem
 -- Printer instance
 
 instance Printer Problem where
-  compact = printProblem Compact
+  compact   = printProblem Compact
   noUnicode = printProblem NoUnicode
-  unicode = printProblem Unicode
+  unicode   = printProblem Unicode
 
 printProblem :: PrinterType -> Problem -> Doc
 printProblem pType (Problem source expr) =
-  preamble <>
-  space' <>
+  preamble    <>
+  space'      <>
   printSource <>
-  line <>
+  line        <>
   printExpr
   where
     preamble :: Doc
