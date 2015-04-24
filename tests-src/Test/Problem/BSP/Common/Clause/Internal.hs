@@ -6,7 +6,8 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-Contains the Test Tree Node for the internal Clause module, as well as associated Generator functions
+Contains the Test Tree Node for the internal Clause module, as well as
+associated Generator functions
 -}
 
 module Test.Problem.BSP.Common.Clause.Internal (

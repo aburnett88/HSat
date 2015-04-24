@@ -41,7 +41,8 @@ tests =
 
 getCNFFromWriterTest1 :: TestTree
 getCNFFromWriterTest1 =
-  testProperty "getCNFFromWriter returns correct values on hand made CNF" $ forAll
+  testProperty "getCNFFromWriter returns correct values on hand made CNF" $
+  forAll
   (do
       cnf <- arbitrary
       preamblesToAdd <- choose (0,100)

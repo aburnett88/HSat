@@ -38,7 +38,9 @@ fileTestGen fp val =
         (isLeft result)
       Just exptdVal -> case result of
         Right cnf' -> exptdVal @=? cnf'
-        _ -> assertBool ("Parser failed when it should not have done so:" ++ show result) False
+        _ -> assertBool (
+          "Parser failed when it should not have done " ++
+          show result) False
 
 prepare :: FilePath -> FilePath
 prepare fp = "tests-src/Files/" ++ fp ++ ".cnf"

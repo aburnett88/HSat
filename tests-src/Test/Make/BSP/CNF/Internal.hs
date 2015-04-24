@@ -59,7 +59,9 @@ testConfigInit
    willBeSolvable) =
     let sizeClauses = toEnum . length $ sizes
         propClauses = checkBounds clauseSizeBounds sizeClauses
-        propVariables = checkBounds (toWords variableBounds sizeClauses) setMaxVar
+        propVariables = checkBounds
+                        (toWords variableBounds sizeClauses)
+                        setMaxVar
         propClauseSizes = checkListBounds clausesSizeBound sizes
         propVarsTwice   = configVarsAppearTwice === varsCanAppearTwice
         propSolution    = definitelyHasSolution === willBeSolvable

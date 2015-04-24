@@ -5,7 +5,8 @@ module Test.Parser.CNF.Internal (
 import           Control.Monad (replicateM,foldM)
 import           Data.Attoparsec.Text as P hiding (parseTest,take)
 import           Data.Either
-import           Data.Text as T hiding (map,replicate,take,foldl)
+import qualified Data.Text as T hiding (map,replicate,take,foldl)
+import Data.Text (Text,pack)
 import qualified Data.Vector as V
 import           HSat.Parser.CNF.Internal
 import           HSat.Problem.BSP.CNF.Builder
@@ -264,15 +265,23 @@ parseClauseTest4 =
     )
     where
       (cnf,cnf') = getTuple
-      testStr = "1   2 \nc initial\n  3   -4 -5 \nc hello world\n   6 -7   8    \n        9 0"
+      testStr = unlines [
+        "1   2 ",
+        "c initial",
+        "3   -4 -5 ",
+        "c hello world",
+        "6 -7   8    ",
+        "9 0"
+        ]
 
 getTuple :: (CNFBuilder,CNFBuilder)
 getTuple = (cnf,cnf')
   where
     cnf = CNFBuilder 10 10 0 emptyClauses emptyClause
-    cnf' = V.foldl (flip addLiteral') cnf . V.map literalToInteger $ getVectLiteral cl
+    cnf' = V.foldl (flip addLiteral') cnf . V.map literalToInteger $
+           getVectLiteral cl
     cl = mkClauseFromLits $ map mkLiteralFromInteger [
-      1,2,3,-4,-5,6,7,8,9]
+      1,2,3,-4,-5,6,-7,8,9]
     
 
 --282
@@ -317,11 +326,13 @@ generateClause size ints = foldM generateClause' T.empty ((++) ints [0])
     ret,addSpace,addComs :: Text -> Gen Text
     ret t = return $ t <> pack "\n"
     addSpace t = (\a -> t <> pack a) `liftA` genSpace' 1 size
-    addComs t = (\a -> t <> T.unlines a) `liftA` (choose (0,size) >>= flip replicateM (genComment size))
+    addComs t = (\a -> t <> T.unlines a) `liftA`
+                (choose (0,size) >>= flip replicateM (genComment size))
     showNumb :: Integer -> Text -> Gen Text
     showNumb i t = do
       s <- genSpace' 1 size
-      return $ t <> pack ((++) (show i) ((if i==0 then const "" else take 1) s))
+      return $ t <> pack ((++) (show i)
+                          ((if i==0 then const "" else take 1) s))
 
 parseClausesTest1 :: TestTree
 parseClausesTest1 =

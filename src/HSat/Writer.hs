@@ -17,7 +17,7 @@ module HSat.Writer (
 
 import HSat.Problem
 import HSat.Problem.ProblemExpr
-import Data.Text.IO as T
+import Data.Text.IO as T hiding (putStrLn)
 import HSat.Writer.CNF
 import System.Directory
 import Data.Text (Text)
@@ -31,8 +31,8 @@ plainProblemToFile problem fp = do
       fileName = createFileName fp expr
   exists <- doesFileExist fileName
   if exists then
-    T.writeFile fileName text >> return True else
-    return False
+    return False else
+    T.writeFile fileName text >> return True
 
 createFileName :: FilePath -> ProblemExpr -> FilePath
 createFileName fp expr =

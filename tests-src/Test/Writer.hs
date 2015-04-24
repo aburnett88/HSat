@@ -66,5 +66,7 @@ writeFolderTest1 =
       removeDirectoryRecursive fp
       let problemExprs' = map getProblemExpr returnProblems
       return $ listsContainSame problemExprs' problemExprs else
-      return $ counterexample ("writeFolderTest1 failed. Could not sucesfully write to file " ++ show fp) False
+      return $ counterexample (
+        "writeFolderTest1 failed. Could not sucesfully write to file " ++
+        show fp) False
       

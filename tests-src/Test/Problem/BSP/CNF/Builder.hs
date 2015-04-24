@@ -99,7 +99,8 @@ maxWord' = toInteger (maxBound :: Word)
 
 cnfBuilderTest2 :: TestTree
 cnfBuilderTest2 =
-  testProperty "cnfBuilder fails with correct error on incorrect initalisation" $
+  testProperty ("cnfBuilder fails with correct error when incorrectly" ++
+                "initialised") $ 
   forAll
   genVarsOrClausesOutsideRange
    (\(vars,clauses) ->
@@ -107,7 +108,8 @@ cnfBuilderTest2 =
        Left (Initialisation v' c') ->
          v' < 0 .||. v' > maxWord' .||.
          c' < 0 .||. c' > maxWord'
-       _ -> counterexample ("not failing " ++ show (cnfBuilder vars clauses)) $ property False
+       _ -> counterexample
+            ("not failing " ++ show (cnfBuilder vars clauses)) $ property False
        )
    
 testCNFBuilderGenTest1 :: Integer -> Integer -> CNFBuilder -> Property

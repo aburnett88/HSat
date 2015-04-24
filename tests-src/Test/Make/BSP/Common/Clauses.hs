@@ -28,7 +28,8 @@ tests =
        ]
     ]
 
-run :: (MonadRandom m) => LiteralMake m a -> LiteralSet -> m (Either LiteralMakeError (a,LiteralSet))
+run :: (MonadRandom m) => LiteralMake m a -> LiteralSet ->
+       m (Either LiteralMakeError (a,LiteralSet))
 run func initial = runEitherT (runStateT func initial)
 
 makeClausesTest1 :: TestTree
@@ -40,7 +41,8 @@ makeClausesTest1 =
       Left e ->
         counterexample ("Unexpected Left: " ++ show e) False
       Right (clauses,_) ->
-        let trivials = property $ s || V.all (not . triviallyTrue) (getVectClause clauses)
+        let trivials = property $ s || V.all
+                       (not . triviallyTrue) (getVectClause clauses)
         in trivials
 
 sss :: IO (Bool,LiteralSet,[Word])
@@ -60,16 +62,27 @@ makeClausesTest2 =
         counterexample ("Unexpected left: " ++ show e) False
       Right (clauses,_) ->
         let m = getTrueSet set
-            trivials = counterexample (show (V.all (not . triviallyTrue) (getVectClause clauses))) (
+            trivials = counterexample
+                       (show (V.all (
+                                 not . triviallyTrue) (getVectClause clauses
+                                                          )
+                             )
+                       )
+                       (
               s ||
               V.all (not . triviallyTrue ) (getVectClause clauses)
               )
-            allHaveOneTrue = counterexample (show $ V.zip (getVectClause clauses) (V.map (`oneTrue` m) (getVectClause clauses))) $ V.all (`oneTrue` m) (getVectClause clauses)
+            allHaveOneTrue = counterexample
+                             (show $ V.zip
+                              (getVectClause clauses)
+                              (V.map (`oneTrue` m) (getVectClause clauses))) $
+                             V.all (`oneTrue` m) (getVectClause clauses)
         in trivials .&&. allHaveOneTrue
 
 makeClausesTest3 :: TestTree
 makeClausesTest3 =
-  testProperty "makeClause Any - Atleast one has all set to true" $ ioProperty $ do
+  testProperty "makeClause Any - Atleast one has all set to true" $
+  ioProperty $ do
     sizes <- generate $ listOf $ choose (0,100)
     s <- generate arbitrary
     set <- mkLiteralSet 100 s

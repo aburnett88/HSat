@@ -155,7 +155,10 @@ forceError correct = do
 propList :: (Show a) => (a -> Property) -> [a] -> Property
 propList f list = once $ propList' list
   where
-    propList' = foldr (\x -> (.&&.) (counterexample ("Failure on input" ++ show x) (f x))) (property True)
+    propList' = foldr (\x -> (.&&.) (
+                          counterexample (
+                             "Failure on input" ++ show x) (f x)))
+                (property True)
 
 instance Arbitrary a => Arbitrary (V.Vector a) where
   arbitrary = V.fromList `liftA` arbitrary

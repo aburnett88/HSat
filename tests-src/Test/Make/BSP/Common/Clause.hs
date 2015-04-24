@@ -52,7 +52,8 @@ makeClauseTest1 =
             n == size else
             size == 0 || (n >= 1)) .&&. trivial)
 
-run :: (MonadRandom m) => LiteralMake m a -> LiteralSet -> m (Either LiteralMakeError (a,LiteralSet))
+run :: (MonadRandom m) => LiteralMake m a -> LiteralSet ->
+       m (Either LiteralMakeError (a,LiteralSet))
 run func initial = runEitherT (runStateT func initial)
 
 checkClause :: Clause -> Map Variable Sign -> Word

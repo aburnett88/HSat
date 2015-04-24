@@ -59,7 +59,9 @@ clausesTest2 =
   )
 
 {-
-Checks that the length of the Clauses is consistent with the length of the vector containing the Clause, then checks each element to confirm that it is valid
+Checks that the length of the Clauses is consistent with the length of the
+vector containing the Clause, then checks each element to confirm that it is
+valid
 -}
 instance Validate Clauses where
   validate (Clauses clauseVector sizeClauses) =

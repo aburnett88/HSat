@@ -53,7 +53,8 @@ arbLiteralSet maxVar _ = do
   set <- generateSet (S.fromList vars) gotten
   return $ LiteralSet set mapping genTrue n s
 
-f :: (MonadRandom m) => LiteralMake m a -> LiteralSet -> m (Either LiteralMakeError (a,LiteralSet))
+f :: (MonadRandom m) => LiteralMake m a -> LiteralSet ->
+     m (Either LiteralMakeError (a,LiteralSet))
 f func initial = runEitherT (runStateT func initial)
   
 
@@ -116,7 +117,8 @@ resetTest1 =
       Left _ -> return $ property False
       Right (_,ls) -> do
         let exptd = literalset {
-              getVarsThatCanAppear = S.fromList . map mkVariable $ [1..(getMaximumVariable ls)],
+              getVarsThatCanAppear = S.fromList . map mkVariable $
+                                     [1..(getMaximumVariable ls)],
               getHasGeneratedTrue  = 0
               }
         return $ property $ exptd === ls
@@ -163,7 +165,11 @@ getTrueLiteralTest1 =
     ls <- generate arbitrary
     result <- f getTrueLiteral ls
     return $ case result of
-      Left e -> counterexample ("Threw an unexepcted Left: " ++ show e ++"\nInitial LiteralSet Used: " ++ show ls) False
+      Left e -> counterexample (
+        "Threw an unexepcted Left: " ++
+        show e ++
+        "\nInitial LiteralSet Used: " ++
+        show ls) False
       Right (l,ls') -> checkTrue l ls ls'
 
 checkTrue :: Literal -> LiteralSet -> LiteralSet -> Property
@@ -182,4 +188,5 @@ checkTrue l oldLs newLs =
         getVarsThatCanAppear = exptdVCanAppear,
         getHasGeneratedTrue = exptdNumb
                               }
-   in counterexample ("Non equal on literal" ++ show l) $ (exptdLs === newLs) .&&. (sameSign === True)
+   in counterexample ("Non equal on literal" ++ show l) $
+      (exptdLs === newLs) .&&. (sameSign === True)

@@ -217,7 +217,8 @@ genCNFBuilderEmptyClause size = do
   return builder
 
 {-
-Generate a CNFBuilder. We should be on a clause, where we can still add literals
+Generate a CNFBuilder. We should be on a clause, where we can still add
+literals
 -}
 genCNFBuilderLitInClause      :: Int -> Gen CNFBuilder
 genCNFBuilderLitInClause size = do
@@ -226,7 +227,8 @@ genCNFBuilderLitInClause size = do
   clause                      <- flip clauseAddLiteral literal `liftA`
                                  genClause maxVar size
   let clauseSize = getSizeClauses clauses
-      builder    = CNFBuilder maxVar (targetSize+1) (clauseSize+1) clauses clause
+      builder    = CNFBuilder
+                   maxVar (targetSize+1) (clauseSize+1) clauses clause
   return builder
 
 genCNFBuilderError :: Gen CNFBuilderError
