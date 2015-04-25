@@ -50,6 +50,12 @@ printLit function clause =
   hsep (punctuate comma (map function . V.toList . getVectLiteral $ clause)) <>
   rbracket
 
+{-|
+Takes a 'String' to separate each 'Literal', a 'Word' denoting the maximum 'Variable'
+in the whole context, a function that turns a 'Literal' to a 'Doc' and the 'Clause'
+itself, and separates each literal by the 'String', making sure that any row will line
+up
+-}
 printClauseWithContext :: String -> Word -> (Literal -> Doc) -> Clause -> Doc
 printClauseWithContext sepClause maxVar function clause =
   lparen <>

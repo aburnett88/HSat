@@ -62,12 +62,27 @@ pTypeToDoc Compact   = compact
 pTypeToDoc NoUnicode = noUnicode
 pTypeToDoc Unicode   = unicode
 
-show' :: Printer a => Int -> a -> ShowS
-show' i a = displayS (renderPretty 0.4 i (compact a))
+{-|
+Takes an integer and a Printable type and creates a ShowS function.
 
+Can be dropped in for a Show instance when a compact instance has been
+created for a data type
+-}
+show' :: Printer a => Int -> a -> ShowS
+show' i a = displayS $ renderPretty 0.4 i $ compact a
+
+{-|
+Turns a 'Word' into a 'Doc'
+-}
 word :: Word -> Doc
 word = text . show
 
+{-|
+Takes a 'Doc' describing an error, and the 'PrinterType' and creates
+a bespoke error message.
+
+Used to standardise error messages across the HSat modules
+-}
 errorDoc :: PrinterType -> Doc -> Doc
 errorDoc Compact reason   = text "ERR"   <> colon <+> reason
 errorDoc NoUnicode reason = text "Error" <> colon <+> reason

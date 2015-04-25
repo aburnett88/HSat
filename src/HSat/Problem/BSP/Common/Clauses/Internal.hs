@@ -53,6 +53,10 @@ generalPrinter func clauses =
   encloseSep lbracket rbracket comma (
     map func . V.toList $ getVectClause clauses)
 
+{-|
+Takes a string that separates clauses, a string that separates clauses, a word
+denoting the maximum variable, a literal to doc function, and prints these all
+-}
 printClausesWithContext :: String -> String -> Word -> (Literal -> Doc) ->
                            Clauses -> Doc
 printClausesWithContext sepClauses sepClause maxVar function clauses =

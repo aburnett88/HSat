@@ -44,6 +44,9 @@ A quick constructor for a source from a file
 mkFileSource :: FilePath -> Source
 mkFileSource = FileSource
 
+{-|
+Takes a 'Config' and wraps it in a 'Source' datatype
+-}
 mkMakeConfig :: Config -> Source
 mkMakeConfig = MakeConfiguration
 

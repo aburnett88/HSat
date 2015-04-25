@@ -1,3 +1,14 @@
+{-|
+Module      : HSat.Make.Internal
+Description : Internal functions for making problems
+Copyright   : (c) Andrew Burnett 2014-2015
+Maintainer  : andyburnett88@gmail.com
+Stability   : experimental
+Portability : Unknown
+
+This mdoule exports common functions neded when creating 'Problem's
+-}
+
 module HSat.Make.Internal (
   evalBounded,
   Bounds,
