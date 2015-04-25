@@ -1,14 +1,14 @@
 {-|
-Module      : HSat.Data.BSP.Common.Variable
+Module      : HSat.Problem.BSP.Common.Variable
 Description : The Variable data type
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-This module exports the common functions and definition of 'Variable' which
-represents the part of a 'Literal' that denotes its numerical value within
-a larger problem.
+This module describes and exports the common functions associated with the
+'Variable' data type. Typically its use is to be used as a numerical
+description of a free variable within a problem.
 -}
 module HSat.Problem.BSP.Common.Variable (
   -- * Data Type

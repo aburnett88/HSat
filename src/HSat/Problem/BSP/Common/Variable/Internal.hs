@@ -1,13 +1,12 @@
 {-|
-Module      : HSat.Data.BSP.Common.Variable.Internal
+Module      : HSat.Problem.BSP.Common.Variable.Internal
 Description : The Variable data type
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-This module exports the definition of 'Variable' which represents the part of
-a 'Literal' that denotes its numerical value within a larger problem.
+This module describes the internal workings of the 'Variable' datatype.
 -}
 module HSat.Problem.BSP.Common.Variable.Internal (
   Variable(..)
@@ -16,16 +15,18 @@ module HSat.Problem.BSP.Common.Variable.Internal (
 import HSat.Printer
 
 {-|
-A 'Variable' represents a numerial representation of a variable wtihin a
-problem.
+A 'Variable' is a numerical representation of a variable within a problem.
 
-Internally represented as a 'Word'
+Internally it is represented as a 'Word'
 -}
 newtype Variable = Variable {
-  -- | The underlying 'Word' that is represented
+  -- | The 'Word' that represents this variable
   getWord :: Word
   } deriving (Eq)
 
+{-
+Using the show' function in HSat.Printer to generate a Show instance
+-}
 instance Show Variable where
   showsPrec = show'
 
