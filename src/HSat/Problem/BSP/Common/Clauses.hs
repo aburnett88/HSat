@@ -6,7 +6,11 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-A 'Clauses' data type represents a collection of 'Clause'
+This module exports the common functions and definitions of 'Clauses' which is
+a collection of 'Clause'.
+
+These can be used, for example, to represent a collection of 'Clause' in Conjunctive
+Normal Form and Disjunctive Normal Form. Detials however are kept abstract
 -}
 module HSat.Problem.BSP.Common.Clauses (
   -- * Clause

@@ -6,15 +6,9 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-This module exports the definition of a 'Clause' which is in its simplest form
-a list of 'Literal's.
+The module defines the internal structure of a 'Clause'.
 
-These can be used, for example, to represent problems in Conjunctive Normal
-Form and Disjunctive Normal Form, however are kept deliberatly abstract at
-this stage.
-
-We keep this module Internal to stop 'Clause' with incorrect 'getClauseLength'
-values being created. 
+A 'Clause' is simply a collection of 'Literal's
 -}
 
 module HSat.Problem.BSP.Common.Clause.Internal (

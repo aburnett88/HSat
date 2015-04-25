@@ -7,10 +7,10 @@ Stability   : experimental
 Portability : Unknown
 
 This module exports the common functions and definition of 'Clause' which is
-in its simplest form a list of 'Literal's.
+a collection of 'Literal's
 
-These can be used, for example, to represent problems in Conjunctive Normal
-Form and Disjunctive Normal Form, however are kept deliberatly abstract at
+These can be used, for example, to represent a collection of literals
+in Conjunctive Normal Form and Disjunctive Normal Form, however are kept deliberatly abstract at
 this stage. 
 -}
 
