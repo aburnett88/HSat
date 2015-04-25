@@ -1,14 +1,13 @@
 {-|
-Module      : HSat.Data.BSP.Common.Literal
+Module      : HSat.Problem.BSP.Common.Literal
 Description : The Literal data type
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-This module exports the common functions and definition of 'Literal' which
-represents the pair of a 'Sign' and a 'Variable' commonly used in Boolean
-formulae.
+The 'Literal' datatype consists of a 'Sign' and a 'Variable' and represents
+literals within Boolean Formulas. 
 -}
 module HSat.Problem.BSP.Common.Literal (
   -- * Data type

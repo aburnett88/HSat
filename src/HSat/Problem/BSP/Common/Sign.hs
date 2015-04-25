@@ -6,12 +6,11 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The 'Sign' type is a binary data structure that, when paired with a second
-element, yields either the positive or negative occurrence of that second
-element.
+The 'Sign' datatype is a binary datatype whose main purpose is to denote
+a positive or negative occourence of an accompanying data type.
 
-For example, when paired with a positive number (that is non-zero), it can be
-used to describe a literal within a Boolean Formula.
+For example, to represent either the positive or negative variable's within
+a Boolean Satisfiability Formula. 
 -}
 module HSat.Problem.BSP.Common.Sign (
   -- * Sign
