@@ -57,7 +57,8 @@ mkCNFProblemTest1 =
   testProperty "mkCNFProblem cnf == cnf" $ property (
     \cnf ->
     case mkCNFProblem cnf of
-      CNFExpr cnf' -> cnf == cnf'
+      BoolExprs (CNFExpr cnf') -> cnf === cnf'
+      _ -> counterexample "Incorrect type, not CNF" False
     )
 
 changeProblemTypeTest1 :: TestTree
@@ -75,6 +76,10 @@ problemToCNFTest1 =
     )
 
 instance Validate ProblemExpr where
+  validate (BoolExprs b) = validate b
+
+instance Validate BoolExpr where
+  validate (BSPExpr b) = validate b
   validate (CNFExpr cnf) = validate cnf
 
 instance Arbitrary ProblemExpr where

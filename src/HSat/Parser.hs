@@ -44,6 +44,7 @@ fromFile filePath = do
   fileType <- hoistEither $ getProblemType filePath
   expr <- case fileType of
     P.CNF -> mkCNFProblem `liftA` fromCNFFile filePath
+    P.BSP -> error "Not written yet parser l47"
   return $ mkProblem (mkFileSource filePath) expr
 
 fromFolder :: (FilePath -> ReadFile Problem) -> FilePath ->

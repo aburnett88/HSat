@@ -44,11 +44,13 @@ getFileSuffix :: ProblemExpr -> String
 getFileSuffix expr =
   case problemType expr of
     CNF -> "cnf"
+    BSP -> error "Not wrtiten yet wrtier l47"
 
 toPlainText   :: ProblemExpr -> Text
 toPlainText expr =
   case problemType expr of
     CNF -> runCNFWriter . mkCNFWriter . problemToCNF $ expr
+    BSP -> error "Not written yet writer l53"
 
 writeFolder :: (Problem -> FilePath -> IO Bool) -> [Problem] -> FilePath ->
                IO Bool

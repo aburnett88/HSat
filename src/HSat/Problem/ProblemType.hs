@@ -21,13 +21,22 @@ The general type describing for describing Problems
 -}
 data ProblemType =
   -- | Describes a SAT problem in Conjunctive Normal Form
-  CNF
+  CNF |
+  -- | Describes a SAT problem that is just a Boolean Formula in no special form
+  BSP
   deriving (Eq,Show)
 
 cnfDoc :: Doc
 cnfDoc = text "CNF"
 
+bspDoc :: Doc
+bspDoc = text "BSP"
+
 instance Printer ProblemType where
   compact CNF = cnfDoc
+  compact BSP = bspDoc
   noUnicode CNF = cnfDoc
+  noUnicode BSP = bspDoc
   unicode CNF = cnfDoc
+  unicode BSP = bspDoc
+  

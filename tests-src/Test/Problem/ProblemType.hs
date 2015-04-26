@@ -26,6 +26,8 @@ tests = testGroup name []
 instance Arbitrary ProblemType where
   arbitrary =
     oneof [
-      return CNF
+      return CNF,
+      return BSP
       ]
   shrink CNF = []
+  shrink BSP = [CNF]

@@ -32,6 +32,8 @@ library
     HSat.Problem.ProblemExpr
     HSat.Problem.ProblemType
     HSat.Problem.Source
+    HSat.Problem.BSP
+    HSat.Problem.BSP.Internal
     HSat.Problem.BSP.CNF
     HSat.Problem.BSP.CNF.Internal
     HSat.Problem.BSP.CNF.Builder

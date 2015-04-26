@@ -13,7 +13,11 @@ in HSat.
 module HSat.Problem.ProblemExpr (
   -- * ProblemExpr
   ProblemExpr(..),
+  BoolExpr(..),
   -- * Constructors
+  mkBoolExprProblem,
+  mkCNFBoolExpr,
+  mkBSPBoolExpr,
   mkCNFProblem,
   -- * Query
   problemType,
@@ -26,25 +30,46 @@ module HSat.Problem.ProblemExpr (
 import           HSat.Printer
 import qualified HSat.Problem.BSP.CNF as C (CNF)
 import           HSat.Problem.ProblemType
+import qualified HSat.Problem.BSP as B
 
 {-|
 A simple sum of types containing each of the problem types
 -}
 data ProblemExpr =
+  BoolExprs BoolExpr
+  deriving (Eq,Show)
+
+data BoolExpr =
+  BSPExpr B.BSP |
   CNFExpr C.CNF
   deriving (Eq,Show)
 
 {-|
 Returns the type of the Problem as described in 'ProblemType'
 -}
-problemType             :: ProblemExpr -> ProblemType
-problemType (CNFExpr _) = CNF
+problemType               :: ProblemExpr -> ProblemType
+problemType (BoolExprs b) =
+  case b of
+    BSPExpr _ -> BSP
+    CNFExpr _ -> CNF
+
+{-|
+A quick constructor to turn BoolExpr's into ProblemExprs
+-}
+mkBoolExprProblem :: BoolExpr -> ProblemExpr
+mkBoolExprProblem = BoolExprs
 
 {-|
 A quick consructor for 'C.CNF' problems
 -}
+mkCNFBoolExpr :: C.CNF -> BoolExpr
+mkCNFBoolExpr = CNFExpr
+
+mkBSPBoolExpr :: B.BSP -> BoolExpr
+mkBSPBoolExpr = BSPExpr
+
 mkCNFProblem :: C.CNF -> ProblemExpr
-mkCNFProblem = CNFExpr
+mkCNFProblem = mkBoolExprProblem . mkCNFBoolExpr
 
 {-|
 Provides algorithms of changing one 'ProblemExpr' to another 'ProblemExpr'
@@ -52,15 +77,31 @@ Provides algorithms of changing one 'ProblemExpr' to another 'ProblemExpr'
 changeProblemType                     :: ProblemType ->
                                          ProblemExpr ->
                                          ProblemExpr
-changeProblemType CNF cnf@(CNFExpr _) = cnf
+changeProblemType typ problem =
+  case (problemType problem,typ) of
+    (BSP,BSP) -> problem
+    (BSP,CNF) -> error "Not written yet problemExpr l75"
+    (CNF,BSP) -> error "Also not written yet l75 problemExpr"
+    (CNF,CNF) -> problem
 
 {-|
 Provides a quick method of getting a 'C.CNF' representation of a 'Problem'
 -}
 problemToCNF               :: ProblemExpr -> C.CNF
-problemToCNF (CNFExpr cnf) = cnf
+problemToCNF (BoolExprs b) =
+  case b of
+    BSPExpr _ -> error "Not written yet l85"
+    CNFExpr cnf -> cnf
 
 instance Printer ProblemExpr where
-  compact (CNFExpr cnf)   = compact cnf
+  compact (BoolExprs b)   = compact b
+  noUnicode (BoolExprs b) = noUnicode b
+  unicode (BoolExprs b)   = unicode b
+
+instance Printer BoolExpr where
+  compact (BSPExpr bsp) = compact bsp
+  compact (CNFExpr cnf) = compact cnf
+  noUnicode (BSPExpr bsp) = noUnicode bsp
   noUnicode (CNFExpr cnf) = noUnicode cnf
-  unicode (CNFExpr cnf)   = unicode cnf
+  unicode (BSPExpr bsp) = unicode bsp
+  unicode (CNFExpr cnf) = unicode cnf
