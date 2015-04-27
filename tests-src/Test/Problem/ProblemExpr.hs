@@ -15,13 +15,11 @@ module Test.Problem.ProblemExpr (
 
 import           HSat.Problem.ProblemExpr
 import           HSat.Problem.ProblemType
-import qualified Test.Problem.BSP.CNF as CNF
-import HSat.Problem.BSP.CNF (CNF)
-import qualified Test.Problem.BSP.Common as Common
 import           TestUtils
 import TestUtils.Validate
 import Control.Applicative
 import Test.Problem.ProblemType ()
+import qualified Test.Problem.BSP as BSP
 
 name :: String
 name = "ProblemExpr"
@@ -41,8 +39,7 @@ tests =
     testGroup "problemToCNF" [
       problemToCNFTest1
       ],
-    CNF.tests,
-    Common.tests
+    BSP.tests
     ]
 
 problemTypeTest1 :: TestTree
@@ -84,10 +81,18 @@ instance Validate BoolExpr where
 
 instance Arbitrary ProblemExpr where
   arbitrary = oneof [
-    mkArbCNFProblem arbitrary
+    liftA mkBoolExprProblem arbitrary
     ]
-  shrink (CNFExpr cnf) =
-    map mkCNFProblem $ shrink cnf
+  shrink (BoolExprs b) =
+    map mkBoolExprProblem $ shrink b
 
-mkArbCNFProblem :: Gen CNF -> Gen ProblemExpr
-mkArbCNFProblem = liftA mkCNFProblem
+instance Arbitrary BoolExpr where
+  arbitrary = oneof [
+    liftA mkBSPBoolExpr arbitrary,
+    liftA mkCNFBoolExpr arbitrary
+    ]
+  shrink (BSPExpr bsp) =
+    map mkBSPBoolExpr $ shrink bsp
+  shrink (CNFExpr cnf) =
+    map mkCNFBoolExpr $ shrink cnf
+ 

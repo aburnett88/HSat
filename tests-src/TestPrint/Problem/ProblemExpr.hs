@@ -37,4 +37,4 @@ printProblemExpr =
 
 problemExprs :: [ProblemExpr]
 problemExprs =
-  map CNFExpr CNF.cnfList
+  map mkCNFProblem CNF.cnfList

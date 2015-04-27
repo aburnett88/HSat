@@ -13,22 +13,22 @@ import HSat.Problem.BSP.Internal
 import HSat.Problem.BSP.Common.Variable
 
 bool :: Bool -> BSP
-bool = AtomicExpr' . Bool'
+bool = Bool'
 
 var :: Variable -> BSP
-var = AtomicExpr' . Variable'
+var = Variable'
 
 not' :: BSP -> BSP
-not' = ComplexExpr' . Not
+not' = Not
 
 (&&!) :: BSP -> BSP -> BSP
-l &&! r = ComplexExpr' $ And l r
+l &&! r = And l r
 
 (||!) :: BSP -> BSP -> BSP
-l ||! r = ComplexExpr' $ Or l r
+l ||! r =  Or l r
 
 (==>!) :: BSP -> BSP -> BSP
-l ==>! r = ComplexExpr' $ If l r
+l ==>! r =  If l r
 
 (<==>!) :: BSP -> BSP -> BSP
-l <==>! r = ComplexExpr' $ IfOnlyIf l r
+l <==>! r =  IfOnlyIf l r
