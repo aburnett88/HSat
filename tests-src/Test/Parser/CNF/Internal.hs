@@ -393,7 +393,9 @@ madeClauses size = do
       maxVar' = toInteger maxVar
       before = cnfBuilder maxVar' setSize'
       after = return $ CNFBuilder maxVar setSize setSize clauses emptyClause
-  text <- genClausesText size clauses
+      f = round . log :: Double -> Int
+      size' = f $ fromIntegral size
+  text <- genClausesText size' clauses
   return (before,after,text)
 
 genClausesText :: Int -> Clauses -> Gen Text

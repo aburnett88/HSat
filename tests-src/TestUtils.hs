@@ -23,6 +23,8 @@ module TestUtils (
   forceError,           -- ::
   propList,              -- :: (a -> Property) -> [a] ->
   listsContainSame,
+  listContainsSame',
+  listContainsSame'2',
   ) where
 
 import qualified Control.Exception as E (catch)
@@ -40,6 +42,7 @@ import           Test.Tasty.HUnit as Test.Extended
 import           Test.Tasty.QuickCheck as Test.Extended
 import qualified Data.Vector as V
 import Data.List (delete)
+import qualified Data.Set as S
 
 --The maximum size a clause is able to be in this configuration
 testMaxClauseSize :: Int
@@ -173,4 +176,21 @@ listsContainSame (x:xs) ys =
     counterexample ("Second list does not contain element" ++ show x) False
 listsContainSame a b =
   counterexample ("Lists inconsistant" ++ show a ++ show b) False
+
+listContainsSame'2' :: (Ord a, Show a) => [a] -> [a] -> Bool
+listContainsSame'2' first second =
+  listContainsSame'2'a second
+  where
+    listContainsSame'2'a [] = True
+    listContainsSame'2'a (x:xs) =
+      S.member x s && listContainsSame'2'a xs
+    s = S.fromList first
       
+
+listContainsSame' :: (Eq a, Show a) => [a] -> [a] -> Bool
+listContainsSame' [] [] = True
+listContainsSame' (x:xs) ys =
+  if x `elem` ys then
+    listContainsSame' xs (delete x ys) else
+    False
+listContainsSame' _ _ = False
