@@ -46,7 +46,7 @@ data CNFBuilder = CNFBuilder {
   -- | The current 'Clauses'
   getCurrClauses :: Clauses,
   -- | The current 'Clause' 'Literal's are added to
-  getCurrClause :: Clause
+  getCurrClause  :: Clause
   }
   deriving (Eq)
 
@@ -57,17 +57,17 @@ instance Show CNFBuilder where
 Denotes whether a 'Literal' can be added to the 'CNFBuilder' and it
 remains a valid 'CNFBuilder'
 -}
-canAddLiteral :: CNFBuilder -> Bool
-canAddLiteral (CNFBuilder{..}) =
-  (getCurrClNumb < getExptdClNumb) ||
-  ((getCurrClNumb == getExptdClNumb) &&
-   not (clauseIsEmpty getCurrClause))
+canAddLiteral                       :: CNFBuilder -> Bool
+canAddLiteral CNFBuilder{..}
+  | getCurrClNumb < getExptdClNumb  = True
+  | getCurrClNumb == getExptdClNumb = not $ clauseIsEmpty getCurrClause
+  | otherwise                       = False
 
 {-|
 Returns 'True' if the CNFBuilder can be finalised (turned into a 'CNF')
 -}
-canFinalise         :: CNFBuilder -> Bool
-canFinalise (CNFBuilder{..}) =
+canFinalise                :: CNFBuilder -> Bool
+canFinalise CNFBuilder{..} =
   getCurrClNumb == getExptdClNumb
   
 {-|
@@ -106,11 +106,11 @@ printCNFBuilder (CNFBuilder{..}) pType =
     clauses =
       case pType of
         Compact -> text "Clauses" <> colon               <+>
-                   word getCurrClNumb                        <>
-                   text "/"                               <>
+                   word getCurrClNumb                    <>
+                   text "/"                              <>
                    word getExptdClNumb
         _       -> text "Clauses"   <> colon             <+>
-                   word getExptdClNumb <> line               <>
+                   word getExptdClNumb <> line           <>
                    text "Current Clause Counnt" <> colon <+>
                    word getCurrClNumb
     currentClauses :: Doc
@@ -159,9 +159,9 @@ printBuildErr builderErr pType =
   case builderErr of
     IncorrectClauseNumber gotten expected ->
       errorDoc pType $
-        text "Incorrect Number of Clauses"               <+>
+        text "Incorrect Number of Clauses"             <+>
         text "Expected"     <> colon <+> word expected <+>
-        text "Actual Value" <> colon                     <+>
+        text "Actual Value" <> colon                   <+>
         word gotten
     VarOutsideRange gotten expected ->
       let le = text "<"
@@ -170,11 +170,11 @@ printBuildErr builderErr pType =
                   Unicode -> "≤"
                   _ -> "<="
       in errorDoc pType $
-           text "Variable outside range"    <> colon  <+>
-           word 0 <+> le <+> text (show gotten) <+>   leq  <+>
+           text "Variable outside range"        <>  colon <+>
+           word 0 <+> le <+> text (show gotten) <+> leq   <+>
            word expected
     Initialisation variables clauses ->
       errorDoc pType $
         text "Initialisation of arguments incorrect" <+>
-        text "Argumnets:" <+> text (show variables) <+> text (show clauses)
+        text "Argumnets:" <+> text (show variables)  <+> text (show clauses)
 

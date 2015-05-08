@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 {-|
 Module      : HSat.Printer
 Description : The Printer type used for showing output
@@ -84,6 +86,14 @@ a bespoke error message.
 Used to standardise error messages across the HSat modules
 -}
 errorDoc :: PrinterType -> Doc -> Doc
-errorDoc Compact reason   = text "ERR"   <> colon <+> reason
-errorDoc NoUnicode reason = text "Error" <> colon <+> reason
+errorDoc Compact reason   = "ERR"   <> colon <+> reason
+errorDoc NoUnicode reason = "Error" <> colon <+> reason
 errorDoc Unicode reason   = red $ errorDoc NoUnicode reason
+
+instance Printer Bool where
+  compact True    = "T"
+  compact False   = "F"
+  noUnicode True  = "True"
+  noUnicode False = "False"
+  unicode True    = green "True"
+  unicode False   = red "False"

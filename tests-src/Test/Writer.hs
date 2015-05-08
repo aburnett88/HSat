@@ -34,10 +34,10 @@ plainProblemToFileTest1 :: TestTree
 plainProblemToFileTest1 =
   testProperty "Write random Problem to file" $ ioProperty $ do
     let fileName = "plainProblemFileTest1"
-    problemExpr <- generate arbitrary
-    let problem = mkProblem mkStatic problemExpr
+    problemExpr' <- generate arbitrary
+    let problem = mkProblem mkStatic problemExpr'
     success <- plainProblemToFile problem fileName
-    let fileName' = createFileName fileName problemExpr
+    let fileName' = createFileName fileName problemExpr'
     if success then do
       returnProblem <- runReadFile $ fromFile fileName'
       removeFile fileName'
@@ -46,7 +46,7 @@ plainProblemToFileTest1 =
                     ("Unexpected Error: " ++ show err)
                     False
         Right problem' ->
-          getProblemExpr problem' === problemExpr else
+          problemExpr problem' === problemExpr' else
       return $
         counterexample
         "Could not write file. Exiting"
@@ -64,7 +64,7 @@ writeFolderTest1 =
       returnProblemss <- fromFolder fromFile fp
       let returnProblems = rights returnProblemss
       removeDirectoryRecursive fp
-      let problemExprs' = map getProblemExpr returnProblems
+      let problemExprs' = map problemExpr returnProblems
       return $ listsContainSame problemExprs' problemExprs else
       return $ counterexample (
         "writeFolderTest1 failed. Could not sucesfully write to file " ++

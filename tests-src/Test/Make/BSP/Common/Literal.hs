@@ -13,6 +13,7 @@ import qualified Data.Set as S
 import qualified Data.Map as M
 import Data.Set (Set)
 import Test.Problem.BSP.Common.Sign ()
+import Control.Applicative
 
 name :: String
 name = "Literal"
@@ -38,20 +39,25 @@ tests =
     ]
 
 instance Arbitrary LiteralSet where
-  arbitrary = arbLiteralSet 10 1
+  arbitrary = sized arbLiteralSet
 
-arbLiteralSet :: Word -> Word -> Gen LiteralSet
-arbLiteralSet maxVar _ = do
-  n <- choose (1,maxVar)
-  s <- arbitrary
-  let vars = map mkVariable [1..n]
-  mapping <- M.fromList `liftM` mapM (\v -> do
-                                     sign <- arbitrary
-                                     return (v,sign)) vars
-  gotten <- choose (0,n-1)
-  genTrue <- choose (0,gotten)
-  set <- generateSet (S.fromList vars) gotten
-  return $ LiteralSet set mapping genTrue n s
+arbLiteralSet :: Int -> Gen LiteralSet
+arbLiteralSet size = do
+  --Choose random number, make sure it is atleast 1
+  maxVar <- ((1+) . toEnum ) <$> choose (0,size)
+  varsAppearTwice <- arbitrary
+  let varList = map mkVariable [1..maxVar]
+  varMapping <- M.fromList `liftA` mapM (
+    \v -> ((,)v) `liftA` arbitrary) varList
+  --How many Variable's will be in 'varsThatCanAppear'
+  noVarsToAppear <- choose (0,maxVar-1)
+  --Either no true values have been generated, or a number have been
+  numbGeneratedTrue <- oneof [
+    return 0,
+    choose (0,noVarsToAppear-1)
+    ]
+  varsCanAppear <- generateSet (S.fromList varList) noVarsToAppear
+  return $ LiteralSet varsCanAppear varMapping numbGeneratedTrue maxVar varsAppearTwice
 
 f :: (MonadRandom m) => LiteralMake m a -> LiteralSet ->
      m (Either LiteralMakeError (a,LiteralSet))

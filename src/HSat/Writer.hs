@@ -26,7 +26,7 @@ import Control.Monad (foldM)
 
 plainProblemToFile :: Problem -> FilePath -> IO Bool
 plainProblemToFile problem fp = do
-  let expr = getProblemExpr problem
+  let expr = problemExpr problem
   let text = toPlainText expr
       fileName = createFileName fp expr
   exists <- doesFileExist fileName

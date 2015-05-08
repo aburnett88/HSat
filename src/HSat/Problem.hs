@@ -1,3 +1,5 @@
+{-# LANGUAGE RecordWildCards, OverloadedStrings #-}
+
 {- |
 Module      : HSat.Problem
 Description : The Problem data type
@@ -6,16 +8,14 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-This module describes the general 'Problem' data type, used to describe
-a variety of 'Problem's.
-
-It also includes an accompanying 'Source' which describes the problems origins.
+A 'Problem' consists of the problem representation and the source of the
+problem.
 -}
 
 module HSat.Problem (
   -- * Problem
   Problem (..), -- :: Problem
-  mkProblem    --  :: Source -> ProblemExpr -> Problem
+  mkProblem     --  :: Source -> ProblemExpr -> Problem
   ) where
 
 import           HSat.Printer
@@ -23,31 +23,28 @@ import           HSat.Problem.ProblemExpr
 import           HSat.Problem.Source
 
 {- |
-Used to contain a 'ProblemExpr' and the 'Problem's 'Source'.
+The data type describing a 'Problem'
 -}
 data Problem = Problem {
-  -- | The 'Source' of the 'Problem'
-  getSource      :: Source     ,
-  -- | The expression 'ProblemExpr' of the problem itself
-  getProblemExpr :: ProblemExpr
+  -- | The problem source
+  source      :: Source     ,
+  -- | The problem representation  showsPrec = show'
+  problemExpr :: ProblemExpr
   } deriving (Eq)
 
-instance Show Problem where
-  showsPrec = show'
-
--- | Constructs a problem from the 'Source' and 'ProblemExpr' parts
+-- | Constructs a problem from the 'Source' and 'ProblemExpr'
 mkProblem :: Source -> ProblemExpr -> Problem
 mkProblem = Problem
 
--- Printer instance
+-- Printer instances
 
 instance Printer Problem where
   compact   = printProblem Compact
   noUnicode = printProblem NoUnicode
   unicode   = printProblem Unicode
 
-printProblem :: PrinterType -> Problem -> Doc
-printProblem pType (Problem source expr) =
+printProblem                   :: PrinterType -> Problem -> Doc
+printProblem pType Problem{..} =
   preamble    <>
   space'      <>
   printSource <>
@@ -55,14 +52,14 @@ printProblem pType (Problem source expr) =
   printExpr
   where
     preamble :: Doc
-    preamble = text $ case pType of
+    preamble = case pType of
       Compact -> "Problem -"
-      _ -> "Problem:"
+      _       -> "Problem:"
     space' :: Doc
     space' = case pType of
       Compact -> space
-      _ -> line
+      _       -> line
     printSource :: Doc
     printSource = pTypeToDoc pType source
-    printExpr :: Doc
-    printExpr = pTypeToDoc pType expr
+    printExpr   :: Doc
+    printExpr   = pTypeToDoc pType problemExpr

@@ -2,12 +2,12 @@ module Test.Problem.BSP.Internal (
   tests
   ) where
 
-import TestUtils.Validate
-import TestUtils
-import HSat.Problem.BSP.Internal
-import Test.Problem.BSP.Common.Variable ()
 import Control.Applicative
 import HSat.Problem.BSP.Common.Variable
+import HSat.Problem.BSP.Internal
+import Test.Problem.BSP.Common.Variable ()
+import TestUtils
+import TestUtils.Validate
 
 tests :: TestTree
 tests = testGroup name [

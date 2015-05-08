@@ -42,7 +42,7 @@ fromCNFFileTest1 =
       removeFile fp'
       case result of
         Right problem' ->
-          return $ property $ mkCNFProblem cnf === getProblemExpr problem'
+          return $ property $ mkCNFProblem cnf === problemExpr problem'
         Left err ->
           return $ counterexample
            ("Unexpected reading error " ++ show err)
@@ -63,7 +63,7 @@ fromFileTest1 =
       removeFile fp'
       case result of
        Right problem' ->
-         return $ getProblemExpr problem === getProblemExpr problem'
+         return $ problemExpr problem === problemExpr problem'
        Left err ->
          return $ counterexample
            ("Failure with error" ++ show err)
@@ -81,7 +81,7 @@ fromFolderTest1 =
       problems' <- fromFolder fromFile folder
       let exprs' = map (\a ->
                          case a of
-                           Right p -> Right . getProblemExpr $ p
+                           Right p -> Right . problemExpr $ p
                            Left err -> Left err
                            ) problems'
       removeDirectoryRecursive folder

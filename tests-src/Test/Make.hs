@@ -65,7 +65,7 @@ testError (Config p config) err =
 
 testCorrectType :: Config -> Problem -> Property
 testCorrectType (Config p _) problem =
-  (problemType . getProblemExpr $ problem) === p
+  (problemType . problemExpr $ problem) === p
     
 makeListTest1 :: TestTree
 makeListTest1 =

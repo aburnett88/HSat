@@ -1,3 +1,5 @@
+{-# LANGUAGE RecordWildCards #-}
+
 {-|
 Module      : Test.Problem
 Description : The Test node for the Problem module
@@ -18,8 +20,6 @@ import qualified Test.Problem.ProblemExpr as ProblemExpr
 import qualified Test.Problem.ProblemType as ProblemType
 import qualified Test.Problem.Source as Source
 import           TestUtils
-import HSat.Problem.Source
-import HSat.Problem.ProblemExpr
 import Control.Applicative
 
 name :: String
@@ -40,23 +40,18 @@ tests =
 mkProblemTest1 :: TestTree
 mkProblemTest1 =
   testProperty "getSource . mkProblem s p == s" $ property (
-    \(source,problem) ->
-    source === getSource (mkProblem source problem)
+    \(source',problem) ->
+    source' === source (mkProblem source' problem)
     )
 
 mkProblemTest2 :: TestTree
 mkProblemTest2 =
   testProperty "getProblemExpr . mkProblem s p == p" $ property (
     \(source,problem) ->
-    problem == getProblemExpr (mkProblem source problem)
+    problem == problemExpr (mkProblem source problem)
     )
 
 instance Arbitrary Problem where
-  arbitrary = mkArbProblem arbitrary arbitrary
-  shrink problem =
-    let source      = getSource problem
-        problemExpr = getProblemExpr problem
-    in map (uncurry mkProblem) $ shrink (source,problemExpr)
-
-mkArbProblem :: Gen Source -> Gen ProblemExpr -> Gen Problem
-mkArbProblem = liftA2 mkProblem
+  arbitrary = liftA2 mkProblem arbitrary arbitrary
+  shrink Problem{..} =
+    map (uncurry mkProblem) $ shrink (source,problemExpr)
