@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards #-}
+
 
 {-|
 Module      : Test.Problem
@@ -20,8 +20,8 @@ import qualified Test.Problem.ProblemExpr as ProblemExpr
 import qualified Test.Problem.ProblemType as ProblemType
 import qualified Test.Problem.Source as Source
 import           TestUtils
-import Control.Applicative
 import HSat.Problem.Internal
+import qualified Test.Problem.Internal as Internal
 
 name :: String
 name = "Problem"
@@ -33,6 +33,7 @@ tests =
        mkProblemTest1,
        mkProblemTest2
        ],
+    Internal.tests,
     ProblemExpr.tests,
     ProblemType.tests,
     Source.tests
@@ -48,11 +49,7 @@ mkProblemTest1 =
 mkProblemTest2 :: TestTree
 mkProblemTest2 =
   testProperty "getProblemExpr . mkProblem s p == p" $ property (
-    \(source,problem) ->
-    problem == problemExpr (mkProblem source problem)
+    \(source',problem) ->
+    problem === problemExpr (mkProblem source' problem)
     )
 
-instance Arbitrary Problem where
-  arbitrary = liftA2 mkProblem arbitrary arbitrary
-  shrink Problem{..} =
-    map (uncurry mkProblem) $ shrink (source,problemExpr)

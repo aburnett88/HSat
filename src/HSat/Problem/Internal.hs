@@ -8,7 +8,7 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The internal represetnation of a 'Problem' that contains a souce
+The internal representation of a 'Problem' that contains a source
 and a representation
 -}
 
@@ -21,12 +21,12 @@ import HSat.Problem.ProblemExpr
 import HSat.Problem.Source
 
 {-|
-A 'Problem' represents both a problem expresion and its source
+A 'Problem' represents both a problem expression and its source
 -}
 data Problem = Problem {
   -- | The Source of the Problem
   source      :: Source     ,
-  -- | The expressino of the problem
+  -- | The expression of the problem
   problemExpr :: ProblemExpr
   } deriving (Eq)
 

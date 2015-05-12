@@ -20,7 +20,7 @@ import HSat.Problem.Internal
 import HSat.Problem.ProblemExpr
 import HSat.Problem.Source
 
--- | Constructs a problem from the 'Source' and 'ProblemExpr'
+-- | Constructs a problem from a 'Source' and 'ProblemExpr'
 mkProblem :: Source -> ProblemExpr -> Problem
 mkProblem = Problem
 
