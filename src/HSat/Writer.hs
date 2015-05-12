@@ -23,6 +23,7 @@ import System.Directory
 import Data.Text (Text)
 import HSat.Problem.ProblemType
 import Control.Monad (foldM)
+import HSat.Problem.Internal
 
 plainProblemToFile :: Problem -> FilePath -> IO Bool
 plainProblemToFile problem fp = do

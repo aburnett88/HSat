@@ -29,6 +29,7 @@ library
     bifunctors
   Exposed-Modules:
     HSat.Problem
+    HSat.Problem.Internal
     HSat.Problem.ProblemExpr
     HSat.Problem.ProblemType
     HSat.Problem.Source

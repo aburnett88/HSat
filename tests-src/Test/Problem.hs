@@ -21,6 +21,7 @@ import qualified Test.Problem.ProblemType as ProblemType
 import qualified Test.Problem.Source as Source
 import           TestUtils
 import Control.Applicative
+import HSat.Problem.Internal
 
 name :: String
 name = "Problem"

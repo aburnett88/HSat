@@ -6,6 +6,7 @@ import TestUtils
 import qualified Test.Parser.CNF as CNF
 import HSat.Parser
 import HSat.Writer
+import HSat.Problem.Internal
 import HSat.Problem
 import HSat.Problem.Source
 import HSat.Problem.ProblemExpr

@@ -10,9 +10,10 @@ import Data.Either
 import HSat.Writer
 import HSat.Parser
 import Test.Problem ()
-import HSat.Problem
+import HSat.Problem.Internal
 import HSat.Problem.Source
 import System.Directory
+import HSat.Problem
 
 name :: String
 name = "Writer"
