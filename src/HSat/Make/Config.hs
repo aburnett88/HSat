@@ -27,6 +27,7 @@ module HSat.Make.Config (
 import HSat.Problem.ProblemType
 import HSat.Make.Internal
 import System.Random
+import HSat.Printer
 
 {-|
 This super type allows for construction of all types of 'Problem's
@@ -38,6 +39,11 @@ data Config = Config {
   getInputConfig :: ConfigProblemType
   } deriving (Eq,Show)
 
+instance Printer Config where
+  compact (Config a b) = compact a <+> compact b
+  noUnicode (Config a b) = noUnicode a <+> noUnicode b
+  unicode (Config a b) = unicode a <+> unicode b
+
 {-|
 A supertype that describes all different types of Problem's that
 can be created
@@ -45,6 +51,11 @@ can be created
 data ConfigProblemType =
   CNFProblemType CNFConfig
   deriving (Eq,Show)
+
+instance Printer ConfigProblemType where
+  compact (CNFProblemType c) = compact c
+  noUnicode (CNFProblemType c) = noUnicode c
+  unicode (CNFProblemType c) = unicode c
 
 {-|
 The CNFConfig type represents Conjucntive Normal Form Problems
@@ -62,6 +73,26 @@ data CNFConfig = CNFConfig {
   getDefinitelyHasSolution :: Bool
   } deriving (Eq,Show)
 
+instance Printer CNFConfig where
+  compact (CNFConfig a b c d e) =
+    compact a <+>
+    compact b <+>
+    compact c <+>
+    compact d <+>
+    compact e
+  noUnicode (CNFConfig a b c d e) =
+    noUnicode a <+>
+    noUnicode b <+>
+    noUnicode c <+>
+    noUnicode d <+>
+    noUnicode e
+  unicode (CNFConfig a b c d e) =
+    unicode a <+>
+    unicode b <+>
+    unicode c <+>
+    unicode d <+>
+    unicode e
+
 {-|
 A Variable Predicate 
 -}
@@ -76,6 +107,14 @@ Can either be a Bounded Positive Double that represents a constant multiper for 
 of variabels to clauses, or an exact nuber of variables
 -}
 type VariableNumber = Either (Bounds PosDouble) (Bounds Word)
+
+instance (Printer a, Printer b) => Printer (Either a b) where
+  compact (Left a) = compact a
+  compact (Right a) = compact a
+  noUnicode (Left a) = noUnicode a
+  noUnicode (Right a) = noUnicode a
+  unicode (Left a) = unicode a
+  unicode (Right a) = unicode a
 
 {-|
 The number of Clauses is a Bounds word
@@ -92,6 +131,11 @@ A newtype wrapper around a Double.
 -}
 newtype PosDouble = PosDouble Double
   deriving (Eq,Show)
+
+instance Printer PosDouble where
+  compact (PosDouble d) = compact d
+  noUnicode (PosDouble d) = noUnicode d
+  unicode (PosDouble d) = unicode d
 
 {-|
 The only constructor allows only positive Double's

@@ -4,6 +4,7 @@ module Test.Problem.Source (
 
 import TestUtils
 import HSat.Problem.Source
+import HSat.Problem.Source.Internal
 import Control.Applicative
 import HSat.Make.Config
 import Test.Make.Config ()
@@ -16,7 +17,9 @@ tests = testGroup name [
   testGroup "mkStatic" [
      mkStaticTest1],
   testGroup "mkFileSource" [
-    mkFileSourceTest1]
+    mkFileSourceTest1],
+  testGroup "mkMakeConfig" [
+    mkMakeConfigTest1]
   ]
 
 mkStaticTest1 :: TestTree
@@ -32,6 +35,15 @@ mkFileSourceTest1 =
     case mkFileSource filePath of
       FileSource filePath' -> filePath == filePath'
       _                    -> False
+      )
+
+mkMakeConfigTest1 :: TestTree
+mkMakeConfigTest1 =
+  testProperty "config . mkMakeConfig c === c" $ property (
+    \config ->
+    case mkMakeConfig config of
+      MakeConfiguration c' -> c' == config
+      _ -> False
       )
 
 instance Arbitrary Source where

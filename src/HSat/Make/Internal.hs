@@ -23,6 +23,7 @@ module HSat.Make.Internal (
 
 import Control.Monad.Random.Class
 import Control.Monad.Random
+import HSat.Printer
 
 {-|
 Evaluates a 'Bounds' type to a concrete value within a 'MonadRandom' context
@@ -36,6 +37,11 @@ value will be between (inclusive)
 -}
 data Bounds a = Bounds a a
   deriving (Eq,Show)
+
+instance (Printer a) => Printer (Bounds a) where
+  compact (Bounds a b) = compact a <+> compact b
+  noUnicode (Bounds a b) = noUnicode a <+> noUnicode b
+  unicode (Bounds a b) = unicode a <+> unicode b
 
 {-|
 Takes two values and creates a 'Bounds' out of them. This assures that order

@@ -79,6 +79,9 @@ Turns a 'Word' into a 'Doc'
 word :: Word -> Doc
 word = text . show
 
+toDoc :: (Show a) => a -> Doc
+toDoc = text . show
+
 {-|
 Takes a 'Doc' describing an error, and the 'PrinterType' and creates
 a bespoke error message.
@@ -97,3 +100,13 @@ instance Printer Bool where
   noUnicode False = "False"
   unicode True    = green "True"
   unicode False   = red "False"
+
+instance Printer Word where
+  compact w = word w
+  noUnicode w = word w
+  unicode w = word w
+
+instance Printer Double where
+  compact d = toDoc d
+  noUnicode d = toDoc d
+  unicode d = unicode d
