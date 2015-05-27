@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 {-|
 Module      : HSat.Problem.ProblemType
 Description : The ProblemType data type
@@ -6,7 +8,7 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : -
 
-Provides a unary constructor for describing a 'Problem' at an abstract level
+Provides a data type to describe the class of a 'Problem'
 -}
 
 module HSat.Problem.ProblemType (
@@ -17,7 +19,7 @@ module HSat.Problem.ProblemType (
 import HSat.Printer
 
 {-|
-The general type describing for describing Problems
+The data type to describe a 'Problem'
 -}
 data ProblemType =
   -- | Describes a SAT problem in Conjunctive Normal Form
@@ -26,17 +28,15 @@ data ProblemType =
   BSP
   deriving (Eq,Show)
 
-cnfDoc :: Doc
-cnfDoc = text "CNF"
-
-bspDoc :: Doc
-bspDoc = text "BSP"
+cnfDoc,bspDoc :: Doc
+cnfDoc = "CNF"
+bspDoc = "BSP"
 
 instance Printer ProblemType where
-  compact CNF = cnfDoc
-  compact BSP = bspDoc
+  compact   CNF = cnfDoc
+  compact   BSP = bspDoc
   noUnicode CNF = cnfDoc
   noUnicode BSP = bspDoc
-  unicode CNF = cnfDoc
-  unicode BSP = bspDoc
+  unicode   CNF = cnfDoc
+  unicode   BSP = bspDoc
   

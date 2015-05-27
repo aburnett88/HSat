@@ -31,6 +31,7 @@ library
     HSat.Problem
     HSat.Problem.Internal
     HSat.Problem.ProblemExpr
+    HSat.Problem.ProblemExpr.Internal
     HSat.Problem.ProblemType
     HSat.Problem.Source
     HSat.Problem.Source.Internal

@@ -20,6 +20,7 @@ import TestUtils.Validate
 import Control.Applicative
 import Test.Problem.ProblemType ()
 import qualified Test.Problem.BSP as BSP
+import HSat.Problem.ProblemExpr.Internal
 
 name :: String
 name = "ProblemExpr"
