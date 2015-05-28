@@ -10,8 +10,20 @@ Provides Parsing benchmarks
 -}
 
 import Criterion.Main
+import qualified Language.CNF.Parse.ParseDIMACS as L
+import qualified HSat.Parser as P
 
 main :: IO ()
 main = defaultMain [
-  bgroup "Parsing 1000 small files" []
+  bgroup description1 [
+     bench "parse-dimacs" $ whnf L.parseFile filePath,
+     bench "HSat parse" $ whnf P.runReadFile (P.fromCNFFile "")
+     ]
   ]
+
+description1 :: String
+description1 =
+  "Parsing a single file"
+
+filePath :: String
+filePath = "tests-src/Files/test1-good.cnf"
