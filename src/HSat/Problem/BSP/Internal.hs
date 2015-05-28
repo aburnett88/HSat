@@ -152,9 +152,19 @@ dnf bsp = case bsp of
   And (Or b c) a -> Or (And a b) (And a c)
   _ -> generic dnf bsp
 
+{-|
+takes a BSP and converts it to generic CNF form
+
+It uses tseitin's method, and generally will produce minimal formula
+-}
 tseitin :: BSP -> BSP
 tseitin = error "unwritten"
 
+{-|
+Takes a BSP and converts it to a generic CNF form.
+
+It is performed in a nieve method, and it is recomended to use tseitin's method
+-}
 cnf :: BSP -> BSP
 cnf = error "cnf unwritten"
 
