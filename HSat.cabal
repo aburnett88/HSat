@@ -26,7 +26,8 @@ library
     containers,
     mtl,
     either,
-    bifunctors
+    bifunctors,
+    deepseq
   Exposed-Modules:
     HSat.Problem
     HSat.Problem.Internal

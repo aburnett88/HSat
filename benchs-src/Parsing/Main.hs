@@ -9,15 +9,15 @@ Portability : Unknown
 Provides Parsing benchmarks
 -}
 
-import Criterion.Main
-import qualified Language.CNF.Parse.ParseDIMACS as L
+import           Criterion.Main
 import qualified HSat.Parser as P
+import qualified Language.CNF.Parse.ParseDIMACS as L
 
 main :: IO ()
 main = defaultMain [
   bgroup description1 [
-     bench "parse-dimacs" $ whnf L.parseFile filePath,
-     bench "HSat parse" $ whnf P.runReadFile (P.fromCNFFile "")
+     bench "parse-dimacs" $ whnfIO (L.parseFile filePath),
+     bench "HSat parse" $ whnfIO (P.runReadFile (P.fromCNFFile filePath))
      ]
   ]
 
