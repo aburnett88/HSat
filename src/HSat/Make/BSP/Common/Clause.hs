@@ -1,3 +1,14 @@
+{-|
+Module      : HSat.Make.BSP.Common.Clause
+Description : Provides functioanlity for creating random clauses
+Copyright   : (c) Andrew Burnett 2014-2015
+Maintainer  : andyburnett88@gmail.com
+Stability   : experimental
+Portability : Unknown
+
+Exports a function for creating random 'Clause'
+-}
+
 module HSat.Make.BSP.Common.Clause (
   makeClause
   ) where
@@ -7,6 +18,12 @@ import Control.Monad.Random
 import HSat.Problem.BSP.Common
 import HSat.Make.BSP.Common.Literal
 
+{-|
+Given a 'LiteralPredicate', a 'Word' denoting the size of the 'Clause',
+this returns a tuple of a 'Bool' and a 'Clause' in a 'LiteralMake' area
+
+The Bool denotes whether all the 'Literal's generated will evaluate to 'True'
+-}
 makeClause :: (MonadRandom m) =>
               LiteralPredicate -> Word ->
               LiteralMake m (Bool,Clause)

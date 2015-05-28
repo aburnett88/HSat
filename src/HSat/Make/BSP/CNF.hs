@@ -1,3 +1,14 @@
+{-|
+Module      : HSat.Make.BSP.CNF
+Description : HIgh level functions for creating CNF files
+Copyright   : (c) Andrew Burnett 2014-2015
+Maintainer  : andyburnett88@gmail.com
+Stability   : experimental
+Portability : Unknown
+
+Exports high level functions for creating 'CNF' files
+-}
+
 module HSat.Make.BSP.CNF (
   makeCNF,
   makeCNFSolution,
@@ -12,11 +23,16 @@ import qualified Data.Map as M
 import Control.Monad.Random
 import HSat.Make.Config
 
-
+{-|
+Creates the CNF or throws an error givern a 'Config'
+-}
 makeCNF :: (MonadRandom m) => CNFConfig -> m (Either CNFMakeError CNF)
 makeCNF config =
   mkCNFInit config >>= mkCNF
 
+{-|
+If a config is incorrect, will fix the config and return it and the new CNF
+-}
 makeCNF' :: (MonadRandom m) =>
             CNFConfig ->
             m (CNFConfig,CNF)
@@ -25,6 +41,9 @@ makeCNF' config = do
   cnf <- mkCNF' initial
   return (config',cnf)
 
+{-|
+Makes a soltuion from a 'CNFConfig
+-}
 makeCNFSolution :: (MonadRandom m) =>
                    CNFConfig ->
                    m (Map Variable Sign,CNF)

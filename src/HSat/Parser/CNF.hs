@@ -18,6 +18,9 @@ import HSat.Problem.BSP.CNF.Builder
 import HSat.Problem.BSP.CNF
 import HSat.Parser.CNF.Internal
 
+{-|
+Contains a parser that returns either a 'CNFBuilderError' or a 'CNF
+-}
 cnfParser :: Parser (Either CNFBuilderError CNF)
 cnfParser = do
   cnf <- parseComment >> parseComments >> parseProblemLine >>= parseClauses

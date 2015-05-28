@@ -1,4 +1,16 @@
+{-|
+Module      : HSat.Parser.CNF.Internal
+Description : Interanl functions to parse 'CNF' files
+Copyright   : (c) Andrew Burnett 2014-2015
+Maintainer  : andyburnett88@gmail.com
+Stability   : experimental
+Portability : Unknown
+
+Exports a set of internally used functions to parse parts of a 'CNF' file
+-}
+
 module HSat.Parser.CNF.Internal (
+  -- * Functions
   parseComment,
   parseComments,
   parseNonZeroInteger,
@@ -12,6 +24,9 @@ import HSat.Problem.BSP.CNF.Builder
 import Control.Monad (void)
 import Data.Text
 
+{-|
+Parse a list of comments. No information is retained
+-}
 parseComments :: Parser ()
 parseComments =
   void (skipMany (parseComment >> endOfLine))
@@ -24,6 +39,9 @@ parseComment =
   many' space' >> option () (
     char 'c' >> skipWhile (not . isEndOfLine))
 
+{-|
+Parses the problem line, and returns an initialised 'CNFBuilder' or an error
+-}
 parseProblemLine :: Parser CNFBuildErr
 parseProblemLine = (do
   skipMany space'
@@ -49,6 +67,9 @@ positive = do
 choices :: String -> Parser Char
 choices xs = choice $ fmap char xs
 
+{-|
+Parses a 'Clause' into a 'CNFBuilder', or throws the error
+-}
 parseClause :: CNFBuildErr -> Parser CNFBuildErr
 parseClause b = choice [
   do
@@ -65,7 +86,10 @@ parseClause b = choice [
     parseComments
     parseClause b
     ]
-    
+
+{-|
+Parses a set of 'Clauses' into a 'CNFBuilder' or throws the error
+-}
 parseClauses :: CNFBuildErr -> Parser CNFBuildErr
 parseClauses cnf =
   parseComments >> choice [
@@ -73,7 +97,9 @@ parseClauses cnf =
     parseComments >> return cnf
     ]
                              
-
+{-|
+Parses a non-negative 'Integer'
+-}
 parseNonZeroInteger :: Parser Integer
 parseNonZeroInteger = do
   f <- option id (char '-' >> return negate)

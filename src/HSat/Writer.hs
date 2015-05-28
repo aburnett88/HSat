@@ -1,12 +1,12 @@
 {-|
 Module      : HSat.Writer
-Description : Module for writing Problems to files
+Description : High level module to write Problems to Files
 Copyright   : (c) Andrew Burnett 2014
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-Writes problems
+Provides functionality for writing 'Problem's to files
 -}
 
 module HSat.Writer (
@@ -25,6 +25,11 @@ import HSat.Problem.ProblemType
 import Control.Monad (foldM)
 import HSat.Problem.Internal
 
+{-|
+Writes a 'Problem' to a 'FilePath'
+
+The 'Bool' returned is whether this was sucessful
+-}
 plainProblemToFile :: Problem -> FilePath -> IO Bool
 plainProblemToFile problem fp = do
   let expr = problemExpr problem
@@ -35,6 +40,9 @@ plainProblemToFile problem fp = do
     return False else
     T.writeFile fileName text >> return True
 
+{-|
+Takes an initial 'FilePath' and adds the correct suffix to it
+-}
 createFileName :: FilePath -> ProblemExpr -> FilePath
 createFileName fp expr =
   fp ++ "." ++ fileSuffix
@@ -53,6 +61,10 @@ toPlainText expr =
     CNF -> runCNFWriter . mkCNFWriter . problemToCNF $ expr
     BSP -> error "Not written yet writer l53"
 
+{-|
+Given an initial writing function, a list of problems and a folder, writes
+all the functions to this folder
+-}
 writeFolder :: (Problem -> FilePath -> IO Bool) -> [Problem] -> FilePath ->
                IO Bool
 writeFolder f problems folder = do

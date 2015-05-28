@@ -1,3 +1,14 @@
+{-|
+Module      : HSat.Make.BSP.Common.Clauses
+Description : Exports functionality to create random 'Clauses'
+Copyright   : (c) Andrew Burnett 2014-2015
+Maintainer  : andyburnett88@gmail.com
+Stability   : experimental
+Portability : Unknown
+
+This module exports functionality to create random 'Clauses'
+-}
+
 module HSat.Make.BSP.Common.Clauses (
   makeClauses
   ) where
@@ -7,6 +18,11 @@ import HSat.Problem.BSP.Common
 import HSat.Make.BSP.Common.Clause
 import HSat.Make.BSP.Common.Literal
 
+{-|
+Given a list of 'Words' (that correspond t othe size of the 'Clause'
+and a 'LiteralPredicate', creates a list of 'Clasue' that corresponds
+to these predicates
+-}
 makeClauses :: (MonadRandom m) => [Word] -> LiteralPredicate ->
                LiteralMake m Clauses
 makeClauses ls predicate =

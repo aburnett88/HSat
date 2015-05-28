@@ -1,8 +1,24 @@
+{-|
+Module      : HSat.Parser
+Description : Main Parsing module
+Copyright   : (c) Andrew Burnett 2014-2015
+Maintainer  : andyburnett88@gmail.com
+Stability   : experimental
+Portability : Unknown
+
+Module exports some generic Parsing functions
+-}
+
+
 module HSat.Parser (
+  -- * Data Type
+  ReadFile,
+  ProblemParseError,
+  runReadFile,
+  -- * Functions
   fromCNFFile,
   fromFile,
-  fromFolder,
-  runReadFile
+  fromFolder
   ) where
 
 import HSat.Problem
@@ -22,11 +38,21 @@ import HSat.Problem.Source
 import Data.List (delete)
 import Control.Monad (unless)
 
+{-|
+A type wrapper around the possible Error type
+-}
 type ReadFile a = EitherT ProblemParseError IO a
 
+{-|
+Runs the 'ReadFile' type
+-}
 runReadFile :: ReadFile a -> IO (Either ProblemParseError a)
 runReadFile = runEitherT
 
+{-|
+Given a 'FilePath', either returns the 'CNF' in the file or
+the udnerlying error
+-}
 fromCNFFile :: FilePath -> ReadFile CNF
 fromCNFFile fp = do
   doesFileExist' fp
@@ -39,6 +65,9 @@ doesFileExist' fp = do
   exists <- lift $ doesFileExist fp
   unless exists $ left $ FileNotFound fp
 
+{-|
+Given a 'FilePath', extracts the 'Problem' described in the file
+-}
 fromFile :: FilePath -> ReadFile Problem
 fromFile filePath = do
   fileType <- hoistEither $ getProblemType filePath
@@ -47,6 +76,10 @@ fromFile filePath = do
     P.BSP -> error "Not written yet parser l47"
   return $ mkProblem (mkFileSource filePath) expr
 
+{-|
+Given a function that takes a 'FilePath' and returns a 'Problem', a folder,
+applies the function to each file in the folder
+-}
 fromFolder :: (FilePath -> ReadFile Problem) -> FilePath ->
               IO [Either ProblemParseError Problem]
 fromFolder f folder = do
@@ -67,10 +100,17 @@ getProblemType str =
     ".cnf" -> return P.CNF
     _ -> Left $ UnrecognisedFileSuffix suffix
 
+{-|
+A sumtype describing errors
+-}
 data ProblemParseError =
+  -- | If the file suffix is not recognised
   UnrecognisedFileSuffix String |
+  -- | If the file is not found
   FileNotFound FilePath |
+  -- | If there is a Parser error
   CNFParserError String |
+  -- | If there is a CNF Buidler error
   CNFBuildError CNFBuilderError
   deriving (Eq,Show)
 

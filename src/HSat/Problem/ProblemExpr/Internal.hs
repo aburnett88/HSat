@@ -53,8 +53,14 @@ instance Printer BoolExpr where
   unicode (BSPExpr bsp)   = unicode bsp
   unicode (CNFExpr cnf)   = unicode cnf
 
+{-|
+Takes a 'B.BSP' and converts it to a 'C.CNF'
+-}
 fromBSPtoCNF :: B.BSP -> C.CNF
 fromBSPtoCNF = error "not written yet fromBSPtoCNF"
 
+{-|
+Takes a 'C.CNF' and converts it to a 'B.BSP'
+-}
 fromCNFtoBSP :: C.CNF -> B.BSP
 fromCNFtoBSP = error "not written yet fromCNFtoBSP"

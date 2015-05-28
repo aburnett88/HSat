@@ -1,9 +1,21 @@
+{-|
+Module      : HSat.Writer.CNF
+Description : Used when adding comments to CNF files
+Copyright   : (c) Andrew Burnett 2014-2015
+Maintainer  : andyburnett88@gmail.com
+Stability   : experimental
+Portability : Unknown
+
+When you wisht o add comments to a CNF file, this module can be used
+-}
+
 module HSat.Writer.CNF (
   mkCNFWriter,
   addClauseComment,
   addPreambleComment,
   runCNFWriter,
-  getCNFFromWriter
+  getCNFFromWriter,
+  CNFWriter
   ) where
 
 import HSat.Writer.CNF.Internal
@@ -13,6 +25,9 @@ import HSat.Problem.BSP.CNF.Internal
 import qualified Data.Vector as V
 import HSat.Problem.BSP.Common
 
+{-|
+Get an underlying CNF from a 'CNFWriter'
+-}
 getCNFFromWriter :: CNFWriter -> CNF
 getCNFFromWriter (CNFWriter problem clauses) =
   let v = wplVariables problem
@@ -20,12 +35,20 @@ getCNFFromWriter (CNFWriter problem clauses) =
       cl = mkClauses . V.map wpClause $ clauses
   in CNF v c cl
 
+{-|
+make a 'CNFWriter' from a 'CNF'
+-}
 mkCNFWriter :: CNF -> CNFWriter
 mkCNFWriter (CNF v c cl) =
   let problem = WPL v c []
       clauses = V.map (flip WCL []) . getVectClause $ cl
   in CNFWriter problem clauses
 
+{-|
+Add a comment to a specific numebred 'Clause'
+
+Will return nothing if the number specified is outside the range
+-}
 addClauseComment :: Word -> Comment -> CNFWriter -> Maybe CNFWriter
 addClauseComment w c writer
   | w < (wplClauses . writeProblemLine $ writer) =
@@ -36,6 +59,10 @@ addClauseComment w c writer
                      }
   | otherwise = Nothing
 
+{-|
+Adds a comment to the Preamble of the 'CNFWriter', returning the new 'CNFWriter'
+
+-}
 addPreambleComment :: Comment -> CNFWriter -> CNFWriter
 addPreambleComment c writer =
   writer {
@@ -44,6 +71,9 @@ addPreambleComment c writer =
                      }
                        }
 
+{-|
+Turns the 'CNFWriter' into 'Text'
+-}
 runCNFWriter :: CNFWriter -> Text
 runCNFWriter (CNFWriter p c') = T.unlines $ 
   runProblemLine p ++
