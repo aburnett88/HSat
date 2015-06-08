@@ -20,7 +20,10 @@ module HSat.Problem.ProblemExpr.Internal (
 
 import           HSat.Printer
 import qualified HSat.Problem.BSP as B
-import qualified HSat.Problem.BSP.CNF as C (CNF)
+import qualified HSat.Problem.BSP.CNF as C (CNF,mkCNFFromClauses)
+import HSat.Problem.BSP.Internal
+import qualified Data.Vector as V
+import HSat.Problem.BSP.Common
 
 {-|
 A sum type containing all 'ProblemExpr' sub-types
@@ -47,17 +50,45 @@ instance Printer ProblemExpr where
 
 instance Printer BoolExpr where
   compact (BSPExpr bsp)   = compact bsp
-  compact (CNFExpr cnf)   = compact cnf
+  compact (CNFExpr c)   = compact c
   noUnicode (BSPExpr bsp) = noUnicode bsp
-  noUnicode (CNFExpr cnf) = noUnicode cnf
+  noUnicode (CNFExpr f) = noUnicode f
   unicode (BSPExpr bsp)   = unicode bsp
-  unicode (CNFExpr cnf)   = unicode cnf
+  unicode (CNFExpr c)   = unicode c
 
 {-|
 Takes a 'B.BSP' and converts it to a 'C.CNF'
 -}
 fromBSPtoCNF :: B.BSP -> C.CNF
-fromBSPtoCNF = error "not written yet fromBSPtoCNF"
+fromBSPtoCNF bsp =
+  let bsp' = map listY . listX . simplify . cnf . nnf . removeIf . removeIff $ bsp
+  in intoCNF bsp'
+
+listX :: BSP -> [BSP]
+listX (And l@(And _ _) r@(Or _ _)) = listX l ++ [r]
+listX (And l@(Or _ _) r@(And _ _)) = [l] ++ listX r
+listX (And l@(Or _ _) r@(Or _ _)) = [l] ++ [r]
+listX b = [b]
+
+listY :: BSP -> [BSP]
+listY (Or l@(Or _ _) r) = listY l ++ [r]
+listY (Or l r@(Or _ _)) = [l] ++ listY r
+listY (Or l r) = [l] ++ [r]
+listY a = [a]
+
+intoCNF :: [[BSP]] -> C.CNF
+intoCNF [[(Bool' True)]] = C.mkCNFFromClauses $ emptyClauses
+intoCNF [[(Bool' False)]] = C.mkCNFFromClauses $ emptyClauses
+intoCNF bsp = C.mkCNFFromClauses . mkClauses . V.fromList  $ map toClauseList bsp
+  where
+    toClauseList :: [BSP] -> Clause
+    toClauseList [(Bool' False)] = emptyClause
+    toClauseList [(Bool' True)] = emptyClause
+    toClauseList bsps = mkClauseFromLits $ map intoCNF' bsps
+    intoCNF' :: BSP -> Literal
+    intoCNF' (Variable' v) = mkLiteral pos v
+    intoCNF' (Not (Variable' v)) = mkLiteral neg v
+    intoCNF' a = error (show a)
 
 {-|
 Takes a 'C.CNF' and converts it to a 'B.BSP'

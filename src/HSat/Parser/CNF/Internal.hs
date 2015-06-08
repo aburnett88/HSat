@@ -1,6 +1,8 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 {-|
 Module      : HSat.Parser.CNF.Internal
-Description : Interanl functions to parse 'CNF' files
+Description : Helper functions for parsing CNF files
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
@@ -11,97 +13,86 @@ Exports a set of internally used functions to parse parts of a 'CNF' file
 
 module HSat.Parser.CNF.Internal (
   -- * Functions
-  parseComment,
-  parseComments,
-  parseNonZeroInteger,
-  parseProblemLine,
-  parseClause,
-  parseClauses
+  parseComment,        -- :: Parser ()
+  parseComments,       -- :: Parser ()
+  parseNonZeroInteger, -- :: Parser Integer
+  parseProblemLine,    -- :: Parser CNFBuildErr
+  parseClause,         -- :: CNFBuildErr -> Parser CNFBuildErr
+  parseClauses         -- :: CNFBuildErr -> Parser CNFBuildErr
   ) where
 
-import Data.Attoparsec.Text as P
+import Data.Attoparsec.Text         as P
+import Control.Monad                (void)
 import HSat.Problem.BSP.CNF.Builder
-import Control.Monad (void)
-import Data.Text
 
 {-|
-Parse a list of comments. No information is retained
+Parser to parse many comments. No information is retained about the comments
 -}
 parseComments :: Parser ()
-parseComments =
-  void (skipMany (parseComment >> endOfLine))
+parseComments = void (skipMany (parseComment >> endOfLine)) <?> "parseComments"
 
 {-|
-Skips comment lines, or lines with no text on them (only tabs and spaces)
+Parser to parse a comment. No information is retained about the comment.
 -}
 parseComment :: Parser ()
 parseComment =
   many' space' >> option () (
-    char 'c' >> skipWhile (not . isEndOfLine))
+    char 'c' >> skipWhile (not . isEndOfLine)) <?> "parseComment"
 
 {-|
-Parses the problem line, and returns an initialised 'CNFBuilder' or an error
+Parser to parse a problem line in a CNF file. Builds a 'CNFBuildErr' from it
 -}
 parseProblemLine :: Parser CNFBuildErr
-parseProblemLine = (do
-  skipMany space'
-  _ <- char 'p'
-  skipMany1 space'
-  _ <- string . pack $ "cnf"
-  skipMany1 space'
-  vars <- P.signed P.decimal
-  skipMany1 space'
-  clauses <- P.signed P.decimal
-  skipMany space'
-  return $ cnfBuilder vars clauses) <?> "parseProblemLine"
+parseProblemLine = do
+  vars <- 
+    skipMany space' >> char 'p' >> skipMany1 space' >>
+    string "cnf" >> skipMany1 space' >> P.signed P.decimal
+  clauses <- skipMany1 space' >> P.signed P.decimal
+  cnfBuilder vars clauses <$ skipMany space'
+  <?> "parseProblemLine"
 
+--Parsers spaces and tabs
 space' :: Parser ()
-space' = void $ choice [char '\t', char ' ']
+space' = void (choice [char '\t', char ' ']) <?> "space'"
 
+--Parses strictly positive numbers
 positive :: Parser Integer
-positive = do
-  x <- choices "123456789"
-  xs <- many' $ choices "0123456789"
-  return . read $ (x:xs)
+positive = (
+  do
+    x <- choices "123456789"
+    xs <- many' $ choices "0123456789"
+    return . read $ (x:xs)
+  ) <?> "positive"
 
-choices :: String -> Parser Char
-choices xs = choice $ fmap char xs
+--A helper function. When given a string, will parse any of the characters
+choices    :: String -> Parser Char
+choices xs = choice (fmap char xs) <?> "choices"
 
 {-|
-Parses a 'Clause' into a 'CNFBuilder', or throws the error
+Parser to parse a 'Clause', adding the 'HSat.Problem.BSP.Common.Clause' to the 'CNFBuildErr' argument
 -}
-parseClause :: CNFBuildErr -> Parser CNFBuildErr
+parseClause   :: CNFBuildErr -> Parser CNFBuildErr
 parseClause b = choice [
-  do
-    _ <- many' space'
-    _ <- char '0'
-    return $ b >>= finishClause,
-  do
-    _ <- many' space'
-    b' <- (\i -> b >>= addLiteral i) <$> parseNonZeroInteger
-    parseClause b',
-  do
-    _ <- many' space'
-    endOfLine
-    parseComments
-    parseClause b
-    ]
+  --Parse the '0' at the end of the clause
+  (b >>= finishClause) <$ (many' space' >> char '0'),
+  --Parse a non zero integer, then continue
+  (many' space' >> (\i -> b >>= addLiteral i) <$> parseNonZeroInteger) >>= parseClause,
+  --Parse the end of the line, and any comments, then continue parsing the clause
+  many' space' >> endOfLine >> parseComments >> parseClause b
+  ] <?> "parseClause"
 
 {-|
-Parses a set of 'Clauses' into a 'CNFBuilder' or throws the error
+Parser to Parse a set of 'HSat.Problem.BSP.Common.Clauses', adding them to the 'CNFBuildErr' argument
 -}
-parseClauses :: CNFBuildErr -> Parser CNFBuildErr
+parseClauses     :: CNFBuildErr -> Parser CNFBuildErr
 parseClauses cnf =
   parseComments >> choice [
     parseClause cnf >>= parseClauses,
-    parseComments >> return cnf
-    ]
+    cnf <$ parseComments
+    ] <?> "parseClauses"
                              
 {-|
-Parses a non-negative 'Integer'
+Parser to parse an 'Integer' that is non-zero
 -}
 parseNonZeroInteger :: Parser Integer
-parseNonZeroInteger = do
-  f <- option id (char '-' >> return negate)
-  x <- positive
-  return $ f x
+parseNonZeroInteger = option id (negate <$ char '-') <*> positive <?> "parseNonZeroInteger"

@@ -2,62 +2,70 @@
 
 {-|
 Module      : HSat.Printer
-Description : The Printer type used for showing output
+Description : Module for Pretty Printing
 Copyright   : (c) Andrew Burnett, 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : -
 
-Within HSat, this Printer type is designed to be used to pretty print internal
-data structuresto text for output.
-
-Each type contains four modes of sorts, as described below.
+The Printer module exports functions for pretty printing HSat-specific data structures
 -}
 
 module HSat.Printer (
-  -- Exported Modules
+  -- * Exported Modules
   module Text.PrettyPrint.ANSI.Leijen,
-  -- * Printer Functions & Types
+  -- * Printer
   Printer(..),
-  pTypeToDoc,
+  -- * Printer Type
   PrinterType(..),
-  show',
-  word,
-  errorDoc
+  -- * Rendering
+  pTypeToDoc, -- :: (Printer a) => PrinterType -> a -> Doc
+  -- * Helper Functions
+  show',      -- :: Printer a => Int -> a -> Doc
+  errorDoc,   -- :: PrinterType -> Doc -> Doc
+  toDoc       -- :: Show a => a -> Doc
   ) where
 
 import Text.PrettyPrint.ANSI.Leijen
 
 {-|
-The 'Printer' class is used to convert arbitrary types to 'Doc' types.
+The 'Printer' class is used to render an arbitrary type to a pretty-string.
 
-The class comes with four methods, none of which have to be defined, however
-for more quality output, the user may decide to do so.
+There are three modes associated with the 'Printer' type
 -}
 class Printer a where
-  -- | Compact should attempt to save space wherever possible. For example, a
-  -- |'Bool' values may be T and F rather than 'True' and 'False' in a 'Show'
-  -- | instance.
+  -- | Renders a type in a compact way; for example, a 'Bool' may be rendered
+  -- | as T or F rather than 'True' or 'False'
   compact   :: a -> Doc
-  -- | Verbose output for where Unicode and colour is not available. However,
- -- | this is not enforced by the type system
+  -- | A verbose method of rendering output. Unicode characters are not used
   noUnicode :: a -> Doc
-  -- | Coloured output is for a Unix system that allows colour and unicode
-  -- |symbols to be used
+  -- | A verbose method of rendering output. Unicode characters and colour are used
   unicode   :: a -> Doc
 
 {-|
-This data type is used to denote which type of 'Printer' function ot use
+A data type that enumerates the different Printer types. When used in conjunction with
+'pTypeToDoc' will automatically render the output in the specified 'PrinterType'
 -}
 data PrinterType =
   Compact   | -- ^ Compact output specified
-  NoUnicode | -- ^ No unicode output specified
+  NoUnicode | -- ^ No Unicode output specified
   Unicode     -- ^ Unicode output specified
   deriving (Eq,Show,Enum)
 
+instance Printer PrinterType where
+  compact    = print'
+  noUnicode  = print'
+  unicode    = print'
+
+--Creates simple 'Doc' type for PrinterType data types
+print'           :: PrinterType -> Doc
+print' Compact   = "Compact"
+print' Unicode   = "Unicode"
+print' NoUnicode = "NoUnicode"
+
 {-|
-Turns any 'Printer' type to a 'Doc' type using the appropriate 'Printing'
-function
+Takes a 'Printer' and a 'PrinterType' and renders the data type in the specified
+rendering function
 -}
 pTypeToDoc           :: Printer a => PrinterType -> a -> Doc
 pTypeToDoc Compact   = compact
@@ -65,28 +73,30 @@ pTypeToDoc NoUnicode = noUnicode
 pTypeToDoc Unicode   = unicode
 
 {-|
-Takes an integer and a Printable type and creates a ShowS function.
+Can be used to quickly write a 'Show' instance for a type that already has a 'Printer'
+instance.
 
-Can be dropped in for a Show instance when a compact instance has been
-created for a data type
+Its intended use is
+
+@
+instance Show X where
+  showsPrec = show'
+@
 -}
 show' :: Printer a => Int -> a -> ShowS
 show' i a = displayS $ renderPretty 0.4 i $ compact a
 
 {-|
-Turns a 'Word' into a 'Doc'
+Takes a type with a 'Show' instance and produces a 'Doc'
 -}
-word :: Word -> Doc
-word = text . show
-
 toDoc :: (Show a) => a -> Doc
 toDoc = text . show
 
 {-|
-Takes a 'Doc' describing an error, and the 'PrinterType' and creates
+Takes a 'PrinterType' and a 'Doc' describing an error, and produces
 a bespoke error message.
 
-Used to standardise error messages across the HSat modules
+It should be used with all error messages within HSat
 -}
 errorDoc :: PrinterType -> Doc -> Doc
 errorDoc Compact reason   = "ERR"   <> colon <+> reason
@@ -94,19 +104,19 @@ errorDoc NoUnicode reason = "Error" <> colon <+> reason
 errorDoc Unicode reason   = red $ errorDoc NoUnicode reason
 
 instance Printer Bool where
-  compact True    = "T"
-  compact False   = "F"
+  compact   True  = "T"
+  compact   False = "F"
   noUnicode True  = "True"
   noUnicode False = "False"
-  unicode True    = green "True"
-  unicode False   = red "False"
+  unicode   True  = green "True"
+  unicode   False = red "False"
 
 instance Printer Word where
-  compact w = word w
-  noUnicode w = word w
-  unicode w = word w
+  compact   = toDoc
+  noUnicode = toDoc
+  unicode   = toDoc
 
 instance Printer Double where
-  compact d = toDoc d
-  noUnicode d = toDoc d
-  unicode d = unicode d
+  compact   = toDoc
+  noUnicode = toDoc
+  unicode   = unicode

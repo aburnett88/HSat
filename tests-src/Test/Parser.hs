@@ -86,5 +86,7 @@ fromFolderTest1 =
                            Left err -> Left err
                            ) problems'
       removeDirectoryRecursive folder
+      print exprs
+      print exprs'
       return $ listsContainSame (map return exprs) exprs' else
       return $ counterexample "Folder parsing failed" False

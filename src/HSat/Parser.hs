@@ -46,6 +46,7 @@ type ReadFile a = EitherT ProblemParseError IO a
 {-|
 Runs the 'ReadFile' type
 -}
+--Tests not needed
 runReadFile :: ReadFile a -> IO (Either ProblemParseError a)
 runReadFile = runEitherT
 

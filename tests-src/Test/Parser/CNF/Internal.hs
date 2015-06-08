@@ -265,14 +265,13 @@ parseClauseTest4 =
     )
     where
       (cnf,cnf') = getTuple
-      testStr = unlines [
-        "1   2 ",
-        "c initial",
-        "3   -4 -5 ",
-        "c hello world",
-        "6 -7   8    ",
+      testStr =
+        "1   2 \n" ++ 
+        "c initial\n" ++
+        "3   -4 -5 \n" ++
+        "c hello world\n" ++
+        "6 -7   8    \n" ++
         "9 0"
-        ]
 
 getTuple :: (CNFBuilder,CNFBuilder)
 getTuple = (cnf,cnf')

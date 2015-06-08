@@ -47,8 +47,8 @@ instance Printer CNF where
 docCNF :: PrinterType -> CNF -> Doc
 docCNF pType (CNF maxVar clNumb cl) =
   title <+>
-  variable <+> word maxVar <> space' <>
-  clause <+> word clNumb <> line <>
+  variable <+> toDoc maxVar <> space' <>
+  clause <+> toDoc clNumb <> line <>
   clauses
   where
     title :: Doc

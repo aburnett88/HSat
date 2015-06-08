@@ -56,6 +56,7 @@ in the whole context, a function that turns a 'Literal' to a 'Doc' and the 'Clau
 itself, and separates each literal by the 'String', making sure that any row will line
 up
 -}
+--Untested as a printing function
 printClauseWithContext :: String -> Word -> (Literal -> Doc) -> Clause -> Doc
 printClauseWithContext sepClause maxVar function clause =
   lparen <>

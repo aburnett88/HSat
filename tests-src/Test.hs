@@ -18,6 +18,7 @@ import qualified Test.Problem as Problem
 import qualified Test.Make as Make
 import qualified Test.Writer as Writer
 import qualified Test.Parser as Parser
+import qualified Test.Printer as Printer
 
 main :: IO ()
 main = defaultMain tests
@@ -31,5 +32,6 @@ tests =
     Problem.tests,
     Make.tests,
     Writer.tests,
-    Parser.tests
+    Parser.tests,
+    Printer.tests
     ]

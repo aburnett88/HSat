@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 {-|
 Module      : Test.Printer
 Description : The Printer tests
@@ -14,6 +16,7 @@ module Test.Printer (
   ) where
 
 import TestUtils
+import HSat.Printer
 
 name :: String
 name = "Printer"
@@ -21,4 +24,26 @@ name = "Printer"
 tests :: TestTree
 tests =
   testGroup name [
+    testGroup "errorDoc" [
+       errorDocTest1
+       ]
     ]
+
+instance Arbitrary PrinterType where
+  arbitrary =
+    oneof $ map return [Compact,NoUnicode,Unicode]
+
+instance Arbitrary Doc where
+  arbitrary = fmap text arbitrary
+
+errorDocTest1 :: TestTree
+errorDocTest1 =
+  testProperty "errorDoc prepends correct string" $ property
+  (\(printerType,doc) ->
+    let exptd = case printerType of
+          Compact   -> "ERR" <> colon <+> doc
+          NoUnicode -> "Error" <> colon <+> doc
+          Unicode   -> red $ "Error" <> colon <+> doc
+        gotten = errorDoc printerType doc
+    in (show exptd) === (show gotten) --need to show as no Eq constraint
+  )

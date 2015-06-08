@@ -3,17 +3,19 @@ module Test.Writer (
   tests
   ) where
 
-import TestUtils
+import           Data.Either
+import           HSat.Parser
+import           HSat.Problem
+import           HSat.Problem.Internal
+import           HSat.Problem.ProblemExpr
+import           HSat.Problem.Source
+import           HSat.Writer
+import           System.Directory
+import           Test.Problem ()
 import qualified Test.Writer.CNF as CNF
 import qualified Test.Writer.Internal as Internal
-import Data.Either
-import HSat.Writer
-import HSat.Parser
-import Test.Problem ()
-import HSat.Problem.Internal
-import HSat.Problem.Source
-import System.Directory
-import HSat.Problem
+import           TestUtils
+import HSat.Problem.ProblemType as T
 
 name :: String
 name = "Writer"
@@ -27,6 +29,9 @@ tests =
     testGroup "writeFolder" [
       writeFolderTest1
       ],
+    testGroup "createFileName" [
+      createFileNameTest1
+      ],
     Internal.tests,
     CNF.tests
     ]
@@ -39,19 +44,23 @@ plainProblemToFileTest1 =
     let problem = mkProblem mkStatic problemExpr'
     success <- plainProblemToFile problem fileName
     let fileName' = createFileName fileName problemExpr'
-    if success then do
-      returnProblem <- runReadFile $ fromFile fileName'
-      removeFile fileName'
-      return $ case returnProblem of
-        Left err -> counterexample
-                    ("Unexpected Error: " ++ show err)
-                    False
-        Right problem' ->
-          problemExpr problem' === problemExpr' else
-      return $
-        counterexample
-        "Could not write file. Exiting"
-        False
+    if success then
+      case fileName' of
+        Nothing -> do
+          let problemInCnf = mkCNFProblem $ problemToCNF problemExpr'
+              fn = fileName ++ ".cnf"
+          returnProblem <- runReadFile $ fromFile fn
+          removeFile fn
+          return $ case returnProblem of
+            Left err -> counterexample ("Unexpected error: " ++ show err) False
+            Right problem' -> problemExpr problem' === problemInCnf
+        Just f -> do
+          returnProblem <- runReadFile $ fromFile f
+          removeFile f
+          return $ case returnProblem of
+            Left err -> counterexample ("Unexpected error: " ++ show err) False
+            Right problem' -> problemExpr problem' === problemExpr' else
+      return $ counterexample "Could not write file. Exiting..." False
 
 
 writeFolderTest1 :: TestTree
@@ -66,8 +75,20 @@ writeFolderTest1 =
       let returnProblems = rights returnProblemss
       removeDirectoryRecursive fp
       let problemExprs' = map problemExpr returnProblems
+      print problemExprs'
+      print problemExprs
       return $ listsContainSame problemExprs' problemExprs else
       return $ counterexample (
         "writeFolderTest1 failed. Could not sucesfully write to file " ++
         show fp) False
       
+createFileNameTest1 :: TestTree
+createFileNameTest1 =
+  testProperty "createFileName returns correct output" $ property
+  (\(fp,expr) ->
+    let exptd = case problemType expr of
+          T.CNF -> Just $ fp ++ ".cnf"
+          _ -> Nothing
+        gotten = createFileName fp expr
+    in exptd === gotten
+  )

@@ -42,52 +42,38 @@ name :: String
 name = "Internal"
 
 instance Arbitrary BSP where
-  arbitrary =
-    sized bsp'
-    where
-      reduce :: Int -> Gen Int
-      reduce i = choose (0,round . log $ i')
-        where
-          i' = fromIntegral i :: Double
-      bsp' :: Int -> Gen BSP
-      bsp' i
-        | i < 1 = oneof [
-            liftA Bool' arbitrary,
-            liftA Variable' arbitrary
-            ]
-        | otherwise = oneof [
-            do
-              i' <- reduce i
-              n <- bsp' i'
-              return $ Not n,
-            do
-              i1 <- reduce i
-              i2 <- reduce i
-              l <- bsp' i1
-              r <- bsp' i2
-              return $ And l r,
-            do
-              i1 <- reduce i
-              i2 <- reduce i
-              l <- bsp' i1
-              r <- bsp' i2
-              return $ Or l r,
-            do
-              i1 <- reduce i
-              i2 <- reduce i
-              l <- bsp' i1
-              r <- bsp' i2
-              return $ If l r,
-            do
-              i1 <- reduce i
-              i2 <- reduce i
-              l <- bsp' i1
-              r <- bsp' i2
-              return $ IfOnlyIf l r
-              ]
+  arbitrary = sized $ generateBSP (
+    [Or,And,If,IfOnlyIf],
+    [Not],
+    [liftA Variable' arbitrary,
+     liftA Bool' arbitrary]
+    )
   shrink _ = []
 
-
+generateBSP :: ([BSP -> BSP -> BSP],[BSP -> BSP],[Gen BSP]) -> Int -> Gen BSP
+generateBSP tripple@(binary_constructors,unary_constructors,genericBSP) i
+  | i < 1 = oneof genericBSP
+  | otherwise =
+    let total_size = length binary_constructors + length unary_constructors
+    in case total_size of
+     0 -> error "genericBSP: Not enough choices"
+     _ -> do
+       index <- choose (0,total_size - 1)
+       case compare index (length binary_constructors) of
+        LT -> do
+          iLeft <- reduced
+          iRight <- reduced
+          l <- generateBSP tripple iLeft 
+          r <- generateBSP tripple iRight
+          return $ (binary_constructors !! index) l r
+        _ -> do
+          newI <- reduced
+          bsp' <- generateBSP tripple newI
+          return $ (unary_constructors !! (index - length binary_constructors)) bsp'
+  where
+    reduced = choose (0,round . log $ i')
+    i' = fromIntegral i :: Double
+    
 bspTest1 :: TestTree
 bspTest1 =
   testProperty "Arbitrary created BSP's are valid" $ property bspTest
@@ -111,13 +97,29 @@ instance Validate BSP where
 
 nnfTest1 :: TestTree
 nnfTest1 =
-  testProperty "Test NNF returns isNNf=True" $ property
-  (\bsp ->
-    isNNF . nnf $ bsp)
+  testProperty "Test NNF returns isNNf=True" $
+  forAll
+  (sized $ generateBSP (
+      [Or,And],
+      [Not],
+      [
+        liftA Variable' arbitrary,
+        liftA Bool' arbitrary
+        ]))
+  (\bsp -> (isNNF . nnf $ bsp))
+  
 
 removeIfTest1 :: TestTree
 removeIfTest1 =
-  testProperty "Test removeIf returns noIfs==True" $ property
+  testProperty "Test removeIf returns noIfs==True" $
+  forAll
+  (sized $ generateBSP (
+      [Or,And,If],
+      [Not],
+      [
+        liftA Variable' arbitrary,
+        liftA Bool' arbitrary
+        ]))
   (\bsp ->
     noIfs $ removeIf bsp)
 
@@ -127,23 +129,23 @@ removeIffsTest1 =
   (\bsp ->
     noIffs $ removeIff bsp)
 
-isFTests :: (BSP -> Bool) -> Bool -> [BSP] -> [TestTree]
-isFTests f true ls =
+isFTests :: String -> (BSP -> Bool) -> Bool -> [BSP] -> [TestTree]
+isFTests testname f true ls =
   isNNFTests' 1 ls
   where
     isNNFTests' :: Int -> [BSP] -> [TestTree]
     isNNFTests' _ [] = []
     isNNFTests' i (bsp:bsps) =
-      (testCase ("isNNF testcase example " ++ show i) $
+      (testCase (testname ++ " testcase example " ++ show i) $
       assertBool str (if true then f bsp else not $ f bsp)) :
       isNNFTests' (i+1) bsps
       where
-        str = "Failure. Should have returned " ++ (show true)
+        str = "Failure. Should have returned " ++ (show true) ++ (show bsp)
 
 
 isNNFTests :: [TestTree]
 isNNFTests =
-  isFTests isNNF True [
+  isFTests "isNNF" isNNF True [
     ex1,ex2,ex3,ex4,ex5,ex6]
   where
     ex1 = Not (Bool' True)
@@ -155,7 +157,7 @@ isNNFTests =
 
 isNotNNFTests :: [TestTree]
 isNotNNFTests =
-  isFTests isNNF False [
+  isFTests "isNotNNF" isNNF False [
     ex1,ex2,ex3,ex4]
   where
     ex1 = Not (Or (Variable' $ mkVariable 11) (Bool' True))
@@ -165,7 +167,7 @@ isNotNNFTests =
 
 noIfsTests :: [TestTree]
 noIfsTests =
-  isFTests noIfs True [
+  isFTests "noIfs" noIfs True [
     ex1,ex2,ex3,ex4,ex5]
   where
     ex1 = Bool' True
@@ -176,7 +178,7 @@ noIfsTests =
 
 notNoIfsTests :: [TestTree]
 notNoIfsTests =
-  isFTests noIfs False [
+  isFTests "isNotIfs" noIfs False [
     ex1,ex2]
   where
     ex1 = If (Variable' $ mkVariable 9) (Bool' True)
@@ -184,7 +186,7 @@ notNoIfsTests =
 
 noIffsTests :: [TestTree]
 noIffsTests =
-  isFTests noIfs True [
+  isFTests "noIffs" noIffs True [
     ex1,ex2,ex3,ex4,ex5,ex6]
   where
     ex1 = Bool' True
@@ -196,7 +198,7 @@ noIffsTests =
 
 notNoIffsTests :: [TestTree]
 notNoIffsTests =
-  isFTests noIfs False [
+  isFTests "isNotNoIffs" noIffs False [
     ex1]
   where
     ex1 = IfOnlyIf (Variable' $ mkVariable 5) (Variable' $ mkVariable 4)

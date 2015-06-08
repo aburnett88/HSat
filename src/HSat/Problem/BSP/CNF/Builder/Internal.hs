@@ -101,18 +101,18 @@ printCNFBuilder (CNFBuilder{..}) pType =
       case pType of
         Compact -> text "Max Var"
         _       -> text "Maximum Variable"
-      <> colon <+> word getExptdMaxVar
+      <> colon <+> toDoc getExptdMaxVar
     clauses :: Doc
     clauses =
       case pType of
         Compact -> text "Clauses" <> colon               <+>
-                   word getCurrClNumb                    <>
+                   toDoc getCurrClNumb                    <>
                    text "/"                              <>
-                   word getExptdClNumb
+                   toDoc getExptdClNumb
         _       -> text "Clauses"   <> colon             <+>
-                   word getExptdClNumb <> line           <>
+                   toDoc getExptdClNumb <> line           <>
                    text "Current Clause Counnt" <> colon <+>
-                   word getCurrClNumb
+                   toDoc getCurrClNumb
     currentClauses :: Doc
     currentClauses = case pType of
       Compact -> compact getCurrClauses
@@ -160,9 +160,9 @@ printBuildErr builderErr pType =
     IncorrectClauseNumber gotten expected ->
       errorDoc pType $
         text "Incorrect Number of Clauses"             <+>
-        text "Expected"     <> colon <+> word expected <+>
+        text "Expected"     <> colon <+> toDoc expected <+>
         text "Actual Value" <> colon                   <+>
-        word gotten
+        toDoc gotten
     VarOutsideRange gotten expected ->
       let le = text "<"
           leq = text $
@@ -171,8 +171,8 @@ printBuildErr builderErr pType =
                   _ -> "<="
       in errorDoc pType $
            text "Variable outside range"        <>  colon <+>
-           word 0 <+> le <+> text (show gotten) <+> leq   <+>
-           word expected
+           toDoc (0::Word) <+> le <+> text (show gotten) <+> leq   <+>
+           toDoc expected
     Initialisation variables clauses ->
       errorDoc pType $
         text "Initialisation of arguments incorrect" <+>

@@ -18,6 +18,7 @@ import qualified TestPrint.Make as Make
 import qualified TestPrint.Parser as Parser
 import qualified TestPrint.Problem as Problem
 import qualified TestPrint.Writer as Writer
+import qualified TestPrint.Printer as Printer
 
 main :: IO ()
 main = defaultMain printer
@@ -31,5 +32,6 @@ printer =
     Problem.printer,
     Make.printer,
     Writer.printer,
-    Parser.printer
+    Parser.printer,
+    Printer.printer
     ]

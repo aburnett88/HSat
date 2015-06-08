@@ -30,10 +30,12 @@ module HSat.Problem.BSP.Internal (
   isNNF,
   noIfs,
   noIffs,
+  simplify,
   ) where
 
 import HSat.Printer
 import HSat.Problem.BSP.Common.Variable
+
 {-|
 A recursive type that describes a Boolean Formula
 -}
@@ -70,8 +72,8 @@ printBSP ptype bsp = case bsp of
   IfOnlyIf l r -> genericBinary "(" ")" iff' l r
   Not n -> case ptype of
     Unicode -> "¬"
-    _ -> "!"
-    <> printBSP ptype n
+    _ -> "! ("
+    <> printBSP ptype n <> ")"
   Variable' v -> pTypeToDoc ptype v
   Bool' b -> pTypeToDoc ptype b
   where
@@ -136,9 +138,9 @@ removed
 nnf :: BSP -> BSP
 nnf bsp = case bsp of
   Not (Not n)   -> nnf n
-  Not (And l r) -> Or (Not $ nnf l) (Not $ nnf r)
-  Not (Or l r)  -> And (Not $ nnf l) (Not $ nnf r)
-  _             -> generic nnf bsp
+  Not (And l r) ->  Or (nnf $ Not l) (nnf $ Not r)
+  Not (Or l r)  -> And (nnf $ Not l) (nnf $ Not r)
+  _             ->  generic nnf bsp
 
 {-|
 The final step in turning a BSP into DNF.
@@ -158,7 +160,7 @@ takes a BSP and converts it to generic CNF form
 It uses tseitin's method, and generally will produce minimal formula
 -}
 tseitin :: BSP -> BSP
-tseitin = error "unwritten"
+tseitin = error "tseitin unwritten"
 
 {-|
 Takes a BSP and converts it to a generic CNF form.
@@ -166,7 +168,9 @@ Takes a BSP and converts it to a generic CNF form.
 It is performed in a nieve method, and it is recomended to use tseitin's method
 -}
 cnf :: BSP -> BSP
-cnf = error "cnf unwritten"
+cnf (Or a (And l r)) = Or (And a l) (And a r)
+cnf (Or (And l r) a) = Or (And a l) (And a r)
+cnf bsp = generic cnf bsp
 
 
 testBranch :: (Bool -> Bool -> Bool) -> Bool -> (BSP -> Bool) -> BSP -> Bool
@@ -260,3 +264,28 @@ numberPermutations bsp =
   where
      multiplies l r is_assoc = (if is_assoc then 2 else 1) * 
        (numberPermutations l) * (numberPermutations r)
+
+{-|
+Removes the 'True' and 'False' and simplifies
+the BSP
+-}
+simplify :: BSP -> BSP
+simplify (And l r) =
+  let (l',r') = (simplify l, simplify r)
+  in case (l',r') of
+    (Bool' True,a) -> a
+    (Bool' False,_) -> (Bool' False)
+    (a,Bool' True) -> a
+    (_,Bool' False) -> (Bool' False)
+    _ -> (And l' r')
+simplify (Or l r) =
+  let (l',r') = (simplify l, simplify r)
+  in case (l',r') of
+    (Bool' True,_) -> Bool' True
+    (_,Bool' True) -> Bool' True
+    (Bool' False,a) -> a
+    (a,Bool' False) -> a
+    _ -> (Or l' r')
+simplify (Not (Bool' True)) = Bool' False
+simplify (Not (Bool' False)) = Bool' True
+simplify bsp = generic simplify bsp

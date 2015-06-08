@@ -1,28 +1,27 @@
 {-|
 Module      : HSat.Parser.CNF
 Description : The Parser for the CNF file format
-Copyright   : (c) Andrew Burnett 2014
+Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-Parses CNF files
+Module containing the 'Parser' for the CNF file format
 -}
 
 module HSat.Parser.CNF (
-  cnfParser
+  cnfParser -- :: Parser (Either CNFBuilderError CNF)
   ) where
 
-import Data.Attoparsec.Text (Parser,endOfInput)
-import HSat.Problem.BSP.CNF.Builder
-import HSat.Problem.BSP.CNF
+import Data.Attoparsec.Text         (Parser,endOfInput)
 import HSat.Parser.CNF.Internal
+import HSat.Problem.BSP.CNF
+import HSat.Problem.BSP.CNF.Builder
 
 {-|
-Contains a parser that returns either a 'CNFBuilderError' or a 'CNF
+Parser that parses a CNF file in 'Data.Text' form, and produces either a 'CNFBuilderError' or a 'CNF'
 -}
 cnfParser :: Parser (Either CNFBuilderError CNF)
-cnfParser = do
-  cnf <- parseComment >> parseComments >> parseProblemLine >>= parseClauses
-  endOfInput
-  return $ cnf >>= finalise
+cnfParser =
+  (finalise =<<) <$> (
+    parseComment >> parseComments >> parseProblemLine >>= parseClauses) <* endOfInput

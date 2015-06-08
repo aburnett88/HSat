@@ -26,15 +26,20 @@ import Control.Monad (foldM)
 import HSat.Problem.Internal
 
 {-|
-Writes a 'Problem' to a 'FilePath'
+Writes a 'Problem' to a 'FilePath'.
+
+If the 'Problem' has no file type associated with it, the file is written in CNF
 
 The 'Bool' returned is whether this was sucessful
 -}
 plainProblemToFile :: Problem -> FilePath -> IO Bool
 plainProblemToFile problem fp = do
   let expr = problemExpr problem
-  let text = toPlainText expr
-      fileName = createFileName fp expr
+      text = toPlainText expr
+      fileName =
+        case createFileName fp expr of
+          Nothing -> fp ++ ".cnf"
+          Just fp' -> fp'
   exists <- doesFileExist fileName
   if exists then
     return False else
@@ -43,23 +48,21 @@ plainProblemToFile problem fp = do
 {-|
 Takes an initial 'FilePath' and adds the correct suffix to it
 -}
-createFileName :: FilePath -> ProblemExpr -> FilePath
+createFileName :: FilePath -> ProblemExpr -> Maybe FilePath
 createFileName fp expr =
-  fp ++ "." ++ fileSuffix
-  where
-    fileSuffix = getFileSuffix expr
+  (\suffix -> fp ++ "." ++ suffix) <$> getFileSuffix expr
 
-getFileSuffix :: ProblemExpr -> String
+getFileSuffix :: ProblemExpr -> Maybe String
 getFileSuffix expr =
   case problemType expr of
-    CNF -> "cnf"
-    BSP -> error "Not wrtiten yet wrtier l47"
+    CNF -> Just "cnf"
+    BSP -> Nothing
 
 toPlainText   :: ProblemExpr -> Text
 toPlainText expr =
   case problemType expr of
     CNF -> runCNFWriter . mkCNFWriter . problemToCNF $ expr
-    BSP -> error "Not written yet writer l53"
+    BSP -> runCNFWriter . mkCNFWriter . problemToCNF $ expr
 
 {-|
 Given an initial writing function, a list of problems and a folder, writes
