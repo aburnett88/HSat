@@ -11,8 +11,6 @@ The CNF Builder type that builds up CNF instances
 
 module HSat.Problem.BSP.CNF.Builder (
   -- * Data Types
-  CNFBuilderError,
-  CNFBuildErr,
   CNFBuilder,
   -- * Safe Construction
   cnfBuilder,
@@ -29,21 +27,16 @@ module HSat.Problem.BSP.CNF.Builder (
 import HSat.Problem.BSP.CNF.Internal
 import HSat.Problem.BSP.CNF.Builder.Internal
 import HSat.Problem.BSP.Common
-
-{-|
-A type synonym for the Error type represented as an Either type denoting
-failure or suces
--}
-type CNFBuildErr = Either CNFBuilderError CNFBuilder
+import Control.Monad.Catch
 
 {-|
 Creates an initial CNFBuilder with a set number of variables and clauses
 -}
-cnfBuilder     :: Integer -> Integer -> CNFBuildErr
+cnfBuilder     :: (MonadThrow m) => Integer -> Integer -> m CNFBuilder
 cnfBuilder v c = 
   if v < 0 || v > toInteger (maxBound :: Word) ||
      c < 0 || c > toInteger (maxBound :: Word) then
-    Left $ Initialisation v c else
+    throwM $ Initialisation v c else
     return $ cnfBuilder' v c
 
 {-|
@@ -58,11 +51,11 @@ cnfBuilder' v c =
 Moves the current clause to the set of 'Clauses' and replaces this with an
 empty 'Clause'
 -}
-finishClause     :: CNFBuilder -> CNFBuildErr
+finishClause     :: (MonadThrow m) => CNFBuilder -> m CNFBuilder
 finishClause cnf =
   if clauseIsEmpty (getCurrClause cnf) && (
     getExptdClNumb cnf == getCurrClNumb cnf) then
-    Left $
+    throwM $ 
     IncorrectClauseNumber (getCurrClNumb cnf+1) (getExptdClNumb cnf) else
     return $ finishClause' cnf
 
@@ -90,13 +83,13 @@ finishClause' cnf = g . f $
 {-|
 Checks to see if the incorrect number of clauses has been delivered
 -}
-finalise     :: CNFBuilder -> Either CNFBuilderError CNF
+finalise     :: (MonadThrow m) => CNFBuilder -> m CNF
 finalise cnf =
   let currClNumb  = getCurrClNumb cnf
       exptdClNumb = getExptdClNumb cnf
   in if currClNumb == exptdClNumb then
        return . finalise' $ cnf else
-       Left $ IncorrectClauseNumber currClNumb exptdClNumb
+       throwM $  IncorrectClauseNumber currClNumb exptdClNumb
 
 {-|
 Turns the CNFBuilder into a CNF. If the current clause has elements in, this is
@@ -122,15 +115,15 @@ the new CNFBuilder.
 
 Else, throw an error
 -}
-addLiteral       :: Integer -> CNFBuilder -> CNFBuildErr
+addLiteral       :: (MonadThrow m) => Integer -> CNFBuilder -> m CNFBuilder
 addLiteral lit cnf =
   let lit' = abs lit
       maxVar = getExptdMaxVar cnf
   in if lit' == 0 || lit' > toInteger maxVar then
-       Left $ VarOutsideRange lit' maxVar else
+       throwM $ VarOutsideRange lit' maxVar else
        if getExptdClNumb cnf == getCurrClNumb cnf && clauseIsEmpty (
          getCurrClause cnf) then 
-         Left $ IncorrectClauseNumber
+         throwM $ IncorrectClauseNumber
          (getExptdClNumb cnf + 1) (getExptdClNumb cnf) else
          return . addLiteral' lit $ cnf
 

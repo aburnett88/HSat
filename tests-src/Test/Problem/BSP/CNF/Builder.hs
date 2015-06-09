@@ -25,6 +25,7 @@ import Test.Problem.BSP.CNF.Builder.Internal hiding (tests)
 import Test.Problem.BSP.Common.Literal (genLiteral)
 import TestUtils.Validate
 import Test.Problem.BSP.CNF.Internal ()
+import Control.Monad.Catch
 
 name :: String
 name = "Builder"
@@ -105,12 +106,15 @@ cnfBuilderTest2 =
   genVarsOrClausesOutsideRange
    (\(vars,clauses) ->
      case cnfBuilder vars clauses of
-       Left (Initialisation v' c') ->
-         v' < 0 .||. v' > maxWord' .||.
-         c' < 0 .||. c' > maxWord'
-       _ -> counterexample
-            ("not failing " ++ show (cnfBuilder vars clauses)) $ property False
-       )
+       Left exception -> case fromException exception of
+         Just (Initialisation v' c') ->
+           (counterexample "Variables incorrect: " $ v' < 0) .||.
+           (counterexample "Variables incorrect: " $ v' > maxWord') .||.
+           (counterexample "Clauses incorrect: " $ c' < 0) .||.
+           (counterexample "Clauses incorrect: " $ c' > maxWord')
+         _ -> counterexample "Unknown exception thrown" False
+       _ -> counterexample "Unexpected CNF returned" False
+   )
    
 testCNFBuilderGenTest1 :: Integer -> Integer -> CNFBuilder -> Property
 testCNFBuilderGenTest1 vars cl builder =
@@ -210,13 +214,15 @@ addLiteralTest2 =
       )
   (\(cnfbuilder,literal) ->
     case addLiteral literal cnfbuilder of
-      Left (VarOutsideRange gotten expected) ->
-        let exptd = getExptdMaxVar cnfbuilder
-            gotten' = abs literal
-        in exptd === expected .&&.
-           gotten' === gotten
-      _ -> property False
-      )
+      Left exception -> case fromException exception of
+        Just (VarOutsideRange gotten expected) ->
+          let exptd'  = getExptdMaxVar cnfbuilder
+              gotten' = abs literal
+          in (counterexample "Gotten: " $ gotten === gotten') .&&.
+             (counterexample "Expected: " $ expected === exptd')
+        _ -> counterexample "Unknown exception thrown" False
+      _ -> counterexample "Unexepcted CNF returned" False
+  )
 
 addLiteral'Test1 :: TestTree
 addLiteral'Test1 =
@@ -300,13 +306,16 @@ finishClauseTest2 =
   (sized genCNFBuilderFinalise )
   (\builder ->
     case finishClause builder of
-      Left (IncorrectClauseNumber gotten expected) ->
-        let expected' = getExptdClNumb builder
-            gotten'    = expected'+1
-        in counterexample "Expected: " (expected' === expected) .&&.
-           counterexample "Gotten: " (gotten === gotten')
-      _ -> property False
-      )
+    Left exception ->
+      case fromException exception of
+        Just (IncorrectClauseNumber gotten expected) ->
+          let expected' = getExptdClNumb builder
+              gotten'   = expected' + 1
+          in counterexample "Expected: " (expected === expected) .&&.
+             counterexample "Gotten: " (gotten === gotten')
+        _ -> counterexample "Unknown exception thrown" False
+    _ -> counterexample "Unexpected CNF returned" False
+  )
 
 finishClause'Test1 :: TestTree
 finishClause'Test1 =
@@ -358,13 +367,16 @@ finaliseTest2 =
         ])
   (\builder ->
     case finalise builder of
-      Left (IncorrectClauseNumber gotten expected) ->
-        let gotten' = getCurrClNumb builder
-            expected' = getExptdClNumb builder
-        in (gotten' === gotten) .&&.
-           (expected' === expected)
-      _ -> property False
-      )
+      Left exception ->
+        case fromException exception of
+          Just (IncorrectClauseNumber gotten expected) ->
+            let gotten' = getCurrClNumb builder
+                expected' = getExptdClNumb builder
+            in (gotten' === gotten) .&&.
+               (expected' === expected)
+          _ -> counterexample "Unknown exception thrown" False
+      Right _ -> counterexample "Unexpected CNF returned" False
+  )
 
 finalise'Test1 :: TestTree
 finalise'Test1 =
@@ -415,8 +427,10 @@ generalTest1 =
                 "the value recovered is what was expected") $ property
   (\cnf ->
     let (maxVar,clauseNumb,literals) = combined cnf
-        exptdCNF   = evaluate (cnfBuilder maxVar clauseNumb) literals
-    in  return cnf === exptdCNF
+        exptdCNF   = (evaluate (cnfBuilder maxVar clauseNumb) literals) :: Either SomeException CNF
+    in case exptdCNF of
+        Right cnf' -> counterexample "Unequal CNF's: " $ cnf === cnf'
+        _ -> counterexample "Unknown exception thrown: " False
   )
 
 generalTest'1 :: TestTree
@@ -436,11 +450,10 @@ combined cnf =
       literals = cnfToIntegers cnf
   in (maxVar,clauseNumb,literals)
 
-evaluate :: CNFBuildErr -> [[Integer]] -> Either CNFBuilderError CNF
+evaluate :: (MonadThrow m) => m CNFBuilder -> [[Integer]] -> m CNF
 evaluate cnf [] = cnf >>= finalise
 evaluate cnf (x:xs) = evaluate (evaluation cnf x) xs
   where
-    evaluation :: CNFBuildErr -> [Integer] -> CNFBuildErr
     evaluation cnf' [] = cnf' >>= finishClause
     evaluation cnf' (y:ys) =
       evaluation (cnf' >>= addLiteral y) ys

@@ -21,9 +21,14 @@ module HSat.Parser.CNF.Internal (
   parseClauses         -- :: CNFBuildErr -> Parser CNFBuildErr
   ) where
 
-import Data.Attoparsec.Text         as P
+import Data.Attoparsec.Text as P
 import Control.Monad                (void)
 import HSat.Problem.BSP.CNF.Builder
+import Control.Monad.Catch
+import qualified Data.Attoparsec.Internal.Types as T
+
+instance MonadThrow (T.Parser i) where
+  throwM e = fail (show e)
 
 {-|
 Parser to parse many comments. No information is retained about the comments
@@ -42,7 +47,7 @@ parseComment =
 {-|
 Parser to parse a problem line in a CNF file. Builds a 'CNFBuildErr' from it
 -}
-parseProblemLine :: Parser CNFBuildErr
+parseProblemLine :: (MonadThrow m) => Parser (m CNFBuilder) 
 parseProblemLine = do
   vars <- 
     skipMany space' >> char 'p' >> skipMany1 space' >>
@@ -71,7 +76,7 @@ choices xs = choice (fmap char xs) <?> "choices"
 {-|
 Parser to parse a 'Clause', adding the 'HSat.Problem.BSP.Common.Clause' to the 'CNFBuildErr' argument
 -}
-parseClause   :: CNFBuildErr -> Parser CNFBuildErr
+parseClause   :: (MonadThrow m) => m CNFBuilder -> Parser (m CNFBuilder)
 parseClause b = choice [
   --Parse the '0' at the end of the clause
   (b >>= finishClause) <$ (many' space' >> char '0'),
@@ -84,7 +89,7 @@ parseClause b = choice [
 {-|
 Parser to Parse a set of 'HSat.Problem.BSP.Common.Clauses', adding them to the 'CNFBuildErr' argument
 -}
-parseClauses     :: CNFBuildErr -> Parser CNFBuildErr
+parseClauses     :: (MonadThrow m) => m CNFBuilder -> Parser (m CNFBuilder)
 parseClauses cnf =
   parseComments >> choice [
     parseClause cnf >>= parseClauses,

@@ -17,6 +17,7 @@ import HSat.Problem.BSP.Common
 import Test.Problem.BSP.CNF.Builder.Internal hiding (tests)
 import Data.Monoid
 import Test.Problem.BSP.Common.Clauses hiding (tests)
+import Control.Monad.Catch
 
 name :: String
 name = "Internal"
@@ -289,13 +290,13 @@ parseClauseTest5 :: TestTree
 parseClauseTest5 =
   testProperty "parse randomly generated clauses" $
   forAll
-  (sized genX)
+  ((sized genX) :: Gen (Maybe CNFBuilder, Maybe CNFBuilder,Text))
   (\(before,after,text) ->
     let gotten = parseTest (parseClause before) text
     in  gotten === return after
         )
 
-genX :: Int -> Gen (CNFBuildErr,CNFBuildErr,Text)
+genX :: (MonadThrow m) => Int -> Gen (m CNFBuilder,m CNFBuilder,Text)
 genX size = do
   before <- return `liftA` genCNFBuilderEmptyClause 10
   clause <- arbitrary
@@ -383,7 +384,7 @@ parseClausesTest3 =
     in gotten === return after
        )
 
-madeClauses :: Int -> Gen (CNFBuildErr,CNFBuildErr,Text)
+madeClauses :: (MonadThrow m) => Int -> Gen (m CNFBuilder,m CNFBuilder,Text)
 madeClauses size = do
   clauses <- genClauses maxBound size
   let setSize = getSizeClauses clauses

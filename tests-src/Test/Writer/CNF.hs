@@ -152,9 +152,11 @@ runCNFWriterTest1 :: TestTree
 runCNFWriterTest1 =
   testProperty "read . write == cnf" $ property
   (\cnfWriter ->
-    let exptd = return . return $ getCNFFromWriter cnfWriter
+    let exptd = getCNFFromWriter cnfWriter
         gotten = parseOnly cnfParser (runCNFWriter cnfWriter)
-    in gotten === exptd
+    in case gotten of
+        Right (Right cnf) -> counterexample "CNF's incorrect: " $ cnf === exptd
+        _ -> counterexample "Unexpected exception thrown" False
        )
 
 instance Arbitrary CNFWriter where

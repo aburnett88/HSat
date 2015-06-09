@@ -29,6 +29,7 @@ import           HSat.Problem.BSP.Common.Clause.Internal (
   printClauseWithContext)
 import           HSat.Problem.BSP.Common.Clauses.Internal (
   printClausesWithContext)
+import Control.Monad.Catch
 
 {-|
 A 'CNFBuilder' represents a 'CNF' as it is being constructed. This data type
@@ -142,6 +143,8 @@ data CNFBuilderError =
   -- | 'Clause's are not within the bounds of a word
   Initialisation Integer Integer
   deriving (Eq)
+
+instance Exception CNFBuilderError
 
 instance Show CNFBuilderError where
   showsPrec = show'

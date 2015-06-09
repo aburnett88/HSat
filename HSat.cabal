@@ -27,7 +27,8 @@ library
     mtl,
     either,
     bifunctors,
-    deepseq
+    deepseq,
+    exceptions
   Exposed-Modules:
     HSat.Problem
     HSat.Problem.Internal
@@ -89,7 +90,8 @@ Test-Suite HSat-tests
     MonadRandom,
     random,
     attoparsec,
-    either
+    either,
+    exceptions
 
 Test-Suite HSat-Printer
   type: exitcode-stdio-1.0

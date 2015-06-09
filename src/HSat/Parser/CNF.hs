@@ -17,11 +17,12 @@ import Data.Attoparsec.Text         (Parser,endOfInput)
 import HSat.Parser.CNF.Internal
 import HSat.Problem.BSP.CNF
 import HSat.Problem.BSP.CNF.Builder
+import Control.Monad.Catch
 
 {-|
 Parser that parses a CNF file in 'Data.Text' form, and produces either a 'CNFBuilderError' or a 'CNF'
 -}
-cnfParser :: Parser (Either CNFBuilderError CNF)
+cnfParser :: (MonadThrow m) => Parser (m CNF)
 cnfParser =
   (finalise =<<) <$> (
     parseComment >> parseComments >> parseProblemLine >>= parseClauses) <* endOfInput
