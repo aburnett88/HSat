@@ -13,7 +13,7 @@ Module exports some generic Parsing functions
 module HSat.Parser (
   -- * Data Type
   ReadFile,
-  ProblemParseError,
+  ProblemParseError(..),
   runReadFile,
   -- * Functions
   fromCNFFile,

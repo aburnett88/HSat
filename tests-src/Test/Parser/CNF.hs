@@ -13,6 +13,7 @@ import HSat.Writer.CNF
 import Data.Either
 import Test.Writer.CNF ()
 import Test.Problem ()
+import Control.Monad.Catch
 
 name :: String
 name = "CNF"
@@ -32,15 +33,16 @@ fileTestGen fp val =
   testCase ("cnfParser file test " ++ fp) $ do
     fileContent <- T.readFile fp
     let result = parseOnly cnfParser fileContent
-    case val of
-      Nothing ->
+    case (val,result) of
+      (Nothing,Left _) ->
         assertBool ("This should not have parsed: " ++ show result)
         (isLeft result)
-      Just exptdVal -> case result of
-        Right cnf' -> exptdVal @=? cnf'
-        _ -> assertBool (
-          "Parser failed when it should not have done " ++
-          show result) False
+      (Just (Left cnfErr),Right (Left gottenException)) ->
+        case fromException gottenException of
+          Just gottenException' -> assertBool "" $ gottenException' == cnfErr
+          _ -> assertBool "Unexpected exception" False
+      (Just (Right exptdCnf),Right (Right gottenCnf)) -> assertBool "" $ exptdCnf == gottenCnf
+      _ -> assertBool "" False
 
 prepare :: FilePath -> FilePath
 prepare fp = "tests-src/Files/" ++ fp ++ ".cnf"

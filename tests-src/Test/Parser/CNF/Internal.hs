@@ -18,6 +18,7 @@ import Test.Problem.BSP.CNF.Builder.Internal hiding (tests)
 import Data.Monoid
 import Test.Problem.BSP.Common.Clauses hiding (tests)
 import Control.Monad.Catch
+import HSat.Parser
 
 name :: String
 name = "Internal"
@@ -63,6 +64,11 @@ tests =
 --General function used to parse all the input given
 parseTest   :: Parser a -> Text -> Either String a
 parseTest p = parseOnly (p <* endOfInput)
+
+parseTest' :: (MonadThrow m) => Parser (m a) -> Text -> m a
+parseTest' p t = case parseTest p t of
+  Left str -> throwM $ (ParseException str)
+  Right r -> r
 
 parseCommentTest1 :: TestTree
 parseCommentTest1 =
@@ -133,7 +139,10 @@ parseCommentsTest2 =
 parseProblemLineTest1 :: TestTree
 parseProblemLineTest1 =
   testCase ("parseProblemLine \"" ++ testStr ++ "\"") $ assert (
-    parseTest parseProblemLine (pack testStr) == (Right . Right $ cnf')
+    let gotten = parseTest' parseProblemLine (pack testStr)
+    in case gotten of
+        Right gotten' -> gotten' == cnf'
+        _ -> False
     )
   where
     testStr = "p cnf 24 2424"
@@ -142,7 +151,10 @@ parseProblemLineTest1 =
 parseProblemLineTest2 :: TestTree
 parseProblemLineTest2 =
   testCase ("parseProblemLine \"" ++ testStr ++ "\"") $ assert (
-    parseTest parseProblemLine (pack testStr) == ( Right . Right $ cnf')
+    let gotten = parseTest' parseProblemLine (pack testStr)
+    in case gotten of
+        Right gotten' -> gotten' == cnf'
+        _ -> False
     )
   where
     testStr = "   p    cnf    24 \t2424"
@@ -185,7 +197,9 @@ parseProblemLineTest3 =
       )
   (\(text,v,c) ->
     let cnf' = CNFBuilder v c 0 emptyClauses emptyClause
-    in parseTest parseProblemLine text === (Right . Right $ cnf')
+    in case parseTest' parseProblemLine text of
+        Right expected -> counterexample "Not same" $ expected === cnf'
+        _ -> counterexample "Unexpected exception" False
        )
        
 parseNonZeroIntegerTest1 :: TestTree
@@ -230,19 +244,21 @@ parseNonZeroIntegerTest4 =
 parseClauseTest1 :: TestTree
 parseClauseTest1 =
   testCase ("parseClause \"" ++ testStr ++ "\"") $ assert (
-    parseTest (parseClause $ return cnf) (pack testStr) @=?
-    (Right $ finishClause cnf')
+    case (parseTest' (parseClause $ return cnf) (pack testStr),finishClause cnf) of
+      (Just gotten,Just expected) -> gotten == expected
+      _ -> False
     )
   where
-    (cnf,cnf') = getTuple
+    (cnf,_) = getTuple
     testStr = "1 2 3 -4 -5 6 -7 8 9 0"
     
 
 parseClauseTest2 :: TestTree
 parseClauseTest2 =
   testCase ("parseClause \"" ++ testStr ++ "\"") $ assert (
-    parseTest (parseClause $ return cnf) (pack testStr) ==
-    (Right $ finishClause cnf')
+    case (parseTest' (parseClause $ return cnf) (pack testStr),finishClause cnf') of
+     (Right gotten, Right expected) -> gotten == expected
+     _ -> False
     )
     where
       (cnf,cnf') = getTuple
@@ -251,8 +267,9 @@ parseClauseTest2 =
 parseClauseTest3 :: TestTree
 parseClauseTest3 = 
   testCase ("parseClause \"" ++ testStr ++ "\"") $ assert (
-    parseTest (parseClause $ return cnf) (pack testStr) ==
-    (Right $ finishClause cnf')
+    case (parseTest' (parseClause $ return cnf) (pack testStr),finishClause cnf') of
+     (Right gotten, Right expected) -> gotten == expected
+     _ -> False
     )
     where
       (cnf,cnf') = getTuple
@@ -261,8 +278,9 @@ parseClauseTest3 =
 parseClauseTest4 :: TestTree
 parseClauseTest4 = 
   testCase ("parseClause \"" ++ testStr ++ "\"") $ assert (
-    parseTest (parseClause $ return cnf) (pack testStr) ==
-    (Right $ finishClause cnf')
+    case (parseTest' (parseClause $ return cnf) (pack testStr),finishClause cnf') of
+     (Right gotten, Right expected) -> gotten == expected
+     _ -> False
     )
     where
       (cnf,cnf') = getTuple
@@ -337,14 +355,16 @@ generateClause size ints = foldM generateClause' T.empty ((++) ints [0])
 parseClausesTest1 :: TestTree
 parseClausesTest1 =
   testCase ("parseClauses \"" ++ testStr ++ "\"") $ assert (
-    parseOnly (parseClauses $ return cnf) (pack testStr) @=?
-    Right cnf'
+    let gotten = parseTest' (parseClauses $ return cnf) (pack testStr)
+    in case gotten of
+        Right gotten' -> cnf == gotten'
+        _ -> False
     )
   where
     testStr = "1 2 3 -4 -5 -6 0 " ++
               "-7 -8 9 10 0 " ++ "-1 -2 -3 -4 -7 0 " ++
               "1 1 1 1 1 1 0"
-    (cnf,cnf') = getTripple
+    (cnf,_) = getTripple
 
 getTripple :: (CNFBuilder,Either l CNFBuilder)
 getTripple = (cnf,cnf')
@@ -361,8 +381,9 @@ getTripple = (cnf,cnf')
 parseClausesTest2:: TestTree
 parseClausesTest2=
   testCase ("parseClauses \"" ++ testStr ++ "\"") $ assert (
-    parseTest (parseClauses $ return cnf) (pack testStr) @=?
-    Right cnf'
+    case (parseTest' (parseClauses $ return cnf) (pack testStr),cnf') of
+     (Right gotten, Right expected) -> gotten == expected
+     _ -> False
     )
   where
     testStr = "c the evil is hardest to find\n" ++
@@ -380,8 +401,10 @@ parseClausesTest3 =
   forAll
   (sized madeClauses)
   (\(before,after,text) ->
-    let gotten = parseTest (parseClauses before) text
-    in gotten === return after
+    let gotten = parseTest' (parseClauses before) text
+    in case (gotten,after) of
+        (Just gotten',Just after') -> counterexample "Clauses not same: " $ gotten' === after'
+        _ -> counterexample "Unexpected exception" False
        )
 
 madeClauses :: (MonadThrow m) => Int -> Gen (m CNFBuilder,m CNFBuilder,Text)
