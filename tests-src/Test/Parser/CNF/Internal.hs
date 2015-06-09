@@ -244,12 +244,12 @@ parseNonZeroIntegerTest4 =
 parseClauseTest1 :: TestTree
 parseClauseTest1 =
   testCase ("parseClause \"" ++ testStr ++ "\"") $ assert (
-    case (parseTest' (parseClause $ return cnf) (pack testStr),finishClause cnf) of
-      (Just gotten,Just expected) -> gotten == expected
-      _ -> False
+    case (parseTest' (parseClause $ return cnf) (pack testStr),finishClause cnf') of
+      (Just gotten,Just expected) -> gotten @=? expected
+      _ -> assertBool "" False
     )
   where
-    (cnf,_) = getTuple
+    (cnf,cnf') = getTuple
     testStr = "1 2 3 -4 -5 6 -7 8 9 0"
     
 
@@ -356,15 +356,16 @@ parseClausesTest1 :: TestTree
 parseClausesTest1 =
   testCase ("parseClauses \"" ++ testStr ++ "\"") $ assert (
     let gotten = parseTest' (parseClauses $ return cnf) (pack testStr)
-    in case gotten of
-        Right gotten' -> cnf == gotten'
-        _ -> False
+    in case (gotten,cnf') of
+        (Right gotten',Right expected) -> expected @=? gotten'
+        (Left e,_) -> assertBool ("Returned unknown exception: " ++ show e) False
+        _ -> assertBool "Unexpected error" False
     )
   where
     testStr = "1 2 3 -4 -5 -6 0 " ++
               "-7 -8 9 10 0 " ++ "-1 -2 -3 -4 -7 0 " ++
               "1 1 1 1 1 1 0"
-    (cnf,_) = getTripple
+    (cnf,cnf') = getTripple
 
 getTripple :: (CNFBuilder,Either l CNFBuilder)
 getTripple = (cnf,cnf')
