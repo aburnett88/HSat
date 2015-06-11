@@ -1,3 +1,7 @@
+{-# LANGUAGE 
+  MultiParamTypeClasses, 
+  FunctionalDependencies #-}
+
 {-|
 Module      : HSat.Problem.ProblemExpr
 Description : The ProblemExpr type and its associated functions
@@ -11,8 +15,9 @@ Exports the general definition of all 'ProblemExpr's defined
 
 module HSat.Problem.ProblemExpr (
   -- * ProblemExpr
-  ProblemExpr,
-  BoolExpr,
+  ProblemExpr(..),
+  ProblemConvert(..),
+{-  BoolExpr,
   -- * Constructors
   mkBoolExprProblem,
   mkCNFBoolExpr,
@@ -23,14 +28,19 @@ module HSat.Problem.ProblemExpr (
   -- * Mutates
   changeProblemType,
   -- * Other functions
-  problemToCNF
+  problemToCNF,
+  ProblemExpr2(..)-}
   ) where
 
-import qualified HSat.Problem.BSP as B
-import qualified HSat.Problem.BSP.CNF as C (CNF)
+--import qualified HSat.Problem.BSP as B
+--import qualified HSat.Problem.BSP.CNF as C (CNF)
 import           HSat.Problem.ProblemExpr.Internal
-import           HSat.Problem.ProblemType
+--import           HSat.Problem.ProblemType
 
+class (IsProblem a, IsProblem b) => ProblemConvert a b where
+  conversion :: a -> b
+  conversion = fromCNF . toCNF
+{-
 {-|
 Returns the 'ProblemType' for the given type of 'ProblemExpr'
 -}
@@ -87,3 +97,4 @@ problemToCNF (BoolExprs bool) =
     CNFExpr cnf -> cnf
 
 
+-}

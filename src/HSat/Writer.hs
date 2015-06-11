@@ -11,17 +11,14 @@ Provides functionality for writing 'Problem's to files
 
 module HSat.Writer (
   plainProblemToFile,
-  writeFolder,
-  createFileName
+  writeFolder
   ) where
 
 import HSat.Problem
-import HSat.Problem.ProblemExpr
+import HSat.Problem.ProblemExpr.Internal
 import Data.Text.IO as T hiding (putStrLn)
 import HSat.Writer.CNF
 import System.Directory
-import Data.Text (Text)
-import HSat.Problem.ProblemType
 import Control.Monad (foldM)
 import HSat.Problem.Internal
 
@@ -34,53 +31,37 @@ The 'Bool' returned is whether this was sucessful
 -}
 plainProblemToFile :: Problem -> FilePath -> IO Bool
 plainProblemToFile problem fp = do
-  let expr = problemExpr problem
-      text = toPlainText expr
-      fileName =
-        case createFileName fp expr of
-          Nothing -> fp ++ ".cnf"
-          Just fp' -> fp'
+  let (text,fileName) = case getWriterInfo $ getExpr problem of
+        Nothing ->
+          let cnfVersion = toCNF expr
+          in (runCNFWriter $ mkCNFWriter cnfVersion, makeFileName fp "cnf")
+        Just (extension,generatedText) ->
+          (generatedText,makeFileName fp extension)
   exists <- doesFileExist fileName
   if exists then
     return False else
     T.writeFile fileName text >> return True
-
-{-|
-Takes an initial 'FilePath' and adds the correct suffix to it
--}
-createFileName :: FilePath -> ProblemExpr -> Maybe FilePath
-createFileName fp expr =
-  (\suffix -> fp ++ "." ++ suffix) <$> getFileSuffix expr
-
-getFileSuffix :: ProblemExpr -> Maybe String
-getFileSuffix expr =
-  case problemType expr of
-    CNF -> Just "cnf"
-    BSP -> Nothing
-
-toPlainText   :: ProblemExpr -> Text
-toPlainText expr =
-  case problemType expr of
-    CNF -> runCNFWriter . mkCNFWriter . problemToCNF $ expr
-    BSP -> runCNFWriter . mkCNFWriter . problemToCNF $ expr
-
+  where
+    makeFileName :: FilePath -> FilePath -> FilePath
+    makeFileName name extension = name ++ "." ++ extension
+    
 {-|
 Given an initial writing function, a list of problems and a folder, writes
 all the functions to this folder
 -}
-writeFolder :: (Problem -> FilePath -> IO Bool) -> [Problem] -> FilePath ->
-               IO Bool
+writeFolder :: (Problem -> FilePath -> IO Bool) ->
+               [Problem] -> FilePath -> IO Bool
 writeFolder f problems folder = do
   folderExists <- doesDirectoryExist folder
   if folderExists then
     return False else do
       createDirectory folder
       setCurrentDirectory folder
-      returnValue <- foldM f' True (zip problems [1..])
+      returnValue <- foldM f' True (zip problems ints)
       setCurrentDirectory ".."
       return returnValue
   where
-    f' :: Bool -> (Problem,Integer) -> IO Bool
     f' False _ = return False
     f' _ (p,i) = f p ("file" ++ show i)
-      
+    ints :: [Integer]
+    ints = [1..]

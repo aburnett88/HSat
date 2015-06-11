@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards, OverloadedStrings #-}
+{-# LANGUAGE GADTs #-}
 
 {- |
 Module      : HSat.Problem.Internal
@@ -17,22 +18,35 @@ module HSat.Problem.Internal (
   ) where
 
 import HSat.Printer
-import HSat.Problem.ProblemExpr
+import HSat.Problem.ProblemExpr.Internal
 import HSat.Problem.Source
 
 {-|
 A 'Problem' represents both a problem expression and its source
 -}
+data Problem where
+  MkProblem :: { source :: Source,
+              problemExpr :: ProblemExpr
+            } -> Problem
+
+instance Eq Problem where
+  _ == _ = True
+
+{-|
 data Problem = Problem {
   -- | The Source of the Problem
   source      :: Source     ,
   -- | The expression of the problem
   problemExpr :: ProblemExpr
   } deriving (Eq)
+-}
 
 instance Show Problem where
+  show = undefined
+{-
+instance (Printer a) => Show (Problem a) where
   showsPrec = show'
-
+-}
 -- Printer instances
 
 instance Printer Problem where
@@ -41,7 +55,9 @@ instance Printer Problem where
   unicode   = printProblem Unicode
 
 printProblem                   :: PrinterType -> Problem -> Doc
-printProblem pType Problem{..} =
+printProblem = undefined
+{-
+printProblem pType MkProblem{..} =
   preamble    <>
   space'      <>
   printSource <>
@@ -60,3 +76,4 @@ printProblem pType Problem{..} =
     printSource = pTypeToDoc pType source
     printExpr   :: Doc
     printExpr   = pTypeToDoc pType problemExpr
+-}

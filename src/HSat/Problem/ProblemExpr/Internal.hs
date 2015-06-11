@@ -1,3 +1,8 @@
+{-# LANGUAGE 
+  MultiParamTypeClasses, 
+  FunctionalDependencies, ScopedTypeVariables, PartialTypeSignatures,
+  ExistentialQuantification #-}
+
 {-|
 Module      : HSat.Problem.ProblemExpr.Internal
 Description : Internal definition of the ProblemExpr type
@@ -12,54 +17,48 @@ Contains the definition of the 'ProblemExpr' type
 module HSat.Problem.ProblemExpr.Internal (
   -- * Data Type
   ProblemExpr(..),
-  BoolExpr(..),
+  IsProblem(..),
   -- * Conversions
   fromCNFtoBSP,
-  fromBSPtoCNF
+  fromBSPtoCNF,
+  getWriterInfo
   ) where
 
-import           HSat.Printer
-import qualified HSat.Problem.BSP as B
-import qualified HSat.Problem.BSP.CNF as C (CNF,mkCNFFromClauses)
+import qualified HSat.Problem.BSP.CNF as C (mkCNFFromClauses)
+import HSat.Problem.BSP.CNF (CNF)
 import HSat.Problem.BSP.Internal
 import qualified Data.Vector as V
 import HSat.Problem.BSP.Common
+import Control.Monad.Catch (MonadThrow)
+import Data.Attoparsec.Text (Parser)
+import Data.Text (Text)
 
-{-|
-A sum type containing all 'ProblemExpr' sub-types
--}
-data ProblemExpr =
-  BoolExprs BoolExpr
-  deriving (Eq,Show)
+data ProblemExpr = forall p. IsProblem p => ProblemExpr p
 
-{-|
-General sum type for 'BoolExpr's such as general Boolean Formula
-and Conjunctive Normal Form formula
--}
-data BoolExpr =
-  -- | General Boolean Formula
-  BSPExpr B.BSP |
-  -- | Specific Conjunctive Normal Form formula
-  CNFExpr C.CNF
-  deriving (Eq,Show)
+getWriterInfo :: ProblemExpr -> Maybe (FilePath,Text)
+getWriterInfo (ProblemExpr a) = getWriterInfo a
 
-instance Printer ProblemExpr where
-  compact (BoolExprs b)   = compact b
-  noUnicode (BoolExprs b) = noUnicode b
-  unicode (BoolExprs b)   = unicode b
+class IsProblem problem where
+  fromCNF :: CNF -> problem
+  toCNF :: problem -> CNF
+  supportedFile :: (MonadThrow m) => problem -> Maybe (FilePath,Text,Parser (m problem))--, Parser (m problem))
+  supportedFile _ = Nothing
 
-instance Printer BoolExpr where
-  compact (BSPExpr bsp)   = compact bsp
-  compact (CNFExpr c)   = compact c
-  noUnicode (BSPExpr bsp) = noUnicode bsp
-  noUnicode (CNFExpr f) = noUnicode f
-  unicode (BSPExpr bsp)   = unicode bsp
-  unicode (CNFExpr c)   = unicode c
+instance IsProblem BSP where
+  fromCNF =  fromCNFtoBSP
+  toCNF = fromBSPtoCNF
 
+getWriterInfo' :: (IsProblem p) => p -> Maybe (FilePath,Text)
+getWriterInfo' p =
+  getInfo $ supportedFile p
+
+getInfo :: (IsProblem p) => (Maybe (FilePath,Text,Parser (Maybe p))) -> Maybe (FilePath,Text)
+getInfo = undefined
+  
 {-|
 Takes a 'B.BSP' and converts it to a 'C.CNF'
 -}
-fromBSPtoCNF :: B.BSP -> C.CNF
+fromBSPtoCNF :: BSP -> CNF
 fromBSPtoCNF bsp =
   let bsp' = map listY . listX . simplify . cnf . nnf . removeIf . removeIff $ bsp
   in intoCNF bsp'
@@ -76,7 +75,7 @@ listY (Or l r@(Or _ _)) = [l] ++ listY r
 listY (Or l r) = [l] ++ [r]
 listY a = [a]
 
-intoCNF :: [[BSP]] -> C.CNF
+intoCNF :: [[BSP]] -> CNF
 intoCNF [[(Bool' True)]] = C.mkCNFFromClauses $ emptyClauses
 intoCNF [[(Bool' False)]] = C.mkCNFFromClauses $ emptyClauses
 intoCNF bsp = C.mkCNFFromClauses . mkClauses . V.fromList  $ map toClauseList bsp
@@ -93,5 +92,5 @@ intoCNF bsp = C.mkCNFFromClauses . mkClauses . V.fromList  $ map toClauseList bs
 {-|
 Takes a 'C.CNF' and converts it to a 'B.BSP'
 -}
-fromCNFtoBSP :: C.CNF -> B.BSP
+fromCNFtoBSP :: CNF -> BSP
 fromCNFtoBSP = error "not written yet fromCNFtoBSP"

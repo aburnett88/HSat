@@ -12,15 +12,9 @@ problem.
 
 module HSat.Problem (
   -- * Problem
-  Problem,
-  mkProblem     -- :: Source -> ProblemExpr -> Problem
+  Problem(MkProblem)
+--  MkProblem     -- :: Source -> ProblemExpr -> Problem
   ) where
 
 import HSat.Problem.Internal
-import HSat.Problem.ProblemExpr
-import HSat.Problem.Source
-
--- | Constructs a problem from a 'Source' and 'ProblemExpr'
-mkProblem :: Source -> ProblemExpr -> Problem
-mkProblem = Problem
 

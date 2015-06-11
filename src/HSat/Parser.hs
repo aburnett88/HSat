@@ -1,3 +1,5 @@
+{-# LANGUAGE ExistentialQuantification  #-}
+
 {-|
 Module      : HSat.Parser
 Description : Main Parsing module
@@ -23,19 +25,20 @@ module HSat.Parser (
 
 import HSat.Problem
 import Control.Monad.Trans.Either
-import HSat.Problem.ProblemType (ProblemType)
-import qualified HSat.Problem.ProblemType as P
+--import HSat.Problem.ProblemType (ProblemType)
+--import qualified HSat.Problem.ProblemType as P
 import HSat.Problem.BSP.CNF
 import System.Directory
 import Data.Attoparsec.Text
-import Control.Applicative
+--import Control.Applicative
 import Data.Text.IO as T
 import HSat.Parser.CNF
 import Control.Monad.Trans
-import HSat.Problem.ProblemExpr
+--import HSat.Problem.ProblemExpr
 import HSat.Problem.Source
-import Data.List (delete)
+--import Data.List (delete)
 import Control.Monad.Catch
+--import HSat.Problem.ProblemExpr.Internal
 
 {-|
 A type wrapper around the possible Error type
@@ -71,36 +74,36 @@ Given a 'FilePath', extracts the 'Problem' described in the file
 -}
 fromFile :: (MonadThrow m, MonadIO m) => FilePath -> m Problem
 fromFile filePath = do
-  fileType <- getProblemType filePath
-  expr <- case fileType of
-    P.CNF -> mkCNFProblem `liftA` fromCNFFile filePath
-    P.BSP -> error "Not written yet parser l47"
-  return $ mkProblem (mkFileSource filePath) expr
+  _ <- getProblemType filePath
+  expr <- undefined
+  return $ MkProblem (mkFileSource filePath) expr
 
 {-|
 Given a function that takes a 'FilePath' and returns a 'Problem', a folder,
 applies the function to each file in the folder
 -}
-fromFolder :: (FilePath -> ReadFile Problem) -> FilePath ->
-              IO [Either ProblemParseError Problem]
-fromFolder f folder = do
-  exists <- doesDirectoryExist folder
-  contents <- if exists then
-                getDirectoryContents folder else
+fromFolder :: (MonadThrow m, MonadIO m) => (FilePath -> m Problem) -> FilePath ->
+              m [Problem]
+fromFolder _ folder = do
+  exists <- liftIO $ doesDirectoryExist folder
+  _ <- if exists then
+                liftIO $ getDirectoryContents folder else
                 return []
-  let contents' = delete "." . delete ".." $ contents
-  setCurrentDirectory folder
-  xs <- mapM (runEitherT . f) contents'
-  setCurrentDirectory ".."
+  --let contents' = delete "." . delete ".." $ contents
+  liftIO $ setCurrentDirectory folder
+  xs <- undefined
+  liftIO $ setCurrentDirectory ".."
   return xs
 
-getProblemType :: (MonadThrow m) => FilePath -> m ProblemType
-getProblemType str =
+--getProblemType :: (MonadThrow m, MonadThrow n, IsProblem p) => FilePath -> m (Parser (n p))
+getProblemType :: (MonadIO m) => String -> m ()
+getProblemType _ = undefined
+{-
   let suffix = dropWhile (/= '.') str
   in case suffix of
     ".cnf" -> return P.CNF
     _ -> throwM $ UnrecognisedFileSuffix suffix
-
+-}
 
 {-|
 A sumtype describing errors
