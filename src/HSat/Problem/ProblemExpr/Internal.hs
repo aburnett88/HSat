@@ -17,7 +17,6 @@ Contains the definition of the 'ProblemExpr' type
 module HSat.Problem.ProblemExpr.Internal (
   -- * Data Type
   ProblemExpr(..),
-  IsProblem(..),
   -- * Conversions
   fromCNFtoBSP,
   fromBSPtoCNF,
@@ -33,26 +32,22 @@ import Control.Monad.Catch (MonadThrow)
 import Data.Attoparsec.Text (Parser)
 import Data.Text (Text)
 
-data ProblemExpr = forall p. IsProblem p => ProblemExpr p
 
-getWriterInfo :: ProblemExpr -> Maybe (FilePath,Text)
-getWriterInfo (ProblemExpr a) = getWriterInfo a
-
-class IsProblem problem where
+class ProblemExpr problem where
   fromCNF :: CNF -> problem
   toCNF :: problem -> CNF
   supportedFile :: (MonadThrow m) => problem -> Maybe (FilePath,Text,Parser (m problem))--, Parser (m problem))
   supportedFile _ = Nothing
 
-instance IsProblem BSP where
+instance ProblemExpr BSP where
   fromCNF =  fromCNFtoBSP
   toCNF = fromBSPtoCNF
 
-getWriterInfo' :: (IsProblem p) => p -> Maybe (FilePath,Text)
-getWriterInfo' p =
+getWriterInfo :: (ProblemExpr p) => p -> Maybe (FilePath,Text)
+getWriterInfo p =
   getInfo $ supportedFile p
 
-getInfo :: (IsProblem p) => (Maybe (FilePath,Text,Parser (Maybe p))) -> Maybe (FilePath,Text)
+getInfo :: (ProblemExpr p) => (Maybe (FilePath,Text,Parser (Maybe p))) -> Maybe (FilePath,Text)
 getInfo = undefined
   
 {-|

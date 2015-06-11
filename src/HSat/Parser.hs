@@ -34,7 +34,7 @@ import Data.Attoparsec.Text
 import Data.Text.IO as T
 import HSat.Parser.CNF
 import Control.Monad.Trans
---import HSat.Problem.ProblemExpr
+import HSat.Problem.ProblemExpr
 import HSat.Problem.Source
 --import Data.List (delete)
 import Control.Monad.Catch
@@ -72,9 +72,9 @@ fromCNFFile fp = do
 {-|
 Given a 'FilePath', extracts the 'Problem' described in the file
 -}
-fromFile :: (MonadThrow m, MonadIO m) => FilePath -> m Problem
+fromFile :: (MonadThrow m, MonadIO m, ProblemExpr a) => FilePath -> m (Problem a)
 fromFile filePath = do
-  _ <- getProblemType filePath
+  _ <-  (getProblemType filePath :: _)
   expr <- undefined
   return $ MkProblem (mkFileSource filePath) expr
 
@@ -82,8 +82,8 @@ fromFile filePath = do
 Given a function that takes a 'FilePath' and returns a 'Problem', a folder,
 applies the function to each file in the folder
 -}
-fromFolder :: (MonadThrow m, MonadIO m) => (FilePath -> m Problem) -> FilePath ->
-              m [Problem]
+fromFolder :: (MonadThrow m, MonadIO m, ProblemExpr a) => (FilePath -> m (Problem a)) -> FilePath ->
+              m [Problem a]
 fromFolder _ folder = do
   exists <- liftIO $ doesDirectoryExist folder
   _ <- if exists then
@@ -95,8 +95,7 @@ fromFolder _ folder = do
   liftIO $ setCurrentDirectory ".."
   return xs
 
---getProblemType :: (MonadThrow m, MonadThrow n, IsProblem p) => FilePath -> m (Parser (n p))
-getProblemType :: (MonadIO m) => String -> m ()
+getProblemType :: (MonadThrow m, MonadThrow n, ProblemExpr p) => FilePath -> m (Parser (n p))
 getProblemType _ = undefined
 {-
   let suffix = dropWhile (/= '.') str

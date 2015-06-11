@@ -29,11 +29,11 @@ If the 'Problem' has no file type associated with it, the file is written in CNF
 
 The 'Bool' returned is whether this was sucessful
 -}
-plainProblemToFile :: Problem -> FilePath -> IO Bool
+plainProblemToFile :: (ProblemExpr a) => Problem a -> FilePath -> IO Bool
 plainProblemToFile problem fp = do
-  let (text,fileName) = case getWriterInfo $ getExpr problem of
+  let (text,fileName) = case getWriterInfo $ problemExpr problem of
         Nothing ->
-          let cnfVersion = toCNF expr
+          let cnfVersion = toCNF $ problemExpr problem
           in (runCNFWriter $ mkCNFWriter cnfVersion, makeFileName fp "cnf")
         Just (extension,generatedText) ->
           (generatedText,makeFileName fp extension)
@@ -49,8 +49,8 @@ plainProblemToFile problem fp = do
 Given an initial writing function, a list of problems and a folder, writes
 all the functions to this folder
 -}
-writeFolder :: (Problem -> FilePath -> IO Bool) ->
-               [Problem] -> FilePath -> IO Bool
+writeFolder :: (ProblemExpr a) => (Problem a -> FilePath -> IO Bool) ->
+               [Problem a] -> FilePath -> IO Bool
 writeFolder f problems folder = do
   folderExists <- doesDirectoryExist folder
   if folderExists then

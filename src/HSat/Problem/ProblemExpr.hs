@@ -37,7 +37,7 @@ module HSat.Problem.ProblemExpr (
 import           HSat.Problem.ProblemExpr.Internal
 --import           HSat.Problem.ProblemType
 
-class (IsProblem a, IsProblem b) => ProblemConvert a b where
+class (ProblemExpr a, ProblemExpr b) => ProblemConvert a b where
   conversion :: a -> b
   conversion = fromCNF . toCNF
 {-
