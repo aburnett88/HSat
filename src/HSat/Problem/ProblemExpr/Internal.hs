@@ -20,7 +20,9 @@ module HSat.Problem.ProblemExpr.Internal (
   -- * Conversions
   fromCNFtoBSP,
   fromBSPtoCNF,
-  getWriterInfo
+  IsProblem(..),
+  fromProblem,
+  Convertable(..),
   ) where
 
 import qualified HSat.Problem.BSP.CNF as C (mkCNFFromClauses)
@@ -28,28 +30,46 @@ import HSat.Problem.BSP.CNF (CNF)
 import HSat.Problem.BSP.Internal
 import qualified Data.Vector as V
 import HSat.Problem.BSP.Common
-import Control.Monad.Catch (MonadThrow)
+import Control.Monad.Catch 
 import Data.Attoparsec.Text (Parser)
 import Data.Text (Text)
+import Data.Typeable
+import Control.Monad.Random
 
 
-class ProblemExpr problem where
+data ProblemExpr = forall s. (IsProblem s, Typeable s) => ProblemExpr {isProblem :: s}
+
+fromProblem :: (Typeable s, IsProblem s) => ProblemExpr -> Maybe s
+fromProblem (ProblemExpr p) = cast p
+
+class Config c where
+  ccc :: c -> Int
+
+class (Config config) => IsProblem problem config  | problem -> config where
   fromCNF :: CNF -> problem
   toCNF :: problem -> CNF
-  supportedFile :: (MonadThrow m) => problem -> Maybe (FilePath,Text,Parser (m problem))--, Parser (m problem))
-  supportedFile _ = Nothing
+  getWriter :: problem -> Maybe (FilePath, Text)
+  getWriter _ = Nothing
+  getParser :: (MonadThrow m) => Maybe (Parser (m problem))
+  getParser = Nothing
+  make :: (MonadThrow m, MonadRandom m) => config -> m problem
 
-instance ProblemExpr BSP where
+class (IsProblem a b, IsProblem c d) => Convertable a b c d where
+  convert :: a -> b
+  convert = undefined
+  
+  
+
+instance IsProblem BSP where
   fromCNF =  fromCNFtoBSP
   toCNF = fromBSPtoCNF
 
-getWriterInfo :: (ProblemExpr p) => p -> Maybe (FilePath,Text)
-getWriterInfo p =
-  getInfo $ supportedFile p
+instance IsProblem CNF where
+  fromCNF = id
+  toCNF = id
+  getWriter _ = undefined
+  getParser = undefined
 
-getInfo :: (ProblemExpr p) => (Maybe (FilePath,Text,Parser (Maybe p))) -> Maybe (FilePath,Text)
-getInfo = undefined
-  
 {-|
 Takes a 'B.BSP' and converts it to a 'C.CNF'
 -}

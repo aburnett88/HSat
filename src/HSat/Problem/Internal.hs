@@ -24,15 +24,20 @@ import HSat.Problem.Source
 {-|
 A 'Problem' represents both a problem expression and its source
 -}
-data Problem a where
-  MkProblem :: (ProblemExpr a) =>
+data Problem where
+  MkProblem :: {source :: Source, problemExpr :: ProblemExpr } -> Problem
+{-(ProblemExpr a) =>
                { source :: Source,
                  problemExpr :: a
             } -> Problem a
-
-instance (Eq a) => Eq (Problem a) where
+-}
+instance Eq Problem where
   _ == _ = True
 
+{-
+instance (Eq a) => Eq (Problem a) where
+  _ == _ = True
+-}
 {-|
 data Problem = Problem {
   -- | The Source of the Problem
@@ -42,21 +47,36 @@ data Problem = Problem {
   } deriving (Eq)
 -}
 
+instance Show Problem where
+  show = undefined
+
+{-
 instance Show a => Show (Problem a) where
   show = undefined
+-}
 {-
 instance (Printer a) => Show (Problem a) where
   showsPrec = show'
 -}
 -- Printer instances
-
+{-
 instance (Printer a) => Printer (Problem a) where
   compact   = printProblem Compact
   noUnicode = printProblem NoUnicode
   unicode   = printProblem Unicode
+-}
 
+instance Printer Problem where
+  compact   = printProblem Compact
+  noUnicode = printProblem NoUnicode
+  unicode   = printProblem Unicode
+
+printProblem :: PrinterType -> Problem -> Doc
+printProblem = undefined
+{-
 printProblem                   :: (Printer a) => PrinterType -> Problem a -> Doc
 printProblem = undefined
+-}
 {-
 printProblem pType MkProblem{..} =
   preamble    <>

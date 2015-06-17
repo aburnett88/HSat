@@ -36,7 +36,7 @@ import HSat.Parser.CNF
 import Control.Monad.Trans
 import HSat.Problem.ProblemExpr
 import HSat.Problem.Source
---import Data.List (delete)
+import Data.List (delete)
 import Control.Monad.Catch
 --import HSat.Problem.ProblemExpr.Internal
 
@@ -60,49 +60,48 @@ Given a 'FilePath', either returns the 'CNF' in the file or
 the udnerlying error
 -}
 fromCNFFile :: (MonadThrow m, MonadIO m) => FilePath -> m CNF
-fromCNFFile fp = do
+fromCNFFile = fromFile' cnfParser
+
+fromFile' :: (MonadThrow m, MonadIO m, IsProblem p) => Parser (Either SomeException p) -> FilePath -> m p
+fromFile' parser fp = do
   text <- liftIO $ T.readFile fp
-  case parseOnly cnfParser text of
+  case parseOnly parser text of
    Left parserException -> throwM $ ParseException parserException
    Right (Left builderException) -> throwM builderException
    Right (Right cnf) -> return cnf
 
-{-
--}
 {-|
 Given a 'FilePath', extracts the 'Problem' described in the file
 -}
-fromFile :: (MonadThrow m, MonadIO m, ProblemExpr a) => FilePath -> m (Problem a)
+fromFile :: (MonadThrow m, MonadIO m) => FilePath -> m Problem
 fromFile filePath = do
-  _ <-  (getProblemType filePath :: _)
-  expr <- undefined
+  expr <-  getProblemType filePath
   return $ MkProblem (mkFileSource filePath) expr
 
 {-|
 Given a function that takes a 'FilePath' and returns a 'Problem', a folder,
 applies the function to each file in the folder
 -}
-fromFolder :: (MonadThrow m, MonadIO m, ProblemExpr a) => (FilePath -> m (Problem a)) -> FilePath ->
-              m [Problem a]
-fromFolder _ folder = do
+fromFolder :: (MonadThrow m, MonadIO m) => (FilePath -> m Problem) -> FilePath ->
+              m [Problem]
+fromFolder f folder = do
   exists <- liftIO $ doesDirectoryExist folder
-  _ <- if exists then
+  contents <- if exists then
                 liftIO $ getDirectoryContents folder else
                 return []
-  --let contents' = delete "." . delete ".." $ contents
+  let contents' = delete "." . delete ".." $ contents
   liftIO $ setCurrentDirectory folder
-  xs <- undefined
+  xs <- mapM f contents'
   liftIO $ setCurrentDirectory ".."
   return xs
 
-getProblemType :: (MonadThrow m, MonadThrow n, ProblemExpr p) => FilePath -> m (Parser (n p))
-getProblemType _ = undefined
-{-
-  let suffix = dropWhile (/= '.') str
-  in case suffix of
-    ".cnf" -> return P.CNF
-    _ -> throwM $ UnrecognisedFileSuffix suffix
--}
+getProblemType :: (MonadThrow m, MonadIO m) => FilePath -> m ProblemExpr
+getProblemType fp = do
+  let suffix = dropWhile (/= '.') fp
+  p <- case suffix of
+    ".cnf" -> fromCNFFile fp
+    _ -> throwM $ UnrecognisedFileSuffix (tail suffix)
+  return $ ProblemExpr p
 
 {-|
 A sumtype describing errors

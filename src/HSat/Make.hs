@@ -17,7 +17,10 @@ module HSat.Make (
   make,     -- :: (MonadRandom m) => Config -> m Problem
   makeList, -- :: (MonadRandom m) = Int -> Config -> m [Problem]
   -- * Error
-  MakeError(..)
+  MakeError(..),
+  -- * Should be removed
+  liftCNF,
+  makeProblemFromExpr
   ) where
 
 import Control.Monad (replicateM)
@@ -31,6 +34,7 @@ import HSat.Problem
 import HSat.Problem.ProblemExpr
 --import HSat.Problem.Source
 --import HSat.Problem.BSP
+import Control.Monad.Catch
 
 {-|
 This data type describes errors that can be thrown when creating 'Problem's.
@@ -40,9 +44,7 @@ data MakeError =
   CNFError CNFMakeError
   deriving (Eq,Show)
 
-
-liftCNF :: (ProblemExpr a) => Either CNFMakeError a -> Either MakeError a
-liftCNF = bimap CNFError id
+instance Exception MakeError
 
 {-|
 Creates a random 'Problem' from a 'Config'.
@@ -50,17 +52,18 @@ The Bool argument denotes whether errros are ignored in the Config - e.g.,
 some config's may not generate correct problems'. We can mitigate this, and
 generate them anyway but without them being poor
 -}
-make                     :: (ProblemExpr a, MonadRandom m,Applicative m) => Config -> Bool ->
-                            m (Either MakeError (Problem a))
-make config ignoreErrors =
+make                     :: (MonadRandom m,Applicative m, MonadThrow m) => Config -> Bool ->
+                            m Problem
+make _ _ = undefined
+{-
   second (makeProblemFromExpr config) <$>
   case getInputConfig config of
     CNFProblemType _ -> --cnfConfig ->
       liftCNF <$> if ignoreErrors then
                     undefined else --Right . snd <$> makeCNF' cnfConfig else
                     undefined --makeCNF cnfConfig
-
-makeProblemFromExpr        :: (ProblemExpr a) => Config -> a -> Problem a
+-}
+makeProblemFromExpr        :: (IsProblem a) => Config -> a -> Problem
 makeProblemFromExpr _ = undefined
 --  MkProblem (mkMakeConfig config) . changeProblemType (getOutputType config)
 
@@ -69,8 +72,8 @@ Creates a list of 'Problem's from a given 'Config' and the number required.
 We ignore any errors and, if the config is invalid, then the closest valid
 config is generated
 -}
-makeList               :: (MonadRandom m,Applicative m, ProblemExpr a) =>
-                          Int -> Config -> m [Problem a]
+makeList               :: (MonadRandom m,Applicative m, MonadThrow m) =>
+                          Int -> Config -> m [Problem]
 makeList number config =
   map (\case
           Left _ -> error "makeList error"

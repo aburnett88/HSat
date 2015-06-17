@@ -1,3 +1,5 @@
+{-# LANGUAGE RecordWildCards #-}
+
 {-|
 Module      : HSat.Writer
 Description : High level module to write Problems to Files
@@ -29,9 +31,23 @@ If the 'Problem' has no file type associated with it, the file is written in CNF
 
 The 'Bool' returned is whether this was sucessful
 -}
-plainProblemToFile :: (ProblemExpr a) => Problem a -> FilePath -> IO Bool
-plainProblemToFile problem fp = do
-  let (text,fileName) = case getWriterInfo $ problemExpr problem of
+plainProblemToFile :: Problem -> FilePath -> IO Bool
+plainProblemToFile problem fp = plainProblemToFile' (problemExpr problem)
+  where
+    plainProblemToFile' :: ProblemExpr -> IO Bool
+    plainProblemToFile' ProblemExpr{..} = do
+      let (text,fileName) = case getWriter isProblem of
+            Nothing ->
+              let cnfVersion = toCNF isProblem
+              in (runCNFWriter $ mkCNFWriter cnfVersion, makeFileName fp "cnf")
+            Just (extension,generatedText) -> (generatedText, makeFileName fp extension)
+      exists <- doesFileExist fileName
+      if exists then return False else T.writeFile fileName text >> return True
+    makeFileName :: FilePath -> FilePath -> FilePath
+    makeFileName name extension = name ++ "." ++ extension
+            
+    {-
+  let (text,fileName) = case getWriterInfo . isProblem . problemExpr $ problem of
         Nothing ->
           let cnfVersion = toCNF $ problemExpr problem
           in (runCNFWriter $ mkCNFWriter cnfVersion, makeFileName fp "cnf")
@@ -44,13 +60,13 @@ plainProblemToFile problem fp = do
   where
     makeFileName :: FilePath -> FilePath -> FilePath
     makeFileName name extension = name ++ "." ++ extension
-    
+    -}
 {-|
 Given an initial writing function, a list of problems and a folder, writes
 all the functions to this folder
 -}
-writeFolder :: (ProblemExpr a) => (Problem a -> FilePath -> IO Bool) ->
-               [Problem a] -> FilePath -> IO Bool
+writeFolder :: (Problem -> FilePath -> IO Bool) ->
+               [Problem] -> FilePath -> IO Bool
 writeFolder f problems folder = do
   folderExists <- doesDirectoryExist folder
   if folderExists then
