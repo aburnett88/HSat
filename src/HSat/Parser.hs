@@ -1,4 +1,4 @@
-{-# LANGUAGE ExistentialQuantification  #-}
+{-# LANGUAGE ExistentialQuantification, RecordWildCards  #-}
 
 {-|
 Module      : HSat.Parser
@@ -14,69 +14,32 @@ Module exports some generic Parsing functions
 
 module HSat.Parser (
   -- * Data Type
-  ReadFile,
   ProblemParseError(..),
-  runReadFile,
   -- * Functions
-  fromCNFFile,
   fromFile,
   fromFolder
   ) where
 
 import HSat.Problem
-import Control.Monad.Trans.Either
 --import HSat.Problem.ProblemType (ProblemType)
 --import qualified HSat.Problem.ProblemType as P
-import HSat.Problem.BSP.CNF
 import System.Directory
-import Data.Attoparsec.Text
---import Control.Applicative
-import Data.Text.IO as T
-import HSat.Parser.CNF
 import Control.Monad.Trans
-import HSat.Problem.ProblemExpr
 import HSat.Problem.Source
 import Data.List (delete)
 import Control.Monad.Catch
---import HSat.Problem.ProblemExpr.Internal
+import HSat.Parser.Class
+import HSat.Problem.ProblemExpr.Class
 
-{-|
-A type wrapper around the possible Error type
--}
-type ReadFile a = EitherT ProblemParseError IO a
 
-{-|
-Runs the 'ReadFile' type
--}
---Tests not needed
---runReadFile :: (MonadIO m, MonadThrow m) => m a -> m a
---runReadFile = runEitherT
 
-runReadFile :: ReadFile a -> IO (Either ProblemParseError a)
-runReadFile = runEitherT
-
-{-|
-Given a 'FilePath', either returns the 'CNF' in the file or
-the udnerlying error
--}
-fromCNFFile :: (MonadThrow m, MonadIO m) => FilePath -> m CNF
-fromCNFFile = fromFile' cnfParser
-
-fromFile' :: (MonadThrow m, MonadIO m, IsProblem p) => Parser (Either SomeException p) -> FilePath -> m p
-fromFile' parser fp = do
-  text <- liftIO $ T.readFile fp
-  case parseOnly parser text of
-   Left parserException -> throwM $ ParseException parserException
-   Right (Left builderException) -> throwM builderException
-   Right (Right cnf) -> return cnf
-
-{-|
-Given a 'FilePath', extracts the 'Problem' described in the file
--}
-fromFile :: (MonadThrow m, MonadIO m) => FilePath -> m Problem
-fromFile filePath = do
-  expr <-  getProblemType filePath
-  return $ MkProblem (mkFileSource filePath) expr
+fromFile :: (MonadThrow m, MonadIO m) => [Parser] -> FilePath -> m Problem
+fromFile [] fp = throwM $ UnrecognisedFileSuffix (getSuffix fp)
+fromFile (Parser{..}:xs) fp =
+  if correctSuffix fileExtension fp then do
+    expression <- parser fp
+    return $ MkProblem (mkFileSource fp) (ProblemExpr expression) else
+    fromFile xs fp
 
 {-|
 Given a function that takes a 'FilePath' and returns a 'Problem', a folder,
@@ -95,13 +58,11 @@ fromFolder f folder = do
   liftIO $ setCurrentDirectory ".."
   return xs
 
-getProblemType :: (MonadThrow m, MonadIO m) => FilePath -> m ProblemExpr
-getProblemType fp = do
-  let suffix = dropWhile (/= '.') fp
-  p <- case suffix of
-    ".cnf" -> fromCNFFile fp
-    _ -> throwM $ UnrecognisedFileSuffix (tail suffix)
-  return $ ProblemExpr p
+getSuffix :: FilePath -> FilePath
+getSuffix fp = fp
+
+correctSuffix :: FilePath -> FilePath -> Bool
+correctSuffix _ _ = False
 
 {-|
 A sumtype describing errors

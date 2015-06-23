@@ -28,45 +28,42 @@ library
     either,
     bifunctors,
     deepseq,
-    exceptions
+    exceptions,
+    ghc-prim,
+    transformers
   Exposed-Modules:
     HSat.Problem
     HSat.Problem.Internal
-    HSat.Problem.ProblemExpr
-    HSat.Problem.ProblemExpr.Internal
-    HSat.Problem.ProblemType
+    HSat.Problem.ProblemExpr.Class
     HSat.Problem.Source
     HSat.Problem.Source.Internal
-    HSat.Problem.BSP
-    HSat.Problem.BSP.Internal
-    HSat.Problem.BSP.CNF
-    HSat.Problem.BSP.CNF.Internal
-    HSat.Problem.BSP.CNF.Builder
-    HSat.Problem.BSP.CNF.Builder.Internal
-    HSat.Problem.BSP.Common
-    HSat.Problem.BSP.Common.Clause
-    HSat.Problem.BSP.Common.Clause.Internal
-    HSat.Problem.BSP.Common.Clauses
-    HSat.Problem.BSP.Common.Clauses.Internal
-    HSat.Problem.BSP.Common.Literal
-    HSat.Problem.BSP.Common.Sign
-    HSat.Problem.BSP.Common.Variable
-    HSat.Problem.BSP.Common.Variable.Internal
+    HSat.Problem.Instances.CNF
+    HSat.Problem.Instances.CNF.Parser
+    HSat.Problem.Instances.CNF.Parser.Internal
+    HSat.Problem.Instances.CNF.Writer
+    HSat.Problem.Instances.CNF.Internal
+    HSat.Problem.Instances.CNF.Builder
+    HSat.Problem.Instances.CNF.Builder.Internal
+    HSat.Problem.Instances.Common.Clause
+    HSat.Problem.Instances.Common.Clause.Internal
+    HSat.Problem.Instances.Common.Clauses
+    HSat.Problem.Instances.Common.Clauses.Internal
+    HSat.Problem.Instances.Common.Literal
+    HSat.Problem.Instances.Common.Sign
+    HSat.Problem.Instances.Common.Variable
+    HSat.Problem.Instances.Common.Variable.Internal
+    HSat.Solution.Class
     HSat.Make
-    HSat.Make.Internal
-    HSat.Make.Config
-    HSat.Make.BSP.CNF
-    HSat.Make.BSP.CNF.Internal
-    HSat.Make.BSP.Common.Clauses
-    HSat.Make.BSP.Common.Clause
-    HSat.Make.BSP.Common.Literal
+    HSat.Make.Config.Class
+    HSat.Make.Common
+    HSat.Make.Instances.CNF
+    HSat.Make.Instances.CNF.Internal
+    HSat.Make.Instances.Common.Clauses
+    HSat.Make.Instances.Common.Clause
+    HSat.Make.Instances.Common.Literal
     HSat.Writer
-    HSat.Writer.Internal
-    HSat.Writer.CNF
-    HSat.Writer.CNF.Internal
     HSat.Parser
-    HSat.Parser.CNF
-    HSat.Parser.CNF.Internal
+    HSat.Parser.Class
     HSat.Printer
 
 Test-Suite HSat-tests

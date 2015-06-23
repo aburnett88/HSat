@@ -1,0 +1,101 @@
+{-|
+Module      : HSat.Writer.CNF
+Description : Used when adding comments to CNF files
+Copyright   : (c) Andrew Burnett 2014-2015
+Maintainer  : andyburnett88@gmail.com
+Stability   : experimental
+Portability : Unknown
+
+When you wisht o add comments to a CNF file, this module can be used
+-}
+
+module HSat.Problem.Instances.CNF.Writer (
+  mkCNFWriter,
+  addClauseComment,
+  addPreambleComment,
+  runCNFWriter,
+  getCNFFromWriter,
+  CNFWriter
+  ) where
+
+import Data.Text as T
+import HSat.Problem.Instances.CNF.Internal
+import qualified Data.Vector as V
+import HSat.Problem.Instances.Common
+
+{-|
+Get an underlying CNF from a 'CNFWriter'
+-}
+getCNFFromWriter :: CNFWriter -> CNF
+getCNFFromWriter (CNFWriter problem clauses) =
+  let v = wplVariables problem
+      c = wplClauses problem
+      cl = mkClauses . V.map wpClause $ clauses
+  in CNF v c cl
+
+{-|
+make a 'CNFWriter' from a 'CNF'
+-}
+mkCNFWriter :: CNF -> CNFWriter
+mkCNFWriter (CNF v c cl) =
+  let problem = WPL v c []
+      clauses = V.map (flip WCL []) . getVectClause $ cl
+  in CNFWriter problem clauses
+
+{-|
+Add a comment to a specific numebred 'Clause'
+
+Will return nothing if the number specified is outside the range
+-}
+addClauseComment :: Word -> Comment -> CNFWriter -> Maybe CNFWriter
+addClauseComment w c writer
+  | w < (wplClauses . writeProblemLine $ writer) =
+    let (l,r) = V.splitAt (fromEnum w) $ writeClauses writer
+        h' = WCL (wpClause (V.head r)) (wclComments (V.head r) ++ [c])
+    in Just $ writer {
+      writeClauses = l V.++ V.cons h' (V.tail r)
+                     }
+  | otherwise = Nothing
+
+{-|
+Adds a comment to the Preamble of the 'CNFWriter', returning the new 'CNFWriter'
+
+-}
+addPreambleComment :: Comment -> CNFWriter -> CNFWriter
+addPreambleComment c writer =
+  writer {
+    writeProblemLine = (writeProblemLine writer) {
+       wplComments = (wplComments . writeProblemLine $ writer) ++ [c]
+                     }
+                       }
+
+{-|
+Turns the 'CNFWriter' into 'Text'
+-}
+runCNFWriter :: CNFWriter -> Text
+runCNFWriter (CNFWriter p c') = T.unlines $ 
+  runProblemLine p ++
+  (Prelude.concat . V.toList . V.map runClauses $ c')
+  where
+    runProblemLine :: WrittenProblemLine -> [Text]
+    runProblemLine (WPL v c comments) = ls ++ [m] ++ rs
+      where
+        (ls,rs) = runComment comments
+        m = pack $ "p cnf " ++ show v ++ " " ++ show c
+    runClauses :: WrittenClauseLine -> [Text]
+    runClauses (WCL clause comments) = ls ++ [m] ++ rs
+      where
+        (ls,rs) = runComment comments
+        m = runClauses' (getVectLiteral clause) empty
+
+
+runClauses' :: V.Vector Literal -> Text -> Text
+runClauses' vs t =
+  if V.null vs then
+    t `append` pack "0" else
+    runClauses' (V.tail vs) (
+      t `append` pack (
+                  (show . literalToInteger . V.head $ vs) ++ " "
+                  )
+      )
+                                         

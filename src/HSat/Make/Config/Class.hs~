@@ -17,7 +17,7 @@ Provides the ability to create 'Config'urations for randomly generated
 'Problem's
 -}
 
-module HSat.Make.Config (
+module HSat.Make.Config.Class (
   Config(..),
   Bounds,
   VariableNumber,
@@ -56,9 +56,9 @@ data Config = forall config problem. (Typeable config, Makeable config problem) 
 
 
 instance Eq Config where
-  (Config c _) == (Config c' _) =
+  (Config c p _) == (Config c' p' _) =
     case cast c of
-      Just cCast -> cCast == c'
+      Just cCast -> cCast == c' && p == p'
       _ -> False
 
 instance Printer Config where

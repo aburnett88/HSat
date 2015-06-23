@@ -1,4 +1,5 @@
-{-# LANGUAGE LambdaCase, ExistentialQuantification #-}
+{-# LANGUAGE LambdaCase, ExistentialQuantification,
+  RecordWildCards #-}
 
 {-|
 Module      : HSat.Make
@@ -16,35 +17,17 @@ module HSat.Make (
   -- * Make
   make,     -- :: (MonadRandom m) => Config -> m Problem
   makeList, -- :: (MonadRandom m) = Int -> Config -> m [Problem]
-  -- * Error
-  MakeError(..),
-  -- * Should be removed
-  liftCNF,
-  makeProblemFromExpr
   ) where
 
 import Control.Monad (replicateM)
 import Control.Monad.Random.Class
-import Data.Bifunctor
--- import HSat.Make.BSP.CNF
-import HSat.Make.BSP.CNF.Internal (CNFMakeError(..))
 import HSat.Make.Config
 import HSat.Problem
 --import HSat.Problem.BSP.CNF
-import HSat.Problem.ProblemExpr
---import HSat.Problem.Source
+import HSat.Problem.ProblemExpr.Class
+import HSat.Problem.Source
 --import HSat.Problem.BSP
 import Control.Monad.Catch
-
-{-|
-This data type describes errors that can be thrown when creating 'Problem's.
--}
-data MakeError =
-  -- | Describes problems' thrown when creating 'CNF' expressions
-  CNFError CNFMakeError
-  deriving (Eq,Show)
-
-instance Exception MakeError
 
 {-|
 Creates a random 'Problem' from a 'Config'.
@@ -54,18 +37,12 @@ generate them anyway but without them being poor
 -}
 make                     :: (MonadRandom m,Applicative m, MonadThrow m) => Config -> Bool ->
                             m Problem
-make _ _ = undefined
-{-
-  second (makeProblemFromExpr config) <$>
-  case getInputConfig config of
-    CNFProblemType _ -> --cnfConfig ->
-      liftCNF <$> if ignoreErrors then
-                    undefined else --Right . snd <$> makeCNF' cnfConfig else
-                    undefined --makeCNF cnfConfig
--}
-makeProblemFromExpr        :: (IsProblem a) => Config -> a -> Problem
-makeProblemFromExpr _ = undefined
---  MkProblem (mkMakeConfig config) . changeProblemType (getOutputType config)
+make Config{..} ignoreErrors = do
+  problemExpr <-
+    if ignoreErrors then
+      snd <$> makeNoErrors getConfig else
+      makeProblem getConfig
+  return $ MkProblem mkStatic (ProblemExpr problemExpr)
 
 {-|
 Creates a list of 'Problem's from a given 'Config' and the number required.
@@ -74,8 +51,4 @@ config is generated
 -}
 makeList               :: (MonadRandom m,Applicative m, MonadThrow m) =>
                           Int -> Config -> m [Problem]
-makeList number config =
-  map (\case
-          Left _ -> error "makeList error"
-          Right problem -> problem)
-  <$> replicateM number (make config True)
+makeList number config = replicateM number (make config True)

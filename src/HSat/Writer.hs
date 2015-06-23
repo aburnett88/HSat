@@ -17,12 +17,12 @@ module HSat.Writer (
   ) where
 
 import HSat.Problem
-import HSat.Problem.ProblemExpr.Internal
+import HSat.Problem.ProblemExpr.Class
 import Data.Text.IO as T hiding (putStrLn)
-import HSat.Writer.CNF
 import System.Directory
 import Control.Monad (foldM)
 import HSat.Problem.Internal
+import HSat.Problem.Instances.CNF.Writer
 
 {-|
 Writes a 'Problem' to a 'FilePath'.
@@ -36,10 +36,10 @@ plainProblemToFile problem fp = plainProblemToFile' (problemExpr problem)
   where
     plainProblemToFile' :: ProblemExpr -> IO Bool
     plainProblemToFile' ProblemExpr{..} = do
-      let (text,fileName) = case getWriter isProblem of
+      let (text,fileName) = case getWriter expr of
             Nothing ->
-              let cnfVersion = toCNF isProblem
-              in (runCNFWriter $ mkCNFWriter cnfVersion, makeFileName fp "cnf")
+              let cnfVersion = toCNF expr
+              in (toText cnfVersion, "cnf")
             Just (extension,generatedText) -> (generatedText, makeFileName fp extension)
       exists <- doesFileExist fileName
       if exists then return False else T.writeFile fileName text >> return True

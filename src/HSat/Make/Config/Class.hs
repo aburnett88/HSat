@@ -17,7 +17,7 @@ Provides the ability to create 'Config'urations for randomly generated
 'Problem's
 -}
 
-module HSat.Make.Config (
+module HSat.Make.Config.Class (
   Config(..),
   Bounds,
   VariableNumber,
@@ -52,7 +52,6 @@ data Config = forall config problem. (Typeable config, Makeable config problem) 
   getConfig :: config,
   hasProblem :: Maybe problem
   }
-
 
 
 instance Eq Config where
