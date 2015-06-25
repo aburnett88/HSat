@@ -3,11 +3,6 @@ module Test.Problem.BSP (
   ) where
 
 import TestUtils
-import qualified Test.Problem.BSP.CNF as CNF
-import qualified Test.Problem.BSP.Common as Common
-import qualified Test.Problem.BSP.Internal as Internal
-import HSat.Problem.BSP.Internal
-import HSat.Problem.BSP
 
 name :: String
 name = "BSP"

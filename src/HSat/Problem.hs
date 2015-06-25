@@ -6,8 +6,7 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-A 'Problem' consists of the problem representation and the source of the
-problem.
+Exports definitions of the 'Problem' data type
 -}
 
 module HSat.Problem (
@@ -17,4 +16,3 @@ module HSat.Problem (
   ) where
 
 import HSat.Problem.Internal
-

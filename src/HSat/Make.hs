@@ -17,11 +17,12 @@ module HSat.Make (
   -- * Make
   make,     -- :: (MonadRandom m) => Config -> m Problem
   makeList, -- :: (MonadRandom m) = Int -> Config -> m [Problem]
+  Config(..),
   ) where
 
 import Control.Monad (replicateM)
 import Control.Monad.Random.Class
-import HSat.Make.Config
+import HSat.Make.Config.Class
 import HSat.Problem
 --import HSat.Problem.BSP.CNF
 import HSat.Problem.ProblemExpr.Class

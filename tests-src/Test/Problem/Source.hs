@@ -6,8 +6,8 @@ import TestUtils
 import HSat.Problem.Source
 import HSat.Problem.Source.Internal
 import Control.Applicative
-import HSat.Make.Config
-import Test.Make.Config ()
+import Test.Make.Config.Class ()
+import HSat.Make.Config.Class
 
 name :: String
 name = "Source"

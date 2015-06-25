@@ -7,12 +7,10 @@ module Test.Make (
 import TestUtils
 import HSat.Make
 import HSat.Problem.Internal
-import qualified Test.Make.BSP as BSP
 import qualified Test.Make.Config as Config
-import qualified Test.Make.Internal as Internal
-import HSat.Make.Config
-import Test.Make.BSP.CNF (testCNFError)
-import HSat.Problem.ProblemExpr
+import qualified Test.Make.Common as Common
+import qualified Test.Make.Instances as Instances
+import Control.Monad.Catch
 
 name :: String
 name = "Make"
@@ -28,44 +26,38 @@ tests =
       makeListTest1
       ],
     Config.tests,
-    BSP.tests,
-    Internal.tests
+    Common.tests,
+    Instances.tests
     ]
 
 makeTest1 :: TestTree
 makeTest1 =
-  testProperty "make configuration is valid" $ ioProperty $ do
-    config <- generate arbitrary
-    problem <- make config True
-    return $ case problem of
-      Left e -> counterexample
-                ("Unexpected Left: " ++ show e) False
-      Right p -> testCorrectType config p
+  testProperty "make configuration is valid" $ monadicIO $ do
+    config <- pick arbitrary
+    run $ catchAll (
+      do
+        problem <- make config True
+        return $ testCorrectType config problem
+        )
+      (\exception -> return $ counterexample ("Exception thrown" ++ show exception) False)
+                     
 
 makeTest2 :: TestTree
 makeTest2 =
-  testProperty "make configuration is valid" $ ioProperty $ do
-    config <- generate arbitrary
-    problem <- make config False
-    return $ case problem of
-      Left e -> testError config e
-      Right r -> testCorrectType config r
+  testProperty "make configuration is valid" $ monadicIO $ do
+    config <- pick arbitrary
+    run $ catchAll (
+      do
+        problem <- make config False
+        return $ testCorrectType config problem 
+        )
+      (\exception -> return $ testError config exception)
 
-  {-ioProperty (
-      result <- make config
-      return . property . validate . getProblemExpr $ result
-      )
--}
-
-testError :: Config -> MakeError -> Property
-testError (Config p config) err =
-  case (p,config,err) of
-    (_, CNFProblemType cnfConfig,CNFError e) ->
-      testCNFError cnfConfig e
+testError :: Config -> SomeException -> Property
+testError _ _ = undefined
 
 testCorrectType :: Config -> Problem -> Property
-testCorrectType (Config p _) problem =
-  (problemType . problemExpr $ problem) === p
+testCorrectType _ _ = undefined
     
 makeListTest1 :: TestTree
 makeListTest1 =

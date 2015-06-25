@@ -26,7 +26,7 @@ import HSat.Problem.Instances.Common
 import Data.Map (Map)
 import qualified Data.Map as M
 import Control.Monad.Random
-import HSat.Make.Config
+import HSat.Make.Config.Class
 import Control.Monad.Catch
 
 instance Makeable CNFConfig CNF where

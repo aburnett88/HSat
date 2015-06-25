@@ -19,19 +19,9 @@ Provides the ability to create 'Config'urations for randomly generated
 
 module HSat.Make.Config.Class (
   Config(..),
-  Bounds,
-  VariableNumber,
-  ClauseNumber,
-  ClauseSizeNumber,
-  PosDouble,
-  mkPosDouble,
-  getDouble,
-  VariablePredicate(..),
   Makeable(..),
   ) where
 
-import HSat.Make.Common
-import System.Random
 import HSat.Printer
 import HSat.Problem.ProblemExpr.Class
 import Control.Monad.Random.Class
@@ -43,16 +33,18 @@ import HSat.Solution.Class
 This super type allows for construction of all types of 'Problem's
 -}
 
-class (Eq config, IsProblem problem) => Makeable config problem | config -> problem where
+class (Eq config, Show config, IsProblem problem) => Makeable config problem | config -> problem where
   makeProblem :: (MonadRandom m, MonadThrow m) => config -> m problem
   makeNoErrors :: (MonadRandom m) => config -> m (config,problem)
   makeWithSolution :: (MonadRandom m, Solution problem solution) => m (solution, problem)
 
-data Config = forall config problem. (Typeable config, Makeable config problem) => Config {
+data Config = forall config problem. (Show config, Typeable config, Makeable config problem) => Config {
   getConfig :: config,
   hasProblem :: Maybe problem
   }
 
+instance Show Config where
+  show (Config c _) = show c
 
 instance Eq Config where
   (Config c _) == (Config c' _) =
@@ -67,75 +59,3 @@ instance Printer Config where
 
 printerConfig :: PrinterType -> Config -> Doc
 printerConfig = undefined
-
-{-|
-A Variable Predicate 
--}
-data VariablePredicate =
-  NoPredicate |
-  AtleastOnce |
-  PosAndNeg
-  deriving (Eq,Show)
-
-{-|
-Can either be a Bounded Positive Double that represents a constant multiper for number
-of variabels to clauses, or an exact nuber of variables
--}
-type VariableNumber = Either (Bounds PosDouble) (Bounds Word)
-
-instance (Printer a, Printer b) => Printer (Either a b) where
-  compact (Left a) = compact a
-  compact (Right a) = compact a
-  noUnicode (Left a) = noUnicode a
-  noUnicode (Right a) = noUnicode a
-  unicode (Left a) = unicode a
-  unicode (Right a) = unicode a
-
-{-|
-The number of Clauses is a Bounds word
--}
-type ClauseNumber = Bounds Word
-
-{-|
-A positive number
--}
-type ClauseSizeNumber = Bounds Word
-
-{-|
-A newtype wrapper around a Double. 
--}
-newtype PosDouble = PosDouble Double
-  deriving (Eq,Show)
-
-instance Printer PosDouble where
-  compact (PosDouble d) = compact d
-  noUnicode (PosDouble d) = noUnicode d
-  unicode (PosDouble d) = unicode d
-
-{-|
-The only constructor allows only positive Double's
--}
-mkPosDouble :: Double -> PosDouble
-mkPosDouble x
-  | x < 0.0 = error "mkPosdouble invalid arg"
-  | otherwise = PosDouble x
-
-{-|
-Gets the Double value from the PosDouble
--}
-getDouble :: PosDouble -> Double
-getDouble (PosDouble x) = x
-
-instance Bounded PosDouble where
-  minBound = PosDouble 0.0
-  maxBound = PosDouble . fromIntegral $ (maxBound :: Word)
-
-instance Random PosDouble where
-  randomR (PosDouble l,PosDouble r) g =
-    let (p,g') = randomR (l,r) g
-    in (PosDouble p,g')
-  random = randomR (minBound,maxBound)
-
-instance Ord PosDouble where
-  compare (PosDouble l) (PosDouble r) = compare l r
-

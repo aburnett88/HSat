@@ -22,7 +22,6 @@ module HSat.Make.Instances.CNF.Internal (
   mkCNF'
   ) where
 
-import HSat.Make.Config.Class
 import HSat.Make.Common
 import Control.Monad (replicateM)
 import Control.Monad.Random

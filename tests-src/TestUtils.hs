@@ -33,16 +33,15 @@ import           Control.Monad hiding (liftM,liftM2,liftM3,liftM4,liftM5)
 import Control.Applicative
 import           Data.Maybe (isNothing)
 import           Data.Text (Text,pack)
-import           HSat.Make.Config
-import           HSat.Make.Internal
-import           HSat.Writer.Internal
 import           Test.Tasty as Test.Extended
 import           Test.Tasty.Golden as Test.Extended
 import           Test.Tasty.HUnit as Test.Extended
 import           Test.Tasty.QuickCheck as Test.Extended
+import           Test.QuickCheck.Monadic as Test.Extended hiding (assert)
 import qualified Data.Vector as V
 import Data.List (delete)
 import qualified Data.Set as S
+import HSat.Make.Common
 
 --The maximum size a clause is able to be in this configuration
 testMaxClauseSize :: Int
@@ -117,15 +116,6 @@ testEq s a b =
 testAllEq :: (Show a, Eq a) => String -> [a] -> [a] -> Property
 testAllEq s (x:xs) (y:ys) = testEq s x y .&&. testAllEq s xs ys
 testAllEq _ _ _ = property True
-
-instance Arbitrary Comment where
-  arbitrary = do
-    x <- arbitrary
-    y <- arbitrary
-    return $ mkComment x (pack y)
-
-instance Arbitrary Orientation where
-  arbitrary = oneof $ map return [Above,Below]
 
 instance Arbitrary Text where
   arbitrary = do

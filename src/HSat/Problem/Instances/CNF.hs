@@ -1,5 +1,5 @@
 {-|
-Module      : HSat.Problem.BSP.CNF
+Module      : HSat.Problem.Instances.CNF
 Description : The CNF data type
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
@@ -12,22 +12,26 @@ functions
 
 module HSat.Problem.Instances.CNF (
   -- * CNF
-  CNF(getMaxVar,getClauseNumb,getClauses),
-  mkCNFFromClauses,
+  CNF(
+     getMaxVar    ,
+     getClauseNumb,
+     getClauses
+     ),
+  mkCNFFromClauses ,  -- :: Clauses -> CNF
   -- * Integer Constructors
-  cnfToIntegers,
-  mkCNFFromIntegers
+  cnfToIntegers    , -- :: CNF -> [[Integer]]
+  mkCNFFromIntegers  -- :: [[Integer]] -> CNF
   ) where
 
 import HSat.Problem.Instances.CNF.Internal
-import HSat.Problem.Instances.Common
 import HSat.Problem.Instances.CNF.Writer
+import HSat.Problem.Instances.Common
 import HSat.Problem.ProblemExpr.Class
 
 {-|
-Turns a 'Clauses' data type into a CNF datatype
+Turns a 'Clauses' data type into a CNF data type
 -}
-mkCNFFromClauses :: Clauses -> CNF
+mkCNFFromClauses    :: Clauses -> CNF
 mkCNFFromClauses cl =
   let v = findMaxVar cl
       c = getSizeClauses cl
@@ -47,7 +51,7 @@ mkCNFFromIntegers = mkCNFFromClauses . mkClausesFromIntegers
 
 instance IsProblem CNF where
   getWriter p = Just ("cnf",toText p)
-  fromCNF = id
-  toCNF = id
+  fromCNF     = id
+  toCNF       = id
 
   

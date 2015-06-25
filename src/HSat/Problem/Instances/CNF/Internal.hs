@@ -1,5 +1,10 @@
+{-# LANGUAGE
+    OverloadedStrings,
+    RecordWildCards
+    #-}
+
 {-|
-Module      : HSat.Problem.BSP.CNF.Internal
+Module      : HSat.Problem.Instances.CNF.Internal
 Description : The CNF data type
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
@@ -40,19 +45,19 @@ noUnicodeOr                                   = "\\/"
 unicodeOr                                     = "∨"
 
 instance Printer CNF where
-  compact = docCNF Compact
+  compact   = docCNF Compact
   noUnicode = docCNF NoUnicode
-  unicode = docCNF Unicode
+  unicode   = docCNF Unicode
 
-docCNF :: PrinterType -> CNF -> Doc
-docCNF pType (CNF maxVar clNumb cl) =
-  title <+>
-  variable <+> toDoc maxVar <> space' <>
-  clause <+> toDoc clNumb <> line <>
+docCNF               :: PrinterType -> CNF -> Doc
+docCNF pType CNF{..} =
+  title    <+>
+  variable <+> toDoc getMaxVar     <> space' <>
+  clause   <+> toDoc getClauseNumb <> line   <>
   clauses
   where
-    title :: Doc
-    title = text "CNF"
+    title   :: Doc
+    title = "CNF"
     variable :: Doc
     variable = text $ case pType of
       Compact -> "V"
@@ -67,7 +72,7 @@ docCNF pType (CNF maxVar clNumb cl) =
       _ -> "Clauses"
     clauses :: Doc
     clauses = case pType of
-      Compact -> compact cl
+      Compact -> compact getClauses
       NoUnicode ->
-        printClausesWithContext noUnicodeAnd noUnicodeOr maxVar noUnicode cl
-      Unicode -> printClausesWithContext unicodeAnd unicodeOr maxVar unicode cl
+        printClausesWithContext noUnicodeAnd noUnicodeOr getMaxVar noUnicode getClauses
+      Unicode -> printClausesWithContext unicodeAnd unicodeOr getMaxVar unicode getClauses

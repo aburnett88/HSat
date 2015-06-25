@@ -3,14 +3,13 @@ module Test.Parser (
   ) where
 
 import TestUtils
-import qualified Test.Parser.CNF as CNF
 import HSat.Parser
 import HSat.Writer
 import HSat.Problem.Internal
-import HSat.Problem
 import HSat.Problem.Source
-import HSat.Problem.ProblemExpr
 import System.Directory
+import Control.Monad.Catch
+import Test.Problem ()
 
 name :: String
 name = "Parser"
@@ -18,10 +17,6 @@ name = "Parser"
 tests :: TestTree
 tests =
   testGroup name [
-    CNF.tests,
-    testGroup "fromCNFFile" [
-      fromCNFFileTest1
-      ],
     testGroup "fromFile" [
       fromFileTest1
       ],
@@ -30,63 +25,59 @@ tests =
       ]
     ]
 
-fromCNFFileTest1 :: TestTree
-fromCNFFileTest1 =
-  testProperty "Write CNF file, read back in" $ ioProperty $ do
-    cnf <- generate arbitrary
-    let problem = mkProblem mkStatic $ mkCNFProblem cnf
-        fp = "fromCNFFileTest1"
-        fp' = fp ++ ".cnf"
-    didWriteSuceed <- plainProblemToFile problem fp
-    if didWriteSuceed then do
-      result <- runReadFile $ fromFile fp'
-      removeFile fp'
-      case result of
-        Right problem' ->
-          return $ property $ mkCNFProblem cnf === problemExpr problem'
-        Left err ->
-          return $ counterexample
-           ("Unexpected reading error " ++ show err)
-           False else
-      return $ counterexample
-        "File write unsuccessful"
-        False
+removeFileWithName :: FilePath -> IO ()
+removeFileWithName fp = do
+  contents <- getDirectoryContents ""
+  let res = filter (\f -> (removeSuffix f) == fp) contents
+  mapM_ removeFile res
+  where
+    removeSuffix :: FilePath -> FilePath
+    removeSuffix [] = []
+    removeSuffix ('.':_) = []
+    removeSuffix (x:xs) = x : removeSuffix xs
+
         
 fromFileTest1 :: TestTree
 fromFileTest1 =
-  testProperty "Write random file. Read back in" $ ioProperty $ do
-    problem <- generate arbitrary
-    let fp = "fromFileTest1"
-        fp' = fp ++ ".cnf"
-    didWriteSuceed <- plainProblemToFile problem fp
-    if didWriteSuceed then do
-      result <- runReadFile $ fromFile fp'
-      removeFile fp'
-      case result of
-       Right problem' ->
-         return $ problemExpr problem === problemExpr problem'
-       Left err ->
-         return $ counterexample
-           ("Failure with error" ++ show err)
-           False else
-      return $ counterexample "File write unsucessful" False
+  testProperty "Write random file. Read back in" $ monadicIO $ do
+    problem <- run $ generate arbitrary
+    let fp = "fromFileText1"
+    run $ removeFileWithName fp
+    fileLocation <- run $ plainProblemToFile problem fp
+    case fileLocation of
+     Just fileLocation' -> do
+       resultValue <-
+         run $
+         catchAll (
+           do
+             problem' <- fromFile instances fileLocation'
+             return $ problemExpr problem === problemExpr problem'
+           )
+         (\exception -> return $ counterexample ("Exception" ++ show exception) False)
+       run $ removeFile fileLocation'
+       return resultValue
+     Nothing -> return $ counterexample "Failure to write file" False
+
+instances :: [Parser]
+instances = error "Unwritten parser instances Test.parser"
           
 fromFolderTest1 :: TestTree
 fromFolderTest1 =
-  testProperty "Write random files. Read them all back in" $ ioProperty $ do
-    exprs <- generate $ listOf arbitrary
+  testProperty "Write random files. Read them all back in" $ monadicIO $ do
+    exprs <- run $ generate $ listOf arbitrary
     let folder = "fromFolderTest1"
-        problems = map (mkProblem mkStatic) exprs
-    result <- writeFolder plainProblemToFile problems "fromFolderTest1"
-    if result then do
-      problems' <- fromFolder fromFile folder
-      let exprs' = map (\a ->
-                         case a of
-                           Right p -> Right . problemExpr $ p
-                           Left err -> Left err
-                           ) problems'
-      removeDirectoryRecursive folder
-      print exprs
-      print exprs'
-      return $ listsContainSame (map return exprs) exprs' else
-      return $ counterexample "Folder parsing failed" False
+        problems = map (MkProblem mkStatic) exprs
+        file = "file"
+    alreadyExists <- run $ doesDirectoryExist folder
+    if alreadyExists then do
+      run $ removeDirectoryRecursive folder else return ()
+    result <- run $ catchAll (
+      do
+        _ <- writeFolder undefined problems folder file
+        problems' <- fromFolder (fromFile instances) folder
+        return $ listsContainSame problems problems'
+        )
+        (\exception -> return $
+                       counterexample ("Exception thrown: " ++ show exception) False)
+    run $ removeDirectoryRecursive folder
+    return result

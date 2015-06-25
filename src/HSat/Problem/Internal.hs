@@ -1,5 +1,8 @@
-{-# LANGUAGE RecordWildCards, OverloadedStrings #-}
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE
+    RecordWildCards  ,
+    OverloadedStrings,
+    GADTs
+    #-}
 
 {- |
 Module      : HSat.Problem.Internal
@@ -9,8 +12,7 @@ Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The internal representation of a 'Problem' that contains a source
-and a representation
+Exports the underlying representation of a 'Problem'
 -}
 
 module HSat.Problem.Internal (
@@ -26,7 +28,9 @@ A 'Problem' represents both a problem expression and its source
 -}
 data Problem where
   MkProblem :: {
+    -- | The 'Source' of the 'ProblemExpr'
     source      :: Source     ,
+    -- | The 'ProblemExpr' describing the 'Problem'
     problemExpr :: ProblemExpr
     } -> Problem
 
@@ -49,16 +53,15 @@ printProblem pType MkProblem{..} =
   line        <>
   printExpr
   where
-    preamble :: Doc
-    preamble = case pType of
+    preamble      :: Doc
+    preamble      = case pType of
       Compact -> "Problem -"
       _       -> "Problem:"
-    space' :: Doc
-    space' = case pType of
+    space'      :: Doc
+    space'      = case pType of
       Compact -> space
       _       -> line
     printSource :: Doc
     printSource = pTypeToDoc pType source
     printExpr   :: Doc
     printExpr   = pTypeToDoc pType problemExpr
-

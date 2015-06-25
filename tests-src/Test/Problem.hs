@@ -17,7 +17,7 @@ module Test.Problem (
 
 import           HSat.Problem
 import qualified Test.Problem.ProblemExpr as ProblemExpr
-import qualified Test.Problem.ProblemType as ProblemType
+import qualified Test.Problem.Instances as Instances
 import qualified Test.Problem.Source as Source
 import           TestUtils
 import HSat.Problem.Internal
@@ -35,21 +35,21 @@ tests =
        ],
     Internal.tests,
     ProblemExpr.tests,
-    ProblemType.tests,
-    Source.tests
+    Source.tests,
+    Instances.tests
     ]
 
 mkProblemTest1 :: TestTree
 mkProblemTest1 =
   testProperty "getSource . mkProblem s p == s" $ property (
     \(source',problem) ->
-    source' === source (mkProblem source' problem)
+    source' === source (MkProblem source' problem)
     )
 
 mkProblemTest2 :: TestTree
 mkProblemTest2 =
   testProperty "getProblemExpr . mkProblem s p == p" $ property (
     \(source',problem) ->
-    problem === problemExpr (mkProblem source' problem)
+    problem === problemExpr (MkProblem source' problem)
     )
 

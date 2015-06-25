@@ -1,7 +1,10 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE
+    RecordWildCards  ,
+    OverloadedStrings
+    #-}
 
 {-|
-Module      : HSat.Problem.BSP.CNF.Builder.Internal
+Module      : HSat.Problem.Instances.CNF.Builder.Internal
 Description : The Internal CNFBuilder module
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
@@ -23,13 +26,13 @@ module HSat.Problem.Instances.CNF.Builder.Internal (
   canFinalise          -- :: CNFBuilder -> Bool
   ) where
 
-import           HSat.Printer
-import           HSat.Problem.Instances.Common
-import           HSat.Problem.Instances.Common.Clause.Internal (
-  printClauseWithContext)
-import           HSat.Problem.Instances.Common.Clauses.Internal (
-  printClausesWithContext)
 import Control.Monad.Catch
+import HSat.Printer
+import HSat.Problem.Instances.Common
+import HSat.Problem.Instances.Common.Clause.Internal  (
+  printClauseWithContext)
+import HSat.Problem.Instances.Common.Clauses.Internal (
+  printClausesWithContext)
 
 {-|
 A 'CNFBuilder' represents a 'CNF' as it is being constructed. This data type
@@ -86,8 +89,8 @@ instance Printer CNFBuilder where
 {-|
 Prints the CNFBuilder with a given 'PrinterType'
 -}
-printCNFBuilder :: CNFBuilder -> PrinterType -> Doc
-printCNFBuilder (CNFBuilder{..}) pType =
+printCNFBuilder                      :: CNFBuilder -> PrinterType -> Doc
+printCNFBuilder CNFBuilder{..} pType =
   title          <> line <>
   maxVar         <> line <>
   clauses        <> line <>
@@ -95,44 +98,44 @@ printCNFBuilder (CNFBuilder{..}) pType =
   currentClause  <> line <>
   facts 
   where
-    title :: Doc
-    title = text "CNFBuilder"
-    maxVar :: Doc
-    maxVar =
+    title          :: Doc
+    title   = "CNFBuilder"
+    maxVar         :: Doc
+    maxVar         =
       case pType of
-        Compact -> text "Max Var"
-        _       -> text "Maximum Variable"
+        Compact -> "Max Var"
+        _       -> "Maximum Variable"
       <> colon <+> toDoc getExptdMaxVar
-    clauses :: Doc
-    clauses =
+    clauses        :: Doc
+    clauses        =
       case pType of
-        Compact -> text "Clauses" <> colon               <+>
-                   toDoc getCurrClNumb                    <>
-                   text "/"                              <>
+        Compact -> "Clauses" <> colon               <+>
+                   toDoc getCurrClNumb              <>
+                   "/"                              <>
                    toDoc getExptdClNumb
-        _       -> text "Clauses"   <> colon             <+>
-                   toDoc getExptdClNumb <> line           <>
-                   text "Current Clause Counnt" <> colon <+>
+        _       -> "Clauses"   <> colon            <+>
+                   toDoc getExptdClNumb <> line    <>
+                   "Current Clause Count" <> colon <+>
                    toDoc getCurrClNumb
     currentClauses :: Doc
     currentClauses = case pType of
       Compact -> compact getCurrClauses
       _ -> printClausesWithContext "and" "or"
            getExptdMaxVar func getCurrClauses
-    currentClause :: Doc
-    currentClause = case pType of
+    currentClause  :: Doc
+    currentClause  = case pType of
       Compact -> compact getCurrClause
       _ -> printClauseWithContext "OR" getExptdMaxVar func getCurrClause
-    func :: Literal -> Doc
-    func = case pType of
+    func           :: Literal -> Doc
+    func           = case pType of
       Compact -> compact
       NoUnicode -> noUnicode
       Unicode -> unicode
-    facts :: Doc
-    facts = empty
+    facts          :: Doc
+    facts          = empty
     
 {-|
-CNFBuilderError describes the errors that can be thrown by a CNFBuidler.
+CNFBuilderError describes the errors that can be thrown by a CNFBuilder.
 -}
 data CNFBuilderError =
   -- | When the incorrect number of 'Clauses' has been defined.
@@ -155,29 +158,27 @@ instance Printer CNFBuilderError where
   unicode err   = printBuildErr err   Unicode
 
 {-|
-Prints the given 'CNFBuilderError' with a gien 'PrinterType'
+Prints the given 'CNFBuilderError' with a given 'PrinterType'
 -}
 printBuildErr :: CNFBuilderError -> PrinterType -> Doc
 printBuildErr builderErr pType =
   case builderErr of
     IncorrectClauseNumber gotten expected ->
       errorDoc pType $
-        text "Incorrect Number of Clauses"             <+>
-        text "Expected"     <> colon <+> toDoc expected <+>
-        text "Actual Value" <> colon                   <+>
+        "Incorrect Number of Clauses"              <+>
+        "Expected"     <> colon <+> toDoc expected <+>
+        "Actual Value" <> colon                    <+>
         toDoc gotten
     VarOutsideRange gotten expected ->
-      let le = text "<"
-          leq = text $
-                case pType of
-                  Unicode -> "≤"
-                  _ -> "<="
+      let le = "<"
+          leq = case pType of
+                 Unicode -> "≤"
+                 _ ->       "<="
       in errorDoc pType $
-           text "Variable outside range"        <>  colon <+>
+           "Variable outside range"                        <>  colon <+>
            toDoc (0::Word) <+> le <+> text (show gotten) <+> leq   <+>
            toDoc expected
     Initialisation variables clauses ->
       errorDoc pType $
-        text "Initialisation of arguments incorrect" <+>
-        text "Argumnets:" <+> text (show variables)  <+> text (show clauses)
-
+        "Initialisation of arguments incorrect"   <+>
+        "Arguments:" <+> text (show variables)  <+> text (show clauses)

@@ -14,10 +14,8 @@ module TestPrint.Problem.ProblemExpr (
   problemExprs -- :: [ProblemExpr]
   ) where
 
-import           HSat.Problem.ProblemExpr
+import           HSat.Problem.ProblemExpr.Class
 import           TestPrint
-import qualified TestPrint.Problem.BSP.CNF as CNF
-import qualified TestPrint.Problem.BSP.Common as Common
 
 
 name :: String
@@ -26,9 +24,7 @@ name = "ProblemExpr"
 printer :: TestTree
 printer =
   testGroup name [
-    printProblemExpr,
-    Common.printer,
-    CNF.printer
+    printProblemExpr
     ]
 
 printProblemExpr :: TestTree
@@ -36,5 +32,4 @@ printProblemExpr =
   printList "ProblemExpr CNF" problemExprs
 
 problemExprs :: [ProblemExpr]
-problemExprs =
-  map mkCNFProblem CNF.cnfList
+problemExprs = []

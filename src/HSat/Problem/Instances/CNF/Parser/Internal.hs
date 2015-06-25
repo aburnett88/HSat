@@ -1,7 +1,9 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE
+    OverloadedStrings
+    #-}
 
 {-|
-Module      : HSat.Parser.CNF.Internal
+Module      : HSat.Problem.Instances.CNF.Parser.Internal
 Description : Helper functions for parsing CNF files
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
@@ -21,11 +23,11 @@ module HSat.Problem.Instances.CNF.Parser.Internal (
   parseClauses         -- :: CNFBuildErr -> Parser CNFBuildErr
   ) where
 
-import Data.Attoparsec.Text as P
-import Control.Monad                (void)
-import HSat.Problem.Instances.CNF.Builder
-import Control.Monad.Catch
-import qualified Data.Attoparsec.Internal.Types as T
+import           Control.Monad                      (void)
+import           Control.Monad.Catch
+import qualified Data.Attoparsec.Internal.Types     as T
+import           Data.Attoparsec.Text               as P
+import           HSat.Problem.Instances.CNF.Builder
 
 instance MonadThrow (T.Parser i) where
   throwM e = fail (show e)

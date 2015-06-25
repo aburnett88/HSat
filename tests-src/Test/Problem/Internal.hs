@@ -8,7 +8,7 @@ import TestUtils
 import Control.Applicative
 import HSat.Problem.Internal
 import Test.Problem.Source ()
-import Test.Problem.ProblemExpr ()
+import Test.Problem.ProblemExpr.Class ()
 
 name :: String
 name = "Internal"
@@ -19,6 +19,6 @@ tests =
 
 
 instance Arbitrary Problem where
-  arbitrary = liftA2 Problem arbitrary arbitrary
-  shrink Problem{..} =
-    map (uncurry Problem) $ shrink (source,problemExpr)
+  arbitrary = liftA2 MkProblem arbitrary arbitrary
+  shrink MkProblem{..} =
+    map (uncurry MkProblem) $ shrink (source,problemExpr)

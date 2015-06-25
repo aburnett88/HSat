@@ -17,7 +17,7 @@ module HSat.Problem.Source (
   mkMakeConfig  -- :: Config -> Source
   ) where
 
-import HSat.Make.Config
+import HSat.Make.Config.Class
 import HSat.Problem.Source.Internal
 
 {-|
@@ -37,5 +37,3 @@ Constructs a 'Source' from a 'Config'
 -}
 mkMakeConfig :: Config -> Source
 mkMakeConfig = MakeConfiguration
-
-

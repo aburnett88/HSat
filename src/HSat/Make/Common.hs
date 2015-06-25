@@ -18,7 +18,14 @@ module HSat.Make.Common (
   mkExact,
   mkMinimum,
   mkMaximum,
-  mkNoBounds
+  mkNoBounds,
+  VariableNumber,
+  ClauseNumber,
+  ClauseSizeNumber,
+  PosDouble,
+  mkPosDouble,
+  getDouble,
+  VariablePredicate(..)
   ) where
 
 import Control.Monad.Random.Class
@@ -89,3 +96,75 @@ Gets the greater of the two bounded values
 -}
 getGreater :: Bounds a -> a
 getGreater (Bounds _ b) = b
+
+{-|
+A Variable Predicate 
+-}
+data VariablePredicate =
+  NoPredicate |
+  AtleastOnce |
+  PosAndNeg
+  deriving (Eq,Show)
+
+{-|
+Can either be a Bounded Positive Double that represents a constant multiper for number
+of variabels to clauses, or an exact nuber of variables
+-}
+type VariableNumber = Either (Bounds PosDouble) (Bounds Word)
+
+instance (Printer a, Printer b) => Printer (Either a b) where
+  compact (Left a) = compact a
+  compact (Right a) = compact a
+  noUnicode (Left a) = noUnicode a
+  noUnicode (Right a) = noUnicode a
+  unicode (Left a) = unicode a
+  unicode (Right a) = unicode a
+
+{-|
+The number of Clauses is a Bounds word
+-}
+type ClauseNumber = Bounds Word
+
+{-|
+A positive number
+-}
+type ClauseSizeNumber = Bounds Word
+
+{-|
+A newtype wrapper around a Double. 
+-}
+newtype PosDouble = PosDouble Double
+  deriving (Eq,Show)
+
+instance Printer PosDouble where
+  compact (PosDouble d) = compact d
+  noUnicode (PosDouble d) = noUnicode d
+  unicode (PosDouble d) = unicode d
+
+{-|
+The only constructor allows only positive Double's
+-}
+mkPosDouble :: Double -> PosDouble
+mkPosDouble x
+  | x < 0.0 = error "mkPosdouble invalid arg"
+  | otherwise = PosDouble x
+
+{-|
+Gets the Double value from the PosDouble
+-}
+getDouble :: PosDouble -> Double
+getDouble (PosDouble x) = x
+
+instance Bounded PosDouble where
+  minBound = PosDouble 0.0
+  maxBound = PosDouble . fromIntegral $ (maxBound :: Word)
+
+instance Random PosDouble where
+  randomR (PosDouble l,PosDouble r) g =
+    let (p,g') = randomR (l,r) g
+    in (PosDouble p,g')
+  random = randomR (minBound,maxBound)
+
+instance Ord PosDouble where
+  compare (PosDouble l) (PosDouble r) = compare l r
+

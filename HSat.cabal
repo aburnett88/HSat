@@ -88,7 +88,8 @@ Test-Suite HSat-tests
     random,
     attoparsec,
     either,
-    exceptions
+    exceptions,
+    QuickCheck
 
 Test-Suite HSat-Printer
   type: exitcode-stdio-1.0

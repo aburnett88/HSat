@@ -16,8 +16,8 @@ module TestPrint.Problem (
 import           HSat.Problem
 import           TestPrint
 import qualified TestPrint.Problem.ProblemExpr as ProblemExpr
-import qualified TestPrint.Problem.ProblemType as ProblemType
 import qualified TestPrint.Problem.Source as Source
+import qualified TestPrint.Problem.Instances as Instances
 
 name :: String
 name = "Problem"
@@ -27,11 +27,11 @@ printer =
   testGroup name [
     printProblems,
     ProblemExpr.printer,
-    ProblemType.printer,
+    Instances.printer,
     Source.printer
     ]
 
 printProblems :: TestTree
 printProblems =
-  printList "Problem" $ map (\(p,s) -> mkProblem s p) $
+  printList "Problem" $ map (\(p,s) -> MkProblem s p) $
   zip ProblemExpr.problemExprs Source.sources

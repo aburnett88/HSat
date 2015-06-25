@@ -1,4 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE
+    OverloadedStrings
+    #-}
 
 {-|
 Module      : HSat.Problem.Source.Internal
@@ -15,7 +17,7 @@ module HSat.Problem.Source.Internal (
   Source(..)
   ) where
 
-import HSat.Make.Config
+import HSat.Make.Config.Class
 import HSat.Printer
 
 {-|
@@ -33,34 +35,50 @@ data Source =
 
 instance Show Source where
   showsPrec = show'
-
-
-lenSize :: Int
-lenSize = 20
-
+  
 instance Printer Source where
-  compact StaticSource = "STATIC"
-  compact (FileSource fp) =
-    "FILE:" <+>
-    (
-      case compare lenSize (length fp) of
-        LT -> text fp
-        _  -> text $ take lenSize fp ++ "..."
-    )
-  compact (MakeConfiguration m) =
-    "MAKE:" <+>
-    (pTypeToDoc Compact m)
-  noUnicode StaticSource = "Static Source"
-  noUnicode (FileSource fp) =
-    "FilePath:" <+>
-    text fp
-  noUnicode (MakeConfiguration m) =
-    "Make Config:" <+>
-    (pTypeToDoc NoUnicode m)
-  unicode StaticSource = green "Static Source"
-  unicode (FileSource fp) =
-    "FilePath:" <+>
-    (yellow . text $ fp)
-  unicode (MakeConfiguration m) =
-    "Make Configuration:" <+>
-    (pTypeToDoc Unicode m)
+  compact   = printerSource Compact
+  noUnicode = printerSource NoUnicode
+  unicode   = printerSource Unicode
+
+printerSource                       :: PrinterType -> Source -> Doc
+printerSource pType StaticSource    = static
+  where
+    static  :: Doc
+    static  = case pType of
+      Compact    -> "STATIC"
+      NoUnicode  -> static'
+      Unicode    -> green static'
+    static' :: Doc
+    static' = "Static Source"
+printerSource pType (FileSource fp) =
+  preamble <+> fileSource
+  where
+    preamble   :: Doc
+    preamble   = (
+      case pType of
+       Compact -> "FILE"
+       _       -> "FilePath"
+      ) <> colon
+    fileSource :: Doc
+    fileSource =
+      case pType of
+       Compact   -> case compare lenSize (length fp) of
+         GT -> text (take (lenSize - length dots) fp) <> text dots
+         _  -> text fp
+       NoUnicode -> text fp
+       Unicode   -> yellow $ text fp
+    lenSize    :: Int
+    lenSize    = 20
+    dots       :: String
+    dots       = "..."
+printerSource pType (MakeConfiguration m) =
+  preamble <> makeDoc
+  where
+    preamble :: Doc
+    preamble = (
+      case pType of
+        Compact -> "MAKE"
+        _ -> "Make") <> colon
+    makeDoc  :: Doc
+    makeDoc  = pTypeToDoc pType m

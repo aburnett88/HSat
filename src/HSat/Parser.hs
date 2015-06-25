@@ -17,7 +17,9 @@ module HSat.Parser (
   ProblemParseError(..),
   -- * Functions
   fromFile,
-  fromFolder
+  fromFolder,
+  module HSat.Parser.Class,
+  parserInstances
   ) where
 
 import HSat.Problem
@@ -31,7 +33,8 @@ import Control.Monad.Catch
 import HSat.Parser.Class
 import HSat.Problem.ProblemExpr.Class
 
-
+parserInstances :: [Parser]
+parserInstances = []
 
 fromFile :: (MonadThrow m, MonadIO m) => [Parser] -> FilePath -> m Problem
 fromFile [] fp = throwM $ UnrecognisedFileSuffix (getSuffix fp)
