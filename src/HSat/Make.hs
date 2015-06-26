@@ -18,8 +18,8 @@ to be created
 
 module HSat.Make (
   -- * Make
-  make,     -- :: (MonadRandom m, MonadThrow m) => Config -> Bool -> m Problem
-  makeList, -- :: (MonadRandom m, MonadThrow m) => Int -> Config -> m [Problem]
+  make,     -- :: (MonadRandom m, MonadThrow m, MonadCatch m) => Config -> Bool -> m Problem
+  makeList, -- :: (MonadRandom m, MonadThrow m, MonadCatch m) => Int -> Config -> m [Problem]
   Config(..),
   ) where
 
