@@ -25,6 +25,7 @@ module TestUtils (
   listsContainSame,
   listContainsSame',
   listContainsSame'2',
+  equiv              ,
   ) where
 
 import qualified Control.Exception as E (catch)
@@ -42,6 +43,9 @@ import qualified Data.Vector as V
 import Data.List (delete)
 import qualified Data.Set as S
 import HSat.Make.Common
+
+equiv :: String -> String -> String
+equiv l r = l ++ "≡" ++ r
 
 --The maximum size a clause is able to be in this configuration
 testMaxClauseSize :: Int
@@ -121,14 +125,6 @@ instance Arbitrary Text where
   arbitrary = do
     x <- arbitrary
     return $ pack x
-
-instance Arbitrary VariablePredicate where
-  arbitrary =
-    oneof $ map return [
-      NoPredicate,
-      AtleastOnce,
-      PosAndNeg
-      ]
 
 forceError :: (Eq a, Show a, Arbitrary a) => a -> Assertion
 forceError correct = do

@@ -1,4 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE
+    OverloadedStrings
+    #-}
 
 {-|
 Module      : HSat.Printer
@@ -15,15 +17,15 @@ module HSat.Printer (
   -- * Exported Modules
   module Text.PrettyPrint.ANSI.Leijen,
   -- * Printer
-  Printer(..),
+  Printer(..)                        ,
   -- * Printer Type
-  PrinterType(..),
+  PrinterType(..)                    ,
   -- * Rendering
-  pTypeToDoc, -- :: (Printer a) => PrinterType -> a -> Doc
+  pTypeToDoc                         , -- :: (Printer a) => PrinterType -> a -> Doc
   -- * Helper Functions
-  show',      -- :: Printer a => Int -> a -> Doc
-  errorDoc,   -- :: PrinterType -> Doc -> Doc
-  toDoc       -- :: Show a => a -> Doc
+  show'                              , -- :: Printer a => Int -> a -> Doc
+  errorDoc                           , -- :: PrinterType -> Doc -> Doc
+  toDoc                              , -- :: Show a => a -> Doc
   ) where
 
 import Text.PrettyPrint.ANSI.Leijen
@@ -83,7 +85,7 @@ instance Show X where
   showsPrec = show'
 @
 -}
-show' :: Printer a => Int -> a -> ShowS
+show'     :: Printer a => Int -> a -> ShowS
 show' i a = displayS $ renderPretty 0.4 i $ compact a
 
 {-|
@@ -98,7 +100,7 @@ a bespoke error message.
 
 It should be used with all error messages within HSat
 -}
-errorDoc :: PrinterType -> Doc -> Doc
+errorDoc                  :: PrinterType -> Doc -> Doc
 errorDoc Compact reason   = "ERR"   <> colon <+> reason
 errorDoc NoUnicode reason = "Error" <> colon <+> reason
 errorDoc Unicode reason   = red $ errorDoc NoUnicode reason

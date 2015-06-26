@@ -53,8 +53,8 @@ printProblem pType MkProblem{..} =
   line        <>
   printExpr
   where
-    preamble      :: Doc
-    preamble      = case pType of
+    preamble    :: Doc
+    preamble    = case pType of
       Compact -> "Problem -"
       _       -> "Problem:"
     space'      :: Doc
