@@ -33,6 +33,7 @@ import Control.Monad.Random
 import HSat.Make.Common
 import HSat.Printer
 import HSat.Problem.Instances.CNF
+import HSat.Problem.Instances.Common
 
 {-|
 CNFInit is a data type that is created that initialises a CNF data type
