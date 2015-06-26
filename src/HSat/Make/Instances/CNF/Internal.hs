@@ -15,13 +15,16 @@ Exports internal data types and functions for creating CNF files
 
 module HSat.Make.Instances.CNF.Internal (
   -- * Data types
-  CNFInit(..),
-  CNFConfig(..),
+  CNFInit(..)     ,
+  CNFConfig(..)   ,
   CNFMakeError(..),
-  mkCNFInit,
-  mkCNFInit',
-  mkCNF,
-  mkCNF'
+  ClauseNumber    ,
+  ClauseSizeNumber,
+  VariableNumber  ,
+  mkCNFInit       , -- :: (MonadRandom m) => CNFConfig -> m CNFInit
+  mkCNFInit'      , -- :: (MonadRandom m) => CNFConfig -> m (CNFConfig,CNFInit)
+  mkCNF           , -- :: (MonadRandom m, MonadThrow m) => CNFInit -> m CNF
+  mkCNF'          , -- :: (MonadRandom m, MonadCatch m) => CNFInit -> m CNF
   ) where
 
 import Control.Monad                 (replicateM)
@@ -36,12 +39,12 @@ CNFInit is a data type that is created that initialises a CNF data type
 -}
 data CNFInit = CNFInit {
   -- | The maximum 'Variable'
-  getSetMaxVar :: Word,
-  -- | The sizes of the 'Caluse'
-  getSizes  :: [Word],
-  -- | Denotes whetehr variabels can appear twice
+  getSetMaxVar :: Word          ,
+  -- | The sizes of the 'Clause'
+  getSizes  :: [Word]           ,
+  -- | Denotes whether variables can appear twice
   getVarsCanAppearTwice' :: Bool,
-  -- | Will the problm be solvable
+  -- | Will the problem be solvable
   getWillBeSolvable :: Bool
   } deriving (Eq,Show)
 
@@ -60,14 +63,14 @@ mkCNFInit (CNFConfig {..}) = do
     numbVariables sizesOfClauses
     getVarsCanAppearTwice getDefinitelyHasSolution
 
-evalVariableNumber :: (MonadRandom m) => Word -> VariableNumber -> m Word
+evalVariableNumber     :: (MonadRandom m) => Word -> VariableNumber -> m Word
 evalVariableNumber x _ = return x
 
 {-|
 Takes a 'CNFConfig' and creates a 'CNFInit' with a potentially new 'CNFConfig' if there
 were errors in it
 -}
-mkCNFInit' :: (MonadRandom m) => CNFConfig -> m (CNFConfig,CNFInit)
+mkCNFInit'   :: (MonadRandom m) => CNFConfig -> m (CNFConfig,CNFInit)
 mkCNFInit' c = do
   initial <- mkCNFInit c
   return (c,initial)
@@ -76,17 +79,14 @@ mkCNFInit' c = do
 Takes a 'CNFInit' and creates the 'CNF' from it, or throws an error
 if it is ill formed
 -}
-mkCNF :: (MonadRandom m, MonadThrow m) => CNFInit -> m CNF
-mkCNF _ = undefined
-{-
-mkCNF _ =
-  return . Right . mkCNFFromClauses $ emptyClauses
--}
+mkCNF   :: (MonadRandom m, MonadThrow m) => CNFInit -> m CNF
+mkCNF _ = return $ mkCNFFromClauses emptyClauses
+
 {-|
-Will throw a runtime error if there are any errors
+Will throw a run-time error if there are any errors
 -}
-mkCNF' :: (MonadRandom m, MonadCatch m) => CNFInit -> m CNF
-mkCNF' initial = do
+mkCNF'         :: (MonadRandom m, MonadCatch m) => CNFInit -> m CNF
+mkCNF' initial =
   catch (mkCNF initial)
     (\exception ->
       case exception of
@@ -94,7 +94,7 @@ mkCNF' initial = do
 
 
 {-|
-A sumtype that describes the types of errors taht can be made
+A sum-type that describes the types of errors that can be made
 -}
 data CNFMakeError =
   CNFMakeError
@@ -103,8 +103,8 @@ data CNFMakeError =
 instance Exception CNFMakeError
 
 {-|
-Can either be a Bounded Positive Double that represents a constant multiper for number
-of variabels to clauses, or an exact nuber of variables
+Can either be a Bounded Positive Double that represents a constant multiplier for number
+of variable's to clauses, or an exact number of variables
 -}
 type VariableNumber = Either (Bounds PosDouble) (Bounds Word)
 
@@ -120,7 +120,7 @@ type ClauseSizeNumber = Bounds Word
 
 
 {-|
-The CNFConfig type represents Conjucntive Normal Form Problems
+The CNFConfig type represents Conjunctive Normal Form Problems
 -}
 data CNFConfig = CNFConfig {
   -- | The number of clauses
@@ -131,7 +131,7 @@ data CNFConfig = CNFConfig {
   getClauseSizesBounds :: ClauseSizeNumber,
   -- | Denotes whether Variable's can appear more than once in a clause
   getVarsCanAppearTwice :: Bool,
-  -- | Denotes wehther the problem definitely has atleast one solution
+  -- | Denotes whether the problem definitely has at least one solution
   getDefinitelyHasSolution :: Bool
   } deriving (Eq,Show)
 
