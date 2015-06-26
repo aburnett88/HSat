@@ -1,7 +1,9 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE
+    RecordWildCards
+    #-}
 
 {-|
-Module      : HSat.Make.BSP.CNF.Internal
+Module      : HSat.Make.Instances.CNF.Internal
 Description : Exports helper functions for creating CNF problems
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
@@ -22,12 +24,12 @@ module HSat.Make.Instances.CNF.Internal (
   mkCNF'
   ) where
 
-import HSat.Make.Common
-import Control.Monad (replicateM)
+import Control.Monad                 (replicateM)
+import Control.Monad.Catch
 import Control.Monad.Random
-import HSat.Problem.Instances.CNF
-import HSat.Problem.Instances.Common
+import HSat.Make.Common
 import HSat.Printer
+import HSat.Problem.Instances.CNF
 
 {-|
 CNFInit is a data type that is created that initialises a CNF data type
@@ -74,19 +76,22 @@ mkCNFInit' c = do
 Takes a 'CNFInit' and creates the 'CNF' from it, or throws an error
 if it is ill formed
 -}
-mkCNF :: (MonadRandom m) => CNFInit -> m (Either CNFMakeError CNF)
+mkCNF :: (MonadRandom m, MonadThrow m) => CNFInit -> m CNF
+mkCNF _ = undefined
+{-
 mkCNF _ =
   return . Right . mkCNFFromClauses $ emptyClauses
-
+-}
 {-|
 Will throw a runtime error if there are any errors
 -}
-mkCNF' :: (MonadRandom m) => CNFInit -> m CNF
+mkCNF' :: (MonadRandom m, MonadCatch m) => CNFInit -> m CNF
 mkCNF' initial = do
-  result <- mkCNF initial
-  return $ case result of
-    Left e -> error ("Unexpected error " ++ show e)
-    Right cnf -> cnf
+  catch (mkCNF initial)
+    (\exception ->
+      case exception of
+       CNFMakeError -> error "")
+
 
 {-|
 A sumtype that describes the types of errors taht can be made
@@ -94,6 +99,24 @@ A sumtype that describes the types of errors taht can be made
 data CNFMakeError =
   CNFMakeError
   deriving (Eq,Show)
+
+instance Exception CNFMakeError
+
+{-|
+Can either be a Bounded Positive Double that represents a constant multiper for number
+of variabels to clauses, or an exact nuber of variables
+-}
+type VariableNumber = Either (Bounds PosDouble) (Bounds Word)
+
+{-|
+The number of Clauses is a Bounds word
+-}
+type ClauseNumber = Bounds Word
+
+{-|
+A positive number
+-}
+type ClauseSizeNumber = Bounds Word
 
 
 {-|

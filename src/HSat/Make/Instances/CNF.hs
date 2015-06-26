@@ -3,7 +3,7 @@
    #-}
 
 {-|
-Module      : HSat.Make.BSP.CNF
+Module      : HSat.Make.Instances.CNF
 Description : HIgh level functions for creating CNF files
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
@@ -20,35 +20,29 @@ module HSat.Make.Instances.CNF (
   CNFConfig(..)
   ) where
 
-import HSat.Problem.Instances.CNF
-import HSat.Make.Instances.CNF.Internal
-import HSat.Problem.Instances.Common
-import Data.Map (Map)
-import qualified Data.Map as M
-import Control.Monad.Random
-import HSat.Make.Config.Class
-import Control.Monad.Catch
+import           Control.Monad.Catch
+import           Control.Monad.Random
+import           HSat.Make.Config.Class
+import           HSat.Make.Instances.CNF.Internal
+import           HSat.Problem.Instances.CNF
+import HSat.Solution.Instances.CNF
 
 instance Makeable CNFConfig CNF where
   makeProblem = makeCNF
-  makeNoErrors = undefined
-  makeWithSolution = undefined
-
-makeCNF :: (MonadRandom m, MonadThrow m) => CNFConfig -> m CNF
-makeCNF = undefined
+  makeNoErrors = makeCNF'
+  makeWithSolution  = makeCNFSolution
 
 {-|
-Creates the CNF or throws an error givern a 'Config'
+Creates a CNF from the CNFConfig. Will throw an error if there is noe
 -}
-{-
-makeCNF :: (MonadRandom m) => CNFConfig -> m (Either CNFMakeError CNF)
+makeCNF :: (MonadRandom m, MonadThrow m) => CNFConfig -> m CNF
 makeCNF config =
   mkCNFInit config >>= mkCNF
--}
+  
 {-|
 If a config is incorrect, will fix the config and return it and the new CNF
 -}
-makeCNF' :: (MonadRandom m) =>
+makeCNF' :: (MonadRandom m, MonadCatch m) =>
             CNFConfig ->
             m (CNFConfig,CNF)
 makeCNF' config = do
@@ -59,11 +53,9 @@ makeCNF' config = do
 {-|
 Makes a soltuion from a 'CNFConfig
 -}
-makeCNFSolution :: (MonadRandom m) =>
-                   CNFConfig ->
-                   m (Map Variable Sign,CNF)
+makeCNFSolution :: (MonadRandom m, MonadCatch m) => CNFConfig -> m (BoolSolution,CNF)
 makeCNFSolution config = do
   (_,initial) <- mkCNFInit' config
   cnf <- mkCNF' initial
-  return (M.empty, cnf)
+  return (emptySolution, cnf)
 

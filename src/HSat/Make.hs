@@ -1,5 +1,8 @@
-{-# LANGUAGE LambdaCase, ExistentialQuantification,
-  RecordWildCards #-}
+{-# LANGUAGE
+    LambdaCase               ,
+    ExistentialQuantification,
+    RecordWildCards
+    #-}
 
 {-|
 Module      : HSat.Make
@@ -15,41 +18,39 @@ to be created
 
 module HSat.Make (
   -- * Make
-  make,     -- :: (MonadRandom m) => Config -> m Problem
-  makeList, -- :: (MonadRandom m) = Int -> Config -> m [Problem]
+  make,     -- :: (MonadRandom m, MonadThrow m) => Config -> Bool -> m Problem
+  makeList, -- :: (MonadRandom m, MonadThrow m) => Int -> Config -> m [Problem]
   Config(..),
   ) where
 
-import Control.Monad (replicateM)
+import Control.Monad                  (replicateM)
+import Control.Monad.Catch
 import Control.Monad.Random.Class
 import HSat.Make.Config.Class
 import HSat.Problem
---import HSat.Problem.BSP.CNF
 import HSat.Problem.ProblemExpr.Class
 import HSat.Problem.Source
---import HSat.Problem.BSP
-import Control.Monad.Catch
 
 {-|
 Creates a random 'Problem' from a 'Config'.
-The Bool argument denotes whether errros are ignored in the Config - e.g.,
+The Bool argument denotes whether errors are ignored in the Config - e.g.,
 some config's may not generate correct problems'. We can mitigate this, and
 generate them anyway but without them being poor
 -}
-make                     :: (MonadRandom m,Applicative m, MonadThrow m) => Config -> Bool ->
-                            m Problem
-make Config{..} ignoreErrors = do
+make                                :: (MonadRandom m, MonadThrow m, MonadCatch m) =>
+                                       Config -> Bool -> m Problem
+make config@Config{..} ignoreErrors = do
   problemExpr <-
     if ignoreErrors then
-      snd <$> makeNoErrors getConfig else
-      makeProblem getConfig
-  return $ MkProblem mkStatic (ProblemExpr problemExpr)
+      snd <$> makeNoErrors configuration else
+      makeProblem configuration
+  return $ MkProblem (mkMakeConfig config) (ProblemExpr problemExpr)
 
 {-|
 Creates a list of 'Problem's from a given 'Config' and the number required.
-We ignore any errors and, if the config is invalid, then the closest valid
-config is generated
+We ignore any errors and, if the Config is invalid, then the closest valid
+Config is generated
 -}
-makeList               :: (MonadRandom m,Applicative m, MonadThrow m) =>
+makeList               :: (MonadRandom m, MonadThrow m, MonadCatch m) =>
                           Int -> Config -> m [Problem]
 makeList number config = replicateM number (make config True)

@@ -1,8 +1,10 @@
 {-# LANGUAGE
-  RankNTypes,
-  ExistentialQuantification,
-  MultiParamTypeClasses,
-  FunctionalDependencies
+    RankNTypes               ,
+    ExistentialQuantification,
+    MultiParamTypeClasses    ,
+    FunctionalDependencies   ,
+    OverloadedStrings        ,
+    RecordWildCards
   #-}
 
 {-|
@@ -20,28 +22,42 @@ Provides the ability to create 'Config'urations for randomly generated
 module HSat.Make.Config.Class (
   Config(..),
   Makeable(..),
+  mkConfig
   ) where
 
-import HSat.Printer
-import HSat.Problem.ProblemExpr.Class
+import Control.Monad.Catch
 import Control.Monad.Random.Class
 import Data.Typeable
-import Control.Monad.Catch
+import HSat.Printer
+import HSat.Problem.ProblemExpr.Class
 import HSat.Solution.Class
 
 {-|
 This super type allows for construction of all types of 'Problem's
 -}
 
-class (Eq config, Show config, IsProblem problem) => Makeable config problem | config -> problem where
-  makeProblem :: (MonadRandom m, MonadThrow m) => config -> m problem
-  makeNoErrors :: (MonadRandom m) => config -> m (config,problem)
-  makeWithSolution :: (MonadRandom m, Solution problem solution) => m (solution, problem)
+class (Eq        config,  Show config   ,
+       IsProblem problem, Printer config, Solution problem) =>
+      Makeable config problem | config -> problem where
+  makeProblem      :: (MonadRandom m, MonadThrow m) => config -> m problem
+  makeNoErrors     :: (MonadRandom m, MonadCatch m) => config -> m (config,problem)
+  makeWithSolution :: (MonadRandom m,
+                       MonadCatch m) => config -> m (SolInstance problem, problem)
 
-data Config = forall config problem. (Show config, Typeable config, Makeable config problem) => Config {
-  getConfig :: config,
-  hasProblem :: Maybe problem
+{-|
+A 'Config' is a existential type that holds configurations of problems
+-}
+data Config = forall config problem. (
+  Show config, Typeable config, Makeable config problem) => Config {
+  configuration :: config,
+  hasProblem    :: Maybe problem
   }
+
+{-|
+A simple way to make a config
+-}
+mkConfig        :: (Typeable config, Makeable config problem) => config -> Config
+mkConfig config = Config config Nothing
 
 instance Show Config where
   show (Config c _) = show c
@@ -53,9 +69,20 @@ instance Eq Config where
       _ -> False
 
 instance Printer Config where
-  compact = printerConfig Compact
+  compact   = printerConfig Compact
   noUnicode = printerConfig NoUnicode
-  unicode = printerConfig Unicode
+  unicode   = printerConfig Unicode
 
-printerConfig :: PrinterType -> Config -> Doc
-printerConfig = undefined
+printerConfig                  :: PrinterType -> Config -> Doc
+printerConfig pType Config{..} =
+  preamble <+>
+  configDoc
+  where
+    preamble   :: Doc
+    preamble   = (case pType of
+      Compact   -> "CONFIG"
+      NoUnicode -> "Config"
+      Unicode   -> blue "Config"
+      ) <> colon
+    configDoc  :: Doc
+    configDoc  = pTypeToDoc pType configuration

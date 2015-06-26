@@ -1,12 +1,12 @@
 {-|
-Module      : HSat.Problem.BSP.Common.Literal
+Module      : HSat.Problem.Instances.Common.Literal
 Description : The Literal data type
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The 'Literal' datatype consists of a 'Sign' and a 'Variable' and represents
+The 'Literal' data type consists of a 'Sign' and a 'Variable' and represents
 literals within Boolean Formulas. 
 -}
 module HSat.Problem.Instances.Common.Literal (
@@ -25,7 +25,7 @@ import HSat.Problem.Instances.Common.Variable
 
 {-|
 A 'Literal' describes the pairing of a 'Sign' and 'Variable' and can be used
-to either describe the occurence, or the negation of a 'Variable' within a
+to either describe the occurrence, or the negation of a 'Variable' within a
 Boolean formulae. 
 
 Internally represented as a 'Sign' and a 'Variable'

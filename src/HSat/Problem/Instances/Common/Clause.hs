@@ -1,5 +1,5 @@
 {-|
-Module      : HSat.Problem.BSP.Common.Clause
+Module      : HSat.Problem.Instances.Common.Clause
 Description : The Clause data type
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
@@ -10,7 +10,7 @@ This module exports the common functions and definition of 'Clause' which is
 a collection of 'Literal's
 
 These can be used, for example, to represent a collection of literals
-in Conjunctive Normal Form and Disjunctive Normal Form, however are kept deliberatly abstract at
+in Conjunctive Normal Form and Disjunctive Normal Form, however are kept deliberately abstract at
 this stage. 
 -}
 
@@ -31,8 +31,8 @@ module HSat.Problem.Instances.Common.Clause (
   clauseIsEmpty        -- :: Clause -> Bool
   ) where
 
-import           Data.Vector (Vector)
-import qualified Data.Vector as V
+import           Data.Vector                                   (Vector)
+import qualified Data.Vector                                   as V
 import           HSat.Problem.Instances.Common.Clause.Internal
 import           HSat.Problem.Instances.Common.Literal
 

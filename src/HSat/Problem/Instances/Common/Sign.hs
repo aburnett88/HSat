@@ -1,13 +1,17 @@
+{-# LANGUAGE
+    OverloadedStrings
+    #-}
+
 {-|
-Module      : HSat.Problem.BSP.Common.Sign
+Module      : HSat.Problem.Instances.Common.Sign
 Description : The Sign type
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-The 'Sign' datatype is a binary datatype whose main purpose is to denote
-a positive or negative occourence of an accompanying data type.
+The 'Sign' data type is a binary data type whose main purpose is to denote
+a positive or negative occurrence of an accompanying data type.
 
 For example, to represent either the positive or negative variable's within
 a Boolean Satisfiability Formula. 
@@ -62,10 +66,10 @@ instance Show Sign where
   showsPrec = show'
 
 instance Printer Sign where
-  compact (Sign True)  =         text "+"
-  compact (Sign False) =         text "-"
-  unicode (Sign True)  = green $ text "+"
-  unicode (Sign False) = red   $ text "-"
+  compact (Sign True)  =        "+"
+  compact (Sign False) =        "-"
+  unicode (Sign True)  = green  "+"
+  unicode (Sign False) = red    "-"
   noUnicode            = compact
 
 {-|
@@ -124,4 +128,3 @@ Returns 'True' if the 'Sign' is negative
 -}
 isNeg :: Sign -> Bool
 isNeg = not . getBool
-

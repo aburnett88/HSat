@@ -44,6 +44,7 @@ library
     HSat.Problem.Instances.CNF.Internal
     HSat.Problem.Instances.CNF.Builder
     HSat.Problem.Instances.CNF.Builder.Internal
+    HSat.Problem.Instances.Common
     HSat.Problem.Instances.Common.Clause
     HSat.Problem.Instances.Common.Clause.Internal
     HSat.Problem.Instances.Common.Clauses
@@ -53,6 +54,7 @@ library
     HSat.Problem.Instances.Common.Variable
     HSat.Problem.Instances.Common.Variable.Internal
     HSat.Solution.Class
+    HSat.Solution.Instances.CNF
     HSat.Make
     HSat.Make.Config.Class
     HSat.Make.Common

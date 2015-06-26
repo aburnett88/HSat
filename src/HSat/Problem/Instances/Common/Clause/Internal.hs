@@ -1,5 +1,5 @@
 {-|
-Module      : HSat.Problem.BSP.Common.Clause.Internal
+Module      : HSat.Problem.Instances.Common.Clause.Internal
 Description : The Clause data type
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
@@ -13,11 +13,11 @@ A 'Clause' is simply a collection of 'Literal's
 
 module HSat.Problem.Instances.Common.Clause.Internal (
   Clause(..),
-  printClauseWithContext
+  printClauseWithContext -- :: String -> Word -> (Literal -> Doc) -> Clause -> Doc
   ) where
 
-import           Data.Vector (Vector)
-import qualified Data.Vector as V
+import           Data.Vector                            (Vector)
+import qualified Data.Vector                            as V
 import           HSat.Printer
 import           HSat.Problem.Instances.Common.Literal
 import           HSat.Problem.Instances.Common.Variable (getWord)
@@ -46,7 +46,7 @@ instance Printer Clause where
 
 printLit                 :: (Literal -> Doc) -> Clause -> Doc
 printLit function clause =
-  lbracket <>
+  lbracket                                                                   <>
   hsep (punctuate comma (map function . V.toList . getVectLiteral $ clause)) <>
   rbracket
 
@@ -57,15 +57,16 @@ itself, and separates each literal by the 'String', making sure that any row wil
 up
 -}
 --Untested as a printing function
-printClauseWithContext :: String -> Word -> (Literal -> Doc) -> Clause -> Doc
+printClauseWithContext                                  :: String -> Word -> (Literal -> Doc) ->
+                                                           Clause -> Doc
 printClauseWithContext sepClause maxVar function clause =
-  lparen <>
+  lparen                                     <>
   hsep (punctuate (text sepClause) literals) <>
   rparen
   where
-    literals :: [Doc]
-    literals = V.toList . V.map padding $ getVectLiteral clause
-    padding :: Literal -> Doc
+    literals        :: [Doc]
+    literals        = V.toList . V.map padding $ getVectLiteral clause
+    padding         :: Literal -> Doc
     padding literal =
       let maxVarLen  = length $ show maxVar
           varLen     = length . show . getWord $ getVariable literal

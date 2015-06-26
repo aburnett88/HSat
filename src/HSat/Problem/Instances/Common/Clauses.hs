@@ -1,5 +1,9 @@
+{-# LANGUAGE
+    RecordWildCards
+    #-}
+
 {-|
-Module      : HSat.Problen.BSP.Common.Clauses
+Module      : HSat.Problen.Instances.Common.Clauses
 Description : The 'Clause' data type
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
@@ -10,7 +14,7 @@ This module exports the common functions and definitions of 'Clauses' which is
 a collection of 'Clause'.
 
 These can be used, for example, to represent a collection of 'Clause' in Conjunctive
-Normal Form and Disjunctive Normal Form. Detials however are kept abstract
+Normal Form and Disjunctive Normal Form. Details however are kept abstract
 -}
 module HSat.Problem.Instances.Common.Clauses (
   -- * Clause
@@ -32,10 +36,11 @@ module HSat.Problem.Instances.Common.Clauses (
   getSetNeg                -- :: Clauses -> Set Variable
   ) where
 
-import qualified Data.Set as S
-import           Data.Vector                    (Vector)
-import qualified Data.Vector                    as V
+import qualified Data.Set                                       as S
+import           Data.Vector                                    (Vector)
+import qualified Data.Vector                                    as V
 import           HSat.Problem.Instances.Common.Clause
+import           HSat.Problem.Instances.Common.Clause.Internal
 import           HSat.Problem.Instances.Common.Clauses.Internal
 import           HSat.Problem.Instances.Common.Literal
 import           HSat.Problem.Instances.Common.Sign
@@ -92,22 +97,22 @@ clausesToIntegers =
   V.toList . V.map clauseToIntegers . getVectClause
 
 {-|
-A generic method for accumilating information from
+A generic method for accumulating information from
 each 'Literal' in a 'Clauses'
 -}
-clFold                          :: (a -> Literal -> a) -> a -> Clauses -> a
-clFold function initial clauses =
-  V.foldl (\o cl ->
-            V.foldl function o $ getVectLiteral cl
-          ) initial $ getVectClause clauses
+clFold                              :: (a -> Literal -> a) -> a -> Clauses -> a
+clFold function initial Clauses{..} =
+  V.foldl (\o Clause{..} ->
+            V.foldl function o getVectLiteral
+          ) initial $ getVectClause
 
 {-|
-Returns the maximum 'Word' represented in a 'Variab'e within the 'Clauses'
+Returns the maximum 'Word' represented in a 'Variable within the 'Clauses'
 -}
 findMaxVar :: Clauses -> Word
 findMaxVar =
-  clFold (\w lit ->
-           let w' = getWord $ getVariable lit
+  clFold (\w Literal{..} ->
+           let w' = getWord getVariable
            in if w' > w then
                 w' else
                 w
@@ -118,8 +123,8 @@ Returns the 'Set' of 'Variable's contained within the argument
 -}
 getSetOfVars :: Clauses -> S.Set Variable
 getSetOfVars =
-  clFold (\set lit ->
-           S.insert (getVariable lit) set
+  clFold (\set Literal{..} ->
+           S.insert getVariable set
            ) S.empty
 
 {-|
@@ -128,11 +133,12 @@ argument
 -}
 getSetPos :: Clauses -> S.Set Variable
 getSetPos =
-  clFold (\set l ->
-           if isPos . getSign $ l then
-              S.insert (getVariable l) set else
-              set
-         ) S.empty
+  clFold (
+    \set Literal{..} ->
+     if isPos getSign then
+       S.insert getVariable set else
+       set
+    ) S.empty
 
 {-|
 Returns the 'Set' of all 'Variable's that appear with a negative 'Sign' in the
@@ -140,8 +146,9 @@ argument
 -}
 getSetNeg :: Clauses -> S.Set Variable
 getSetNeg =
-  clFold (\set l ->
-           if isNeg . getSign $ l then
-             S.insert (getVariable l) set else
-             set
-         ) S.empty
+  clFold (
+    \set Literal{..} ->
+     if isNeg getSign then
+       S.insert getVariable set else
+       set
+    ) S.empty

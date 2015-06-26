@@ -1,12 +1,12 @@
 {-|
-Module      : HSat.Problem.BSP.Common.Variable.Internal
+Module      : HSat.Problem.Instances.Common.Variable.Internal
 Description : The Variable data type
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown
 
-This module describes the internal workings of the 'Variable' datatype.
+This module describes the internal workings of the 'Variable' data type.
 -}
 module HSat.Problem.Instances.Common.Variable.Internal (
   Variable(..)
