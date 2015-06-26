@@ -1,7 +1,9 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE
+    RecordWildCards
+    #-}
 
 {-|
-Module      : HSat.Make.BSP.Common.Literal
+Module      : HSat.Make.Instances.Common.Literal
 Description : Generic functions to create Literal's
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
@@ -16,26 +18,26 @@ sure that no 'Literal' is created with the same 'Variable' until the context is 
 
 module HSat.Make.Instances.Common.Literal (
   -- * LiteralSet
-  LiteralSet(..),
-  mkLiteralSet,
-  reset,
-  getTrueLiteral,
-  getRandomLiteral,
+  LiteralSet(..)      ,
+  mkLiteralSet        , -- :: (MonadRandom m) => Word -> Bool -> m LiteralSet
+  reset               , -- :: (MonadRandom m) => LiteralMake m ()
+  getTrueLiteral      , -- :: (MonadRandom m) => LiteralMake m Literal
+  getRandomLiteral    , -- :: (MonadRandom m) => LiteralMake m Literal
   -- * Type Synonyms
-  LiteralMake,
+  LiteralMake         ,
   -- * Errors
   LiteralMakeError(..),
   -- * Depreciated
-  LiteralPredicate(..)
+  LiteralPredicate(..),
   ) where
 
 import           Control.Monad.Random
 import           Control.Monad.State
 import           Control.Monad.Trans.Either
-import           Data.Map (Map)
-import qualified Data.Map as M
-import           Data.Set (Set)
-import qualified Data.Set as S
+import           Data.Map                      (Map)
+import qualified Data.Map                      as M
+import           Data.Set                      (Set)
+import qualified Data.Set                      as S
 import           HSat.Problem.Instances.Common
 
 {-|
@@ -61,7 +63,7 @@ data LiteralSet = LiteralSet {
 Given a maximum 'Variable' and a 'Bool' denoting whether a 'Variable' can appear twice
 in a context, a 'LiteralSet' is created within a 'MonadRandom' context
 -}
-mkLiteralSet :: (MonadRandom m) => Word -> Bool -> m LiteralSet
+mkLiteralSet                     :: (MonadRandom m) => Word -> Bool -> m LiteralSet
 mkLiteralSet maxVar vAppearTwice = do
   trueSet <- mkTrueSet
   return $ LiteralSet vars trueSet 0 maxVar vAppearTwice
@@ -129,7 +131,7 @@ makeVariable = do
 {-
 Removes the Variable from the LiteralSet's Variable Set and returns the new LiteralSet
 -}
-removeVariable :: Variable -> LiteralSet -> LiteralSet
+removeVariable                     :: Variable -> LiteralSet -> LiteralSet
 removeVariable v ls@LiteralSet{..} =
   ls {
     getVarsThatCanAppear = S.delete v getVarsThatCanAppear
@@ -152,7 +154,7 @@ getTrueLiteral = do
 An update function for the LiteralSet data type.
 Increases the number of generatedTrue
 -}
-changeTrueLiteralCreated :: LiteralSet -> LiteralSet
+changeTrueLiteralCreated                   :: LiteralSet -> LiteralSet
 changeTrueLiteralCreated ls@LiteralSet{..} =
   ls {
     getHasGeneratedTrue = getHasGeneratedTrue + 1
