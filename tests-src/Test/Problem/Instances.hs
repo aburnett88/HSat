@@ -10,7 +10,7 @@ Exports the tests for the Instances module and its sub-modules
 -}
 
 module Test.Problem.Instances (
-  tests
+  tests -- TestTree
   ) where
 
 import qualified Test.Problem.Instances.CNF as CNF

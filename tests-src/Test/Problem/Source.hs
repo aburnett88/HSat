@@ -10,21 +10,23 @@ Exports all high level tests and internal module tests for the Source type
 -}
 
 module Test.Problem.Source (
-  tests
+  tests -- TestTree
   ) where
 
-import Control.Applicative
-import HSat.Make.Config.Class
-import HSat.Problem.Source
-import HSat.Problem.Source.Internal
-import Test.Make.Config.Class ()
-import TestUtils
+import           Control.Applicative
+import           HSat.Make.Config.Class
+import           HSat.Problem.Source
+import           HSat.Problem.Source.Internal
+import           Test.Make.Config.Class ()
+import qualified Test.Problem.Source.Internal as Internal
+import           TestUtils
 
 name :: String
 name = "Source"
 
 tests :: TestTree
 tests = testGroup name [
+  Internal.tests,
   testGroup "mkStatic" [
      mkStaticTest1],
   testGroup "mkFileSource" [

@@ -10,7 +10,7 @@ Exports the tests for the CNF module and its sub-modules
 -}
 
 module Test.Problem.Instances.CNF (
-  tests
+  tests -- TestTree
   ) where
 
 import           HSat.Problem.Instances.CNF
@@ -18,7 +18,7 @@ import qualified Test.Problem.Instances.CNF.Builder  as Builder
 import qualified Test.Problem.Instances.CNF.Internal as Internal
 import qualified Test.Problem.Instances.CNF.Parser   as Parser
 import qualified Test.Problem.Instances.CNF.Writer   as Writer
-import qualified Test.Problem.Instances.Common as Common ()
+import qualified Test.Problem.Instances.Common       as Common  ()
 import           TestUtils
 
 name :: String
@@ -64,9 +64,9 @@ cnfToIntegersTest1 =
         gottenVarNumb      = getMaxVar cnf'
     in (expectedClauseNumb === gottenClauseNumb) .&&.
        (expectedClauses    === gottenClauses   ) .&&.
-       (counterexample "expectedVarNumb less than gottenVarNumb" $
+       counterexample "expectedVarNumb less than gottenVarNumb" (
          expectedVarNumb    >=  gottenVarNumb
-       )
+         )
   )
 
 mkCNFFromIntegersTest1 :: TestTree
