@@ -13,8 +13,8 @@ module Test.Problem.ProblemExpr (
   tests
   ) where
 
-import           TestUtils
 import qualified Test.Problem.ProblemExpr.Class as Class
+import           TestUtils
 
 name :: String
 name = "ProblemExpr"

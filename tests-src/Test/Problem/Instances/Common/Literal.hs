@@ -1,5 +1,5 @@
 {-|
-Module      : Test.Problen.BSP.Common.Literal
+Module      : Test.Problen.Instances.Common.Literal
 Description : The Literal tests
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
@@ -10,16 +10,16 @@ Contains the Test Tree Node for the Literal module, as well as associated
 Generator functions
 -}
 
-module Test.Problem.BSP.Common.Literal (
+module Test.Problem.Instances.Common.Literal (
   tests,     -- :: TestTree
   genLiteral -- :: Word -> Gen Literal 
   ) where
 
-import HSat.Problem.BSP.Common.Literal
+import HSat.Problem.Instances.Common.Literal
 import TestUtils
 import TestUtils.Validate
-import Test.Problem.BSP.Common.Sign ()
-import Test.Problem.BSP.Common.Variable (genVariableContext)
+import Test.Problem.Instances.Common.Sign ()
+import Test.Problem.Instances.Common.Variable (genVariableContext)
 
 name :: String
 name = "Literal"

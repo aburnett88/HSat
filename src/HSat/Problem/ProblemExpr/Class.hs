@@ -5,7 +5,7 @@
   #-}
 
 {-|
-Module      : HSat.Problem.ProblemExpr
+Module      : HSat.Problem.ProblemExpr.Class
 Description : The ProblemExpr type and its associated functions
 Copyright   : (c) Andrew Burnett, 2014-2015
 Maintainer  : andyburnett88@gmail.com
@@ -19,8 +19,8 @@ module HSat.Problem.ProblemExpr.Class (
   -- * ProblemExpr
   ProblemExpr(..),
   Convertable(..),
-  IsProblem(..),
-  fromProblemExpr
+  IsProblem(..)  ,
+  fromProblemExpr, -- :: (Typeable s) => ProblemExpr -> Maybe s
   ) where
 
 import Data.Text                           (Text)

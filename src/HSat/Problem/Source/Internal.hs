@@ -79,6 +79,7 @@ printerSource pType (MakeConfiguration m) =
     preamble = (
       case pType of
         Compact -> "MAKE"
-        _ -> "Make") <> colon
+        _       -> "Make"
+      ) <> colon
     makeDoc  :: Doc
     makeDoc  = pTypeToDoc pType m

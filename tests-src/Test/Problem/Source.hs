@@ -1,13 +1,24 @@
+{-|
+Module      : Test.Problem.Source
+Description : The Source type tests
+Copyright   : (c) Andrew Burnett, 2014-2015
+Maintainer  : andyburnett88@gmail.com
+Stability   : experimental
+Portability : -
+
+Exports all high level tests and internal module tests for the Source type
+-}
+
 module Test.Problem.Source (
   tests
   ) where
 
-import TestUtils
+import Control.Applicative
+import HSat.Make.Config.Class
 import HSat.Problem.Source
 import HSat.Problem.Source.Internal
-import Control.Applicative
 import Test.Make.Config.Class ()
-import HSat.Make.Config.Class
+import TestUtils
 
 name :: String
 name = "Source"
@@ -22,34 +33,36 @@ tests = testGroup name [
     mkMakeConfigTest1]
   ]
 
+incorrectType :: Property
+incorrectType = counterexample "Incorrect Source type returned" False
+
 mkStaticTest1 :: TestTree
 mkStaticTest1 =
-  testCase "mkStatic == StaticSource" $ assert (
-    mkStatic == StaticSource
-    )
+  testCase ("mkStatic " `equiv` " StaticSource") $
+   mkStatic @=? StaticSource
 
 mkFileSourceTest1 :: TestTree
 mkFileSourceTest1 =
-  testProperty "filepath . mkFileSource fp == fp" $ property (
-    \filePath ->
+  testProperty ("filepath . mkFileSource fp " `equiv` " fp") $ property
+  (\filePath ->
     case mkFileSource filePath of
-      FileSource filePath' -> filePath == filePath'
-      _                    -> False
-      )
+     FileSource filePath' -> filePath === filePath'
+     _                    -> incorrectType
+  )
 
 mkMakeConfigTest1 :: TestTree
 mkMakeConfigTest1 =
-  testProperty "config . mkMakeConfig c === c" $ property (
-    \config ->
+  testProperty ("config . mkMakeConfig c  "`equiv` " c") $ property
+  (\config ->
     case mkMakeConfig config of
-      MakeConfiguration c' -> c' == config
-      _ -> False
+     MakeConfiguration c' -> c' === config
+     _                    -> incorrectType
       )
 
 instance Arbitrary Source where
   arbitrary =
     oneof [
-      mkArbStaticSource,
+      mkArbStaticSource        ,
       mkArbFileSource arbitrary,
       mkArbMakeConfig arbitrary
       ]

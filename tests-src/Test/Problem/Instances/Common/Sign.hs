@@ -1,5 +1,5 @@
 {-|
-Module      : Test.Data.BSP.Common.Sign
+Module      : Test.Data.Instances.Common.Sign
 Description : The Sign tests
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
@@ -10,11 +10,11 @@ Contains the Test Tree Node for the Sign module, as well as associated
 Generator functions
 -}
 
-module Test.Problem.BSP.Common.Sign (
+module Test.Problem.Instances.Common.Sign (
   tests
   ) where
 
-import HSat.Problem.BSP.Common.Sign
+import HSat.Problem.Instances.Common.Sign
 import TestUtils
 import Control.Applicative
 

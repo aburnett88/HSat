@@ -12,9 +12,9 @@ Contains common functions that act on 'Source' data types
 module HSat.Problem.Source (
   Source,
   -- * Constructors
-  mkStatic,     -- :: Source
+  mkStatic    , -- :: Source
   mkFileSource, -- :: FilePath -> Source
-  mkMakeConfig  -- :: Config -> Source
+  mkMakeConfig, -- :: Config -> Source
   ) where
 
 import HSat.Make.Config.Class
