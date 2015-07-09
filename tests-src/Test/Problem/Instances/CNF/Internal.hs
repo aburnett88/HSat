@@ -14,7 +14,8 @@ The TestTree Node for the Internal CNF module
 -}
 
 module Test.Problem.Instances.CNF.Internal (
-  tests -- TestTree
+  tests , -- TestTree
+  genCNF, -- Int -> Gen CNF
   ) where
 
 import HSat.Problem.Instances.CNF

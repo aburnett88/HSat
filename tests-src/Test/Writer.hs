@@ -38,14 +38,15 @@ plainProblemToFileTest1 =
     let fileName = "plainProblemFileTest1"
     expectedExpr <- pick arbitrary
     let problem = MkProblem mkStatic expectedExpr
-    exists <- run $ getDirectoryContents ""
+    currentDir <- run $ getCurrentDirectory
+    exists <- run $ getDirectoryContents currentDir
     let files = filter (\f -> (stripSuffix f) == fileName) exists
     run $ mapM_ removeFile files
     fileWritten <- run $ plainProblemToFile problem fileName
     case fileWritten of
      Nothing -> return $ counterexample "File unable to be written" False
      Just fileLocation -> do
-       problem' <- run $ fromFile [] fileLocation
+       problem' <- run $ fromFile parserInstances fileLocation
        let gottenProblem = MkProblem mkStatic (problemExpr problem')
        --Now it gets messy... first check to see if original is equal to filetype returned
        if gottenProblem == problem then

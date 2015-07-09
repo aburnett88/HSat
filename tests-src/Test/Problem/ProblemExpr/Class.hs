@@ -13,9 +13,9 @@ module Test.Problem.ProblemExpr.Class (
   tests
   ) where
 
-import HSat.Problem.Instances.CNF
 import HSat.Problem.Instances.CNF.Internal
 import HSat.Problem.ProblemExpr.Class
+import Test.Problem.Instances.CNF.Internal (genCNF)
 import TestUtils
 
 name :: String
@@ -31,8 +31,7 @@ tests =
 
 testFromProblemExpr1 :: TestTree
 testFromProblemExpr1 =
-  testProperty ("fromProblemExpr (ProblemExpr cnf) " `equiv` " cnf") $ forAll
-  (sized generateCNF)
+  testProperty ("fromProblemExpr (ProblemExpr cnf) " `equiv` " cnf") $ property
   (\cnf ->
     case fromProblemExpr $ ProblemExpr cnf of
       Just cnf'@CNF{} -> cnf === cnf'
@@ -41,15 +40,9 @@ testFromProblemExpr1 =
 
 instance Arbitrary ProblemExpr where
   arbitrary = oneof [
-    ProblemExpr <$> sized generateCNF
+    ProblemExpr <$> sized genCNF
     ]
   shrink problemExpr =
     case fromProblemExpr problemExpr of
-     Just cnf@CNF{} -> map ProblemExpr . shrinkCNF $ cnf
+     Just cnf@CNF{} -> map ProblemExpr . shrink $ cnf
      Nothing        -> []
-
-generateCNF :: Int -> Gen CNF
-generateCNF = undefined
-
-shrinkCNF :: CNF -> [CNF]
-shrinkCNF = undefined

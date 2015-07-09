@@ -4,6 +4,8 @@ module Test.Make.Config.Class (
 
 import TestUtils
 import HSat.Make.Config.Class
+import Control.Applicative
+import Test.Make.Instances.CNF (genCNFConfig)
 
 name :: String
 name = "Class"
@@ -13,5 +15,7 @@ tests =
   testGroup name []
 
 instance Arbitrary Config where
-  arbitrary = undefined
+  arbitrary = oneof [
+    liftA2 Config (sized genCNFConfig) (return Nothing)
+    ]
   shrink _ = []

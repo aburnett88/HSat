@@ -33,10 +33,13 @@ import HSat.Problem
 import HSat.Problem.ProblemExpr.Class
 import HSat.Problem.Source
 import System.Directory
+import HSat.Problem.Instances.CNF.Parser (cnfParser')
 
 parserInstances :: [Parser]
-parserInstances = []
-
+parserInstances = [
+  Parser "cnf" cnfParser'
+  ]
+                  
 {-|
 Given a list of Parsers, a file, will return a problem in a monad io context
 -}
