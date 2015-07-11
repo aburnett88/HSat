@@ -33,11 +33,14 @@ import HSat.Problem
 import HSat.Problem.ProblemExpr.Class
 import HSat.Problem.Source
 import System.Directory
-import HSat.Problem.Instances.CNF.Parser (cnfParser')
+import HSat.Problem.Instances.CNF.Parser
 
+{-|
+The default set of 'Parser's that are tried when extracting a file
+-}
 parserInstances :: [Parser]
 parserInstances = [
-  Parser "cnf" cnfParser'
+  Parser "cnf" (runParser cnfParser)
   ]
                   
 {-|

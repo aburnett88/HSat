@@ -1,4 +1,4 @@
-module Test.Problem.BSP.CNF.Builder.Internal (
+module Test.Problem.Instances.CNF.Builder.Internal (
   tests,
   genCNFBuilderEmptyClause,
   genCNFBuilderLitInClause,
@@ -6,14 +6,14 @@ module Test.Problem.BSP.CNF.Builder.Internal (
   ) where
 
 import TestUtils
-import HSat.Problem.BSP.CNF.Builder.Internal
+import HSat.Problem.Instances.CNF.Builder.Internal
 import TestUtils.Validate
 import qualified Data.Vector as V
-import HSat.Problem.BSP.Common
+import HSat.Problem.Instances.Common
 import Control.Applicative
-import Test.Problem.BSP.Common.Clauses (genClauses)
-import Test.Problem.BSP.Common.Literal (genLiteral)
-import Test.Problem.BSP.Common.Clause (genClause)
+import Test.Problem.Instances.Common.Clauses (genClauses)
+import Test.Problem.Instances.Common.Literal (genLiteral)
+import Test.Problem.Instances.Common.Clause (genClause)
 
 name :: String
 name = "Internal"
