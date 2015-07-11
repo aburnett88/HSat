@@ -1,3 +1,7 @@
+{-# LANGUAGE
+    OverloadedStrings
+    #-}
+
 module Test.Problem.Instances.CNF.Parser.Internal (
   tests, -- TestTree
   ) where
@@ -70,47 +74,47 @@ parseTest'     :: (MonadThrow m) => Parser (m a) -> Text -> m a
 parseTest' p t = case parseTest p t of
   Left str -> throwM $ (ParseException str)
   Right r -> r
-
---===================
--- parseComment Tests
---===================
-
+{-
+===================
+ parseComment Tests
+===================
+-}
 --General framework for correct Test Cases
-parseCommentGen           :: String -> String -> TestTree
-parseCommentGen title str =
-  testCase title $ parseTest parseComment (pack str) @=? Right ()
+parseCommentGen                 :: String -> Text -> Bool -> TestTree
+parseCommentGen title str True  =
+  testCase title $ parseTest parseComment str @=? Right ()
+parseCommentGen title str False =
+  testCase title $ case parseTest parseComment str of
+   Left err -> assertBool ("Expected success. Gotten error: " ++ show err) False
+   Right _ -> assertBool "" True
 
 parseCommentTest1 :: TestTree
 parseCommentTest1 =
   parseCommentGen
     "parse simple comment"
     "c hello world"
+    True
 
 parseCommentTest2 :: TestTree
 parseCommentTest2 =
   parseCommentGen
     "Parse comment with additional spaces"
     "   c hello world"
+    True
 
 parseCommentTest3 :: TestTree
 parseCommentTest3 =
-  testCase "parseComment that failes" $ do
-    let result = parseTest parseComment (pack testStr)
-    assertBool ("Expected Left. Gotten: " ++ show result) (isLeft result)
-  where
-    testStr = "c hello world\nf"
+  parseCommentGen
+    "Parse Comment that fails"
+    "c hello world\nf"
+    False
 
 -- Generate a random comment
 genComment   :: Int -> Gen Text
-genComment _ = do
-  str <- genStr
-  let start = pack "c "
-  return $ start <> str
+genComment _ = ("c " <>) . T.filter f <$> arbitrary
   where
-    genStr :: Gen Text
-    genStr = T.filter f <$> arbitrary
-    f      :: Char -> Bool
-    f t    = t /= '\n' && t/='\r'
+    f   :: Char -> Bool
+    f t = t /= '\n' && t/='\r'
 
 parseCommentTest4 :: TestTree
 parseCommentTest4 =
@@ -118,61 +122,58 @@ parseCommentTest4 =
   forAll
   (sized genComment)
   (\text ->
-    parseTest parseComment text == Right ()
-    )
+    parseTest parseComment text === Right ()
+  )
 
+{-
+===================
+parseComments tests
+===================
+-}
 parseCommentsTest1 :: TestTree
 parseCommentsTest1 =
-  testCase ("parseComments \"" ++ testStr ++ "\"") $ assert (
-    parseTest parseComments (pack testStr) == Right ()
-    )
+  testCase "parse valid comments" $
+    parseTest parseComments testStr @=? Right ()
   where
     testStr = "c hello world\nc goodbye world\n"
 
 parseCommentsTest2 :: TestTree
 parseCommentsTest2 =
   testProperty "parseComments randomly generated" $ forAll
-  (sized $ \size -> do
-      x <- choose (0,size)
-      y <- replicateM x (genComment size)
-      return $ T.unlines y
-      )
+  (sized $ \size ->
+    T.unlines <$> ((flip replicateM) (genComment size) =<< choose (0,size))
+  )
   (\text ->
     parseTest parseComments text === Right ()
-    )
+  )
+
+{-
+======================
+parseProblemLine tests
+======================
+-}
+
+-- UP TO HERE PROBLEMS BEGIN
 
 parseProblemLineTest1 :: TestTree
 parseProblemLineTest1 =
-  testCase ("parseProblemLine \"" ++ testStr ++ "\"") $ assert (
-    let gotten = parseTest' parseProblemLine (pack testStr)
-    in case gotten of
-        Right gotten' -> gotten' == cnf'
-        _ -> False
-    )
+  testCase "Parse normal problem line" $
+  (parseTest' parseProblemLine testStr) @=? (Right cnf')
   where
     testStr = "p cnf 24 2424"
     cnf' = CNFBuilder 24 2424 0 emptyClauses emptyClause
 
 parseProblemLineTest2 :: TestTree
 parseProblemLineTest2 =
-  testCase ("parseProblemLine \"" ++ testStr ++ "\"") $ assert (
-    let gotten = parseTest' parseProblemLine (pack testStr)
-    in case gotten of
-        Right gotten' -> gotten' == cnf'
-        _ -> False
-    )
+  testCase "parse problem line with spaces" $
+  parseTest' parseProblemLine testStr @=? Right cnf'
   where
     testStr = "   p    cnf    24 \t2424"
     cnf' = CNFBuilder 24 2424 0 emptyClauses emptyClause
 
 genSpace'             :: Int -> Int -> Gen String
-genSpace' offSet size = do
-  n <- (offSet +) `liftA` choose (0,size)
-  replicateM n $
-    oneof [
-       return ' ',
-       return '\t'
-       ]
+genSpace' offSet size =
+  (flip replicateM) (oneof . map return $ " \t") =<< (offSet +) <$> choose (0,size)
 
 genSpace :: Int -> Gen String
 genSpace = genSpace' 0
