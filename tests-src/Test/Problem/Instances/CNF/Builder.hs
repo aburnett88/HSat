@@ -1,3 +1,7 @@
+{-# LANGUAGE
+    RecordWildCards
+    #-}
+
 {-|
 Module      : Test.Problem.Instances.CNF.Builder
 Description : The tests for the CNFBuilder test leaf
@@ -13,6 +17,7 @@ module Test.Problem.Instances.CNF.Builder (
   tests -- TestTree
   ) where
 
+import Control.Applicative (liftA2)
 import           Control.Monad                               (liftM)
 import           Control.Monad.Catch
 import           HSat.Problem.Instances.CNF
@@ -36,11 +41,13 @@ tests =
     Internal.tests,
     testGroup "cnfBuilder" [
       cnfBuilderTest1,
-      cnfBuilderTest2
+      cnfBuilderTest2,
+      cnfBuilderTest3
       ],
     testGroup "cnfBuilder" [
       cnfBuilder'Test1,
-      cnfBuilder'Test2
+      cnfBuilder'Test2,
+      cnfBuilder'Test3
       ],
     testGroup "addLiteral" [
       addLiteralTest1,
@@ -74,32 +81,55 @@ tests =
       ]
     ]
 
-cnfBuilderTest1 :: TestTree
-cnfBuilderTest1 =
-  testProperty "getExpdMaxVar = v, getExptdCl = c in cnfBuilder v c" $
+{-
+================
+cnfBuilder tests
+================
+-}
+
+genMaxWord :: Int -> Gen Integer
+genMaxWord _ = choose (0,maxWord')
+
+genCNFBuilderTest :: String -> String -> ((Integer,Integer) -> CNFBuilder -> Property) -> TestTree
+genCNFBuilderTest initStr wrongStr f =
+  testProperty (initStr ++ " in cnfBuilder v c") $
   forAll
-  (do
-    vars <- choose (0,toInteger (maxBound :: Word))
-    clauses <- choose (0,toInteger (maxBound :: Word))
-    return (vars,clauses)
-    )
-  (\(vars,clauses) ->
+  (liftA2 (,) (sized genMaxWord) (sized genMaxWord))
+  (\pair@(vars,clauses) ->
     case cnfBuilder vars clauses of
-      Left _ -> property False
-      Right builder -> testCNFBuilderGenTest1 vars clauses builder
+     Right builder -> counterexample ("Incorrect " ++ wrongStr) (f pair builder)
+     _                -> counterexample "Unexpected error" False
   )
 
+cnfBuilderTest1 :: TestTree
+cnfBuilderTest1 =
+  genCNFBuilderTest ("getExptdMaxVar" `equiv` "v") "getExptdMaxVar"
+  (\(vars,_) CNFBuilder{..} ->
+    vars === (toInteger getExptdMaxVar)
+  )
+
+cnfBuilderTest2 :: TestTree
+cnfBuilderTest2 =
+  genCNFBuilderTest ("getExptdCl" `equiv` "c") "getExptdCl"
+  (\(_,clauses) CNFBuilder{..} ->
+    clauses === (toInteger getExptdClNumb)
+  )
+  
 genIntegerOutsideRange :: Gen Integer
 genIntegerOutsideRange = oneof [
-  liftM (\a -> if a==0 then -1 else if a < 0 then a else negate a) arbitrary,
-  choose (1 + maxWord',(1+maxWord') ^ (2 :: Integer))
+  (\n -> case compare 0 n of
+          EQ -> -1
+          GT -> n
+          LT -> negate n
+          ) <$> arbitrary,
+  choose (1+maxWord', (1+maxWord') ^ (2 :: Integer))
   ]
 
 maxWord' :: Integer
 maxWord' = toInteger (maxBound :: Word)
 
-cnfBuilderTest2 :: TestTree
-cnfBuilderTest2 =
+cnfBuilderTest3 :: TestTree
+cnfBuilderTest3 =
   testProperty ("cnfBuilder fails with correct error when incorrectly" ++
                 "initialised") $ 
   forAll
@@ -115,46 +145,56 @@ cnfBuilderTest2 =
          _ -> counterexample "Unknown exception thrown" False
        _ -> counterexample "Unexpected CNF returned" False
    )
-   
-testCNFBuilderGenTest1 :: Integer -> Integer -> CNFBuilder -> Property
-testCNFBuilderGenTest1 vars cl builder =
-  let valMaxVar = getExptdMaxVar builder
-      valClNumb = getExptdClNumb builder
-  in (valMaxVar === fromInteger vars) .&&.
-     (valClNumb === fromInteger cl)
+
+{-
+==============
+genCNFBuilder'
+==============
+-}
+
+genCNFBuilder'Test :: String -> String ->
+                      (CNFBuilder -> (Integer,Integer) -> Property) -> TestTree
+genCNFBuilder'Test title testStr f =
+  testProperty (title ++ " in cnfBuilder' v c") $ property
+  (\pair@(vars,clauses) -> counterexample ("Incorrect " ++ testStr)
+                      (f (cnfBuilder' vars clauses) pair)
+  )
 
 cnfBuilder'Test1 :: TestTree
 cnfBuilder'Test1 =
-  testProperty ("getExptdMaxVar = v, getExptdCl = c " ++
-                "in cnfBuilder' v c") $ property
-  (\(vars,clauses) ->
-    testCNFBuilderGenTest1 vars clauses (cnfBuilder' vars clauses)
-    )
-
-genVarsOrClausesOutsideRange :: Gen (Integer,Integer)
-genVarsOrClausesOutsideRange =  oneof [
-      do
-        vars <- choose (0,maxWord')
-        clauses <- genIntegerOutsideRange
-        return (vars,clauses),
-      do
-        vars <- genIntegerOutsideRange
-        clauses <- choose (0,maxWord')
-        return (vars,clauses),
-      do
-        vars <- genIntegerOutsideRange
-        clauses <- genIntegerOutsideRange
-        return (vars,clauses)
-        ]
+  genCNFBuilder'Test ("getExptdMaxVar" `equiv` "v") "getExptdMaxVar"
+  (\builder (vars,_) ->
+    getExptdMaxVar builder === (fromInteger vars)
+  )
 
 cnfBuilder'Test2 :: TestTree
 cnfBuilder'Test2 =
+  genCNFBuilder'Test ("getClNumb" `equiv` "c") "getClNumb"
+  (\builder (_,clauses) ->
+    getExptdClNumb builder === (fromInteger clauses)
+  )
+    
+genVarsOrClausesOutsideRange :: Gen (Integer,Integer)
+genVarsOrClausesOutsideRange =  oneof [
+  liftA2 (,) (sized genMaxWord) genIntegerOutsideRange            ,
+  liftA2 (,) genIntegerOutsideRange (sized genMaxWord)            ,
+  liftA2 (,) genIntegerOutsideRange genIntegerOutsideRange
+  ]
+
+cnfBuilder'Test3 :: TestTree
+cnfBuilder'Test3 =
   testProperty "cnfBuilder' vars or clauses outside range is correct" $
   forAll
   genVarsOrClausesOutsideRange
   (\(vars,clauses) ->
     validate (cnfBuilder' vars clauses)
     )
+
+{-
+==========
+addliteral
+==========
+-}
 
 addLiteralTest1 :: TestTree
 addLiteralTest1 =
@@ -167,9 +207,9 @@ addLiteralTest1 =
         ]
       literal <- case getExptdMaxVar cnf of
         0 -> return Nothing
-        i -> liftM (Just . literalToInteger) $ genLiteral i
+        i -> (Just . literalToInteger) <$> genLiteral i
       return (cnf,literal)
-      )
+  )
   (\(cnfbuilder,literal') ->
     case literal' of
       Just literal ->
