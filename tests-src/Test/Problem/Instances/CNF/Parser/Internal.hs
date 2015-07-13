@@ -96,9 +96,8 @@ parseCommentGen                 :: String -> Text -> Bool -> TestTree
 parseCommentGen title str True  =
   testCase title $ parseTest parseComment str @=? Right ()
 parseCommentGen title str False =
-  testCase title $ case parseTest parseComment str of
-   Left err -> assertBool ("Expected success. Gotten error: " ++ show err) False
-   Right _ -> assertBool "" True
+  testCase title $
+  assertBool "Expected failuure. Gotten success" (isLeft $ parseTest parseComment str)
 
 parseCommentTest1 :: TestTree
 parseCommentTest1 =

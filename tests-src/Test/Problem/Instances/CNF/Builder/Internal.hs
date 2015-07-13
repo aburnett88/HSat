@@ -1,19 +1,33 @@
+{-# LANGUAGE
+    RecordWildCards
+    #-}
+
+{-|
+Module      : Test.Problem.Instances.CNF.Builder.Internal
+Description : The tests for the Internal CNFBuilder module
+Copyright   : (c) Andrew Burnett 2014-2015
+Maintainer  : andyburnett88@gmail.com
+Stability   : experimental
+Portability : Unknown
+
+Exports the tests for the Internal CNFBuilder module
+-}
+
 module Test.Problem.Instances.CNF.Builder.Internal (
-  tests,
-  genCNFBuilderEmptyClause,
-  genCNFBuilderLitInClause,
-  genCNFBuilderFinalise
+  tests                   , -- TestTree
+  genCNFBuilderEmptyClause, -- Int -> Gen CNFBuilder
+  genCNFBuilderLitInClause, -- Int -> Gen CNFBuilder
+  genCNFBuilderFinalise     -- Int -> Gen CNFBuilder
   ) where
 
-import TestUtils
-import HSat.Problem.Instances.CNF.Builder.Internal
-import TestUtils.Validate
-import qualified Data.Vector as V
-import HSat.Problem.Instances.Common
-import Control.Applicative
-import Test.Problem.Instances.Common.Clauses (genClauses)
-import Test.Problem.Instances.Common.Literal (genLiteral)
-import Test.Problem.Instances.Common.Clause (genClause)
+import qualified Data.Vector                                 as V
+import           HSat.Problem.Instances.CNF.Builder.Internal
+import           HSat.Problem.Instances.Common
+import           Test.Problem.Instances.Common.Clause        (genClause)
+import           Test.Problem.Instances.Common.Clauses       (genClauses)
+import           Test.Problem.Instances.Common.Literal       (genLiteral)
+import           TestUtils
+import           TestUtils.Validate
 
 name :: String
 name = "Internal"
@@ -39,22 +53,21 @@ tests =
 
 cnfBuilderTest1 :: TestTree
 cnfBuilderTest1 =
-  testProperty "validate arbitrary == True" $ property testCNFBuilder
+  testProperty "validate arbitrary CNFBuilder" $ property testCNFBuilder
   where
     testCNFBuilder :: CNFBuilder -> Bool
     testCNFBuilder = validate
 
 cnfBuilderError1 :: TestTree
 cnfBuilderError1 =
-  testProperty "validate arbitrary CNFBuilderError == True" $
-  property testCNFBuilderError
+  testProperty "validate arbitrary CNFBuilderError" $ property testCNFBuilderError
   where
     testCNFBuilderError :: CNFBuilderError -> Bool
     testCNFBuilderError = validate
 
 canAddLiteralTest1 :: TestTree
 canAddLiteralTest1 =
-  testProperty "canAddLiteral == True on valid CNFBuilder" $
+  testProperty ("canAddLiteral" `equiv` "True on valid CNFBuilder") $
   forAll
   (oneof [sized genCNFBuilderEmptyClause,
           sized genCNFBuilderLitInClause
@@ -64,7 +77,7 @@ canAddLiteralTest1 =
 
 canAddLiteralTest2 :: TestTree
 canAddLiteralTest2 =
-  testProperty "canAddLiteral == False on invalid CNFBuilder" $
+  testProperty ("canAddLiteral" `equiv`" False on invalid CNFBuilder") $
   forAll
   (sized genCNFBuilderFinalise)
   (not . canAddLiteral)
@@ -86,7 +99,7 @@ canFinaliseTest2 =
 
 canFinishClauseTest1 :: TestTree
 canFinishClauseTest1 =
-  testProperty "canFinishClause == True on valid CNFBuilder" $
+  testProperty ("canFinishClause" `equiv` "True on valid CNFBuilder") $
   forAll
   (oneof [
       sized genCNFBuilderEmptyClause ,
@@ -96,28 +109,23 @@ canFinishClauseTest1 =
 
 canFinishClauseTest2 :: TestTree
 canFinishClauseTest2 =
-  testProperty "canFinishClause == False on invalid CNFBuilder" $
+  testProperty ("canFinishClause" `equiv` "False on invalid CNFBuilder") $
   forAll
   (sized genCNFBuilderFinalise)
   (not . canFinishClause)
 
 instance Validate CNFBuilder where
-  validate (CNFBuilder
-            exptdMaxVar
-            exptdClNumb
-            currClNumb
-            currClauses
-            currClause) =
-    let computedSize = sizeFunc currClauses currClause
-    in (exptdClNumb >= currClNumb)                      &&
-       V.all testVarInRange (getVectClause currClauses) &&
-       (computedSize == currClNumb)                     &&
-       testVarInRange currClause                        &&
-       validate currClauses                             &&
-       validate currClause
+  validate CNFBuilder{..} =
+    let computedSize = sizeFunc getCurrClauses getCurrClause
+    in (getExptdClNumb >= getCurrClNumb)                     &&
+       V.all testVarInRange (getVectClause getCurrClauses)   &&
+       (computedSize == getCurrClNumb)                       &&
+       testVarInRange getCurrClause                          &&
+       validate getCurrClauses                               &&
+       validate getCurrClause
     where
       testVarInRange :: Clause -> Bool
-      testVarInRange cl = V.all (varInRange exptdMaxVar) .
+      testVarInRange cl = V.all (varInRange getExptdMaxVar) .
                           V.map getVariable $ getVectLiteral cl
 
 instance Validate CNFBuilderError where
@@ -143,16 +151,11 @@ genCNFBuilder size =
 
 instance Arbitrary CNFBuilder where
   arbitrary = sized genCNFBuilder
-  shrink (CNFBuilder
-          maxVar
-          setClNumb
-          _
-          currClauses
-          currClause) =
+  shrink CNFBuilder{..} =
     let mkBuilder (vect, clause) =
           let size = sizeFunc vect clause
-          in CNFBuilder maxVar setClNumb size vect clause
-    in map mkBuilder $ shrink (currClauses,currClause)
+          in CNFBuilder getExptdMaxVar getExptdClNumb size vect clause
+    in map mkBuilder $ shrink (getCurrClauses,getCurrClause)
 
 sizeFunc      :: Clauses -> Clause -> Word
 sizeFunc cl c = (+) (getSizeClauses cl) $ 
@@ -176,7 +179,7 @@ instance Arbitrary CNFBuilderError where
 
 genCNFBuilderFinalise :: Int -> Gen CNFBuilder
 genCNFBuilderFinalise size = do
-  maxVar'  <- toEnum `liftA` choose (1,size)
+  maxVar'  <- toEnum <$> choose (1,size)
   clauses <- genClauses maxVar' size
   --Either return what we set as the maximum, or find the true maximum
   maxVar <- oneof [
@@ -197,11 +200,11 @@ A random Word that is strictly above the maximum Variable in Clauses
 -}
 genBuilderHelper      :: Int -> Gen (Clauses,Word,Word)
 genBuilderHelper size = do
-  maxVar'    <- toEnum `liftA` (1+) `liftA` choose (0,size)
+  maxVar'    <- toEnum . (1+) <$> choose (0,size)
   clauses    <- genClauses maxVar' size
   let baseVal = 1 + getSizeClauses clauses
-  targetSize <- (baseVal +) `liftA` toEnum `liftA` choose (0,size)
-  maxVar     <- ((+) maxVar' . toEnum ) `liftA` choose (1,size)
+  targetSize <- (baseVal +) . toEnum  <$> choose (0,size)
+  maxVar     <- ((+) maxVar' . toEnum ) <$> choose (1,size)
   return (clauses,targetSize,maxVar)
 
 {-
@@ -224,7 +227,7 @@ genCNFBuilderLitInClause      :: Int -> Gen CNFBuilder
 genCNFBuilderLitInClause size = do
   (clauses,targetSize,maxVar) <- genBuilderHelper size
   literal                     <- genLiteral maxVar
-  clause                      <- flip clauseAddLiteral literal `liftA`
+  clause                      <- flip clauseAddLiteral literal <$>
                                  genClause maxVar size
   let clauseSize = getSizeClauses clauses
       builder    = CNFBuilder
@@ -246,4 +249,3 @@ genCNFBuilderError =
       let val  = VarOutsideRange (toInteger gotten) expected
       return val
     ]
-

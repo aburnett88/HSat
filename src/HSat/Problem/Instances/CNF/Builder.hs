@@ -66,14 +66,16 @@ finishClause cnf@CNFBuilder{..} =
 Finishes the current 'Clause' and moves the pointer onto the next one
 -}
 finishClause'                    :: CNFBuilder -> CNFBuilder
-finishClause' cnf@CNFBuilder{..} = incrExptd .
-  (\cnf2 -> cnf2 {
-    getCurrClauses = newClauses,
-    getCurrClause  = emptyClause
-    }) $ incrClause' cnf
+finishClause' cnf = incrExptd . finishClause'' . incrClause' $ cnf
   where
-    newClauses     :: Clauses
-    newClauses     = clausesAddClause getCurrClauses getCurrClause
+    finishClause''                     :: CNFBuilder -> CNFBuilder
+    finishClause'' cnf'@CNFBuilder{..} =
+      cnf'{
+        getCurrClauses = newClauses,
+        getCurrClause  = emptyClause
+        }
+    newClauses :: Clauses
+    newClauses = clausesAddClause (getCurrClauses cnf) (getCurrClause cnf)
 
 incrExptd                    :: CNFBuilder -> CNFBuilder
 incrExptd cnf@CNFBuilder{..} = if getCurrClNumb > getExptdClNumb then
@@ -135,14 +137,16 @@ addLiteral lit cnf@CNFBuilder{..} =
 adds the literal to the clause. If the literal is outside the range
 denoted by the CNFBuilder, the range is increased to incorporate it
 -}
-addLiteral'                        :: Integer -> CNFBuilder -> CNFBuilder
-addLiteral' lit cnf@CNFBuilder{..} =
-  (\cnfs -> cnfs {
-    getCurrClause  = clauseAddLiteral getCurrClause l,
-    getExptdMaxVar = if getExptdMaxVar < l' then
-                       l' else
-                       getExptdMaxVar
-    }) $ incrClause' cnf
+addLiteral'         :: Integer -> CNFBuilder -> CNFBuilder
+addLiteral' lit cnf = addLiteral'' . incrClause' $ cnf
   where
     l' = getWord . getVariable $ l
     l  = mkLiteralFromInteger lit
+    addLiteral''                     :: CNFBuilder -> CNFBuilder
+    addLiteral'' cnf'@CNFBuilder{..} =
+      cnf' {
+        getCurrClause = clauseAddLiteral getCurrClause l,
+        getExptdMaxVar = if getExptdMaxVar < l' then
+                           l' else
+                           getExptdMaxVar
+        }
