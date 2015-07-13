@@ -2,27 +2,39 @@
     OverloadedStrings
     #-}
 
+{-|
+Module      : HSat.Problem.Instances.CNF.Parser.Internal
+Description : Exports the Internal tests for the CNF Parser
+Copyright   : (c) Andrew Burnett 2014-2015
+Maintainer  : andyburnett88@gmail.com
+Stability   : experimental
+Portability : Unknown
+
+Module containing the Internal 'Parser' tests for the 'CNF' data type
+-}
+
 module Test.Problem.Instances.CNF.Parser.Internal (
   tests, -- TestTree
   ) where
 
 import           Control.Applicative
-import           Control.Monad (replicateM,foldM)
+import           Control.Monad                               (replicateM,foldM)
 import           Control.Monad.Catch
-import           Data.Attoparsec.Text as P hiding (parseTest,take)
+import           Data.Attoparsec.Text                        as P hiding (parseTest,take)
 import           Data.Either
 import           Data.Monoid
-import           Data.Text (Text,pack)
-import qualified Data.Text as T hiding (map,replicate,take,foldl)
-import qualified Data.Vector as V
-import           HSat.Parser hiding (Parser)
+import           Data.Text                                   (Text,pack,take)
+import qualified Data.Text                                   as T hiding (map,replicate,take,foldl)
+import qualified Data.Vector                                 as V
+import           HSat.Parser                                 hiding (Parser)
 import           HSat.Problem.Instances.CNF.Builder
 import           HSat.Problem.Instances.CNF.Builder.Internal
 import           HSat.Problem.Instances.CNF.Parser.Internal
 import           HSat.Problem.Instances.Common
+import           Prelude                                     hiding (take)
 import           Test.Problem.Instances.CNF.Builder.Internal hiding (tests)
 import           Test.Problem.Instances.CNF.Internal ()
-import           Test.Problem.Instances.Common.Clauses hiding (tests)
+import           Test.Problem.Instances.Common.Clauses       hiding (tests)
 import           TestUtils
 
 name :: String
@@ -72,7 +84,7 @@ parseTest p = parseOnly (p <* endOfInput)
 
 parseTest'     :: (MonadThrow m) => Parser (m a) -> Text -> m a
 parseTest' p t = case parseTest p t of
-  Left str -> throwM $ (ParseException str)
+  Left str -> throwM $ ParseException str
   Right r -> r
 {-
 ===================
@@ -141,7 +153,7 @@ parseCommentsTest2 :: TestTree
 parseCommentsTest2 =
   testProperty "parseComments randomly generated" $ forAll
   (sized $ \size ->
-    T.unlines <$> ((flip replicateM) (genComment size) =<< choose (0,size))
+    T.unlines <$> (flip replicateM (genComment size) =<< choose (0,size))
   )
   (\text ->
     parseTest parseComments text === Right ()
@@ -153,225 +165,186 @@ parseProblemLine tests
 ======================
 -}
 
--- UP TO HERE PROBLEMS BEGIN
-
+genProblemLineTest               :: String -> Text -> TestTree
+genProblemLineTest title testStr =
+  testCase title $
+  case parseTest' parseProblemLine testStr of
+    Right cnf -> cnf @=? cnf'
+    _         -> assertBool "Failure; exception thrown" False
+  where
+    cnf' = CNFBuilder 24 2424 0 emptyClauses emptyClause
+  
 parseProblemLineTest1 :: TestTree
 parseProblemLineTest1 =
-  testCase "Parse normal problem line" $
-  (parseTest' parseProblemLine testStr) @=? (Right cnf')
-  where
-    testStr = "p cnf 24 2424"
-    cnf' = CNFBuilder 24 2424 0 emptyClauses emptyClause
+  genProblemLineTest "Parse normal problem line" "p cnf 24 2424"
 
 parseProblemLineTest2 :: TestTree
 parseProblemLineTest2 =
-  testCase "parse problem line with spaces" $
-  parseTest' parseProblemLine testStr @=? Right cnf'
-  where
-    testStr = "   p    cnf    24 \t2424"
-    cnf' = CNFBuilder 24 2424 0 emptyClauses emptyClause
+  genProblemLineTest "Parse problem line with spaces"
+   "   p    cnf    24 \t2424"
 
-genSpace'             :: Int -> Int -> Gen String
+genSpace'             :: Int -> Int -> Gen Text
 genSpace' offSet size =
-  (flip replicateM) (oneof . map return $ " \t") =<< (offSet +) <$> choose (0,size)
+  pack <$> (flip replicateM (oneof . map return $ " \t") =<<
+  (offSet +) <$> choose (0,size))
 
-genSpace :: Int -> Gen String
+genSpace :: Int -> Gen Text
 genSpace = genSpace' 0
 
 parseProblemLineTest3 :: TestTree
 parseProblemLineTest3 =
   testProperty "parseProblemLine parses correctly" $ forAll
   (sized $ \size -> do
-      vars <- arbitrary
+      vars    <- arbitrary
       clauses <- arbitrary
       let genSpace0 = genSpace' 1 size
-      text <- do
-        let p = "p"
-            cnf = "cnf"
-            v' = show vars
-            c' = show clauses
-        spc1 <- genSpace0
-        spc2 <- genSpace0
-        spc3 <- genSpace0
-        spc4 <- genSpace size
-        return $
-          p ++ spc1 ++
-          cnf ++ spc2 ++
-          v' ++ spc3 ++
-          c' ++ spc4
-      return (pack text, vars, clauses)
-      )
+          vars'     = return $ pack . show $ vars
+          clauses'  = return $ pack . show $ clauses
+          p         = return "p"
+          cnf       = return "cnf"
+      text <- mconcat <$> sequence [
+        p,genSpace0,cnf,genSpace0,vars',genSpace0,clauses',genSpace size]
+      return (text,vars,clauses)
+  )
   (\(text,v,c) ->
     let cnf' = CNFBuilder v c 0 emptyClauses emptyClause
     in case parseTest' parseProblemLine text of
         Right expected -> counterexample "Not same" $ expected === cnf'
         _ -> counterexample "Unexpected exception" False
-       )
-       
+  )
+
+{-
+=========================
+parseNonZeroInteger tests
+=========================
+-}
+
+genParseNonZeroInteger                 :: String ->  Integer -> Bool -> TestTree
+genParseNonZeroInteger title word True =
+  testCase title $
+  case parseTest parseNonZeroInteger (pack $ show word) of
+   Right word' -> word' @=? word
+   _           -> assertBool "Unexpected exception" False
+genParseNonZeroInteger title word False =
+  testCase title $
+  assertBool "Expected exception" (isLeft $ parseTest parseNonZeroInteger (pack $ show word))
+  
 parseNonZeroIntegerTest1 :: TestTree
 parseNonZeroIntegerTest1 =
-  testCase ("parseNonZeroInteger \"" ++ testStr ++ "\"") $ assert (
-    parseTest parseNonZeroInteger (pack testStr) ==
-    Right word
-    )
-  where
-    testStr = show word
-    word = 121
+  genParseNonZeroInteger "Parses correct non zero integer" 121 True
 
 parseNonZeroIntegerTest2 :: TestTree
 parseNonZeroIntegerTest2 =
-  testCase ("parseNonZeroInteger \"" ++ testStr ++ "\"") $ assert (
-    parseTest parseNonZeroInteger (pack testStr) == Right word
-    )
-  where
-    testStr = show word
-    word = -121
+  genParseNonZeroInteger "Parses correct non zero integer" 2453565 True
 
 parseNonZeroIntegerTest3 :: TestTree
 parseNonZeroIntegerTest3 =
-  testCase ("parseNonZeroInteger \"" ++ testStr ++ "\"") $ assert (
-    isLeft $ parseTest parseNonZeroInteger (pack testStr)
-    )
-  where
-    testStr = show word
-    word :: Integer
-    word = 0
+  genParseNonZeroInteger "Doesn't parse zero" 0 False
     
 parseNonZeroIntegerTest4 :: TestTree
 parseNonZeroIntegerTest4 =
-  testProperty "parseNonZeroInteger sucessful" $
+  testProperty "parseNonZeroInteger successful" $
   forAll
   mkIntegerNonZero
   (\word ->
-    let exptd = return word
-    in parseTest parseNonZeroInteger (pack $ show word) === exptd
-       )
+    parseTest parseNonZeroInteger (pack $ show word) === return word
+  )
+
+{-
+=================
+parseClause tests
+=================
+-}
+
+genParseClauseTest               :: String -> Text -> TestTree
+genParseClauseTest title testStr =
+  testCase title $
+  case (parseTest' (parseClause $ return cnf) testStr, finishClause cnf') of
+   (Just gotten, Just exptd) -> gotten @=? exptd
+   _                         -> assertBool "Unexpected failure" False
+  where
+    cnf  = CNFBuilder 10 10 0 emptyClauses emptyClause
+    cnf' = V.foldl (flip addLiteral') cnf . V.map literalToInteger $
+           getVectLiteral cl
+    cl   = mkClauseFromLits $ map mkLiteralFromInteger [
+      1,2,3,-4,-5,6,-7,8,9]
 
 parseClauseTest1 :: TestTree
 parseClauseTest1 =
-  testCase ("parseClause \"" ++ testStr ++ "\"") $ assert (
-    case (parseTest' (parseClause $ return cnf) (pack testStr),finishClause cnf') of
-      (Just gotten,Just expected) -> gotten @=? expected
-      _ -> assertBool "" False
-    )
-  where
-    (cnf,cnf') = getTuple
-    testStr = "1 2 3 -4 -5 6 -7 8 9 0"
-    
+  genParseClauseTest "parse good clause" "1 2 3 -4 -5 6 -7 8 9 0"
 
 parseClauseTest2 :: TestTree
 parseClauseTest2 =
-  testCase ("parseClause \"" ++ testStr ++ "\"") $ assert (
-    case (parseTest' (parseClause $ return cnf) (pack testStr),finishClause cnf') of
-     (Right gotten, Right expected) -> gotten == expected
-     _ -> False
-    )
-    where
-      (cnf,cnf') = getTuple
-      testStr = "1   2   3   -4 -5    6 -7   8            9 0"
+  genParseClauseTest "Parse clause with spaces" "1   2   3   -4 -5    6 -7   8            9 0"
 
 parseClauseTest3 :: TestTree
-parseClauseTest3 = 
-  testCase ("parseClause \"" ++ testStr ++ "\"") $ assert (
-    case (parseTest' (parseClause $ return cnf) (pack testStr),finishClause cnf') of
-     (Right gotten, Right expected) -> gotten == expected
-     _ -> False
-    )
-    where
-      (cnf,cnf') = getTuple
-      testStr = "1   2   3   -4 -5 \n   6 -7   8    \n        9 0"
+parseClauseTest3 =
+  genParseClauseTest "Parse Clause with new lines"  "1   2   3   -4 -5 \n   6 -7   8    \n        9 0"
 
 parseClauseTest4 :: TestTree
-parseClauseTest4 = 
-  testCase ("parseClause \"" ++ testStr ++ "\"") $ assert (
-    case (parseTest' (parseClause $ return cnf) (pack testStr),finishClause cnf') of
-     (Right gotten, Right expected) -> gotten == expected
-     _ -> False
-    )
-    where
-      (cnf,cnf') = getTuple
-      testStr =
-        "1   2 \n" ++ 
-        "c initial\n" ++
-        "3   -4 -5 \n" ++
-        "c hello world\n" ++
-        "6 -7   8    \n" ++
-        "9 0"
-
-getTuple :: (CNFBuilder,CNFBuilder)
-getTuple = (cnf,cnf')
-  where
-    cnf = CNFBuilder 10 10 0 emptyClauses emptyClause
-    cnf' = V.foldl (flip addLiteral') cnf . V.map literalToInteger $
-           getVectLiteral cl
-    cl = mkClauseFromLits $ map mkLiteralFromInteger [
-      1,2,3,-4,-5,6,-7,8,9]
+parseClauseTest4 =
+  genParseClauseTest "Parse clause with comments in between lines" $
+  "1   2 \n"        <> "c initial\n"     <> "3   -4 -5 \n"    <>
+  "c hello world\n" <> "6 -7   8    \n"  <> "9 0"
 
 parseClauseTest5 :: TestTree
 parseClauseTest5 =
   testProperty "parse randomly generated clauses" $
   forAll
-  ((sized genX) :: Gen (Maybe CNFBuilder, Maybe CNFBuilder,Text))
+  (sized $ \size -> do
+      beforeBuilder <- return <$> genCNFBuilderEmptyClause size :: Gen (Maybe CNFBuilder)
+      clause        <- arbitrary
+      let lits         = clauseToIntegers clause
+          afterBuilder = foldl (\b l -> b >>= addLiteral l) beforeBuilder lits >>= finishClause
+      text          <- generateClause size lits
+      return (beforeBuilder,afterBuilder,text)
+  )
   (\(before,after,text) ->
     let gotten = parseTest (parseClause before) text
     in  gotten === return after
   )
 
-genX      :: (MonadThrow m) => Int -> Gen (m CNFBuilder,m CNFBuilder,Text)
-genX size = do
-  before <- return <$> genCNFBuilderEmptyClause 10
-  clause <- arbitrary
-  let lits = clauseToIntegers clause
-      after = foldl (\b' l -> b' >>= addLiteral l) before lits >>= finishClause
-  text <- generateClause size lits
-  return (before,after,text)
-
 generateClause           :: Int -> [Integer] -> Gen Text
-generateClause size ints = foldM generateClause' T.empty ((++) ints [0])
+generateClause size ints = foldM generateClause' T.empty $ ints ++ [0]
   where
-    generateClause' :: Text -> Integer -> Gen Text
-    generateClause' t int = (t <>) <$> oneof [
-      empty' >>= showNumb int,
-      empty' >>= ret >>= showNumb int,
-      empty' >>= addSpace >>= showNumb int,
-      empty' >>= ret >>= addSpace >>= showNumb int,
-      empty' >>= ret >>= showNumb int,
-      empty' >>= addSpace >>= ret >>= showNumb int,
-      empty' >>= addSpace >>= ret >>= addComs >>= addSpace >>= showNumb int,
-      empty' >>= addSpace >>= ret >>= addComs >>= showNumb int,
-      empty' >>= ret >>= addComs >>= addSpace >>= showNumb int,
-      empty' >>= ret >>= addComs >>= showNumb int
-      ]
-    empty' :: Gen Text
+    generateClause'          :: Text -> Integer -> Gen Text
+    generateClause' text int = (text <>) <$> (
+      oneof . map (\f -> f >>= showNumb int) $ [
+         empty',
+         empty' >>= ret,
+         empty' >>= addSpace,
+         empty' >>= ret      >>= addSpace,
+         empty' >>= addSpace >>= ret,
+         empty' >>= addSpace >>= ret     >>= addComs >>= addSpace,
+         empty' >>= addSpace >>= ret     >>= addComs,
+         empty' >>= ret      >>= addComs >>= addSpace,
+         empty' >>= ret      >>= addComs
+         ]
+      )
+    empty'               :: Gen Text
     empty' = return mempty
     ret,addSpace,addComs :: Text -> Gen Text
     ret t = return $ t <> pack "\n"
-    addSpace t = (\a -> t <> pack a) `liftA` genSpace' 1 size
-    addComs t = (\a -> t <> T.unlines a) `liftA`
+    addSpace t = (t <>) <$> genSpace' 1 size
+    addComs t = (t <>) . T.unlines <$>
                 (choose (0,size) >>= flip replicateM (genComment size))
-    showNumb :: Integer -> Text -> Gen Text
+    showNumb             :: Integer -> Text -> Gen Text
     showNumb i t = do
       s <- genSpace' 1 size
-      return $ t <> pack ((++) (show i)
-                          ((if i==0 then const "" else take 1) s))
+      return $ s <> t <> (pack . show $ i) <> (if i==0 then const "" else take 1) s
 
-parseClausesTest1 :: TestTree
-parseClausesTest1 =
-  testCase ("parseClauses \"" ++ testStr ++ "\"") $ assert (
-    let gotten = parseTest' (parseClauses $ return cnf) (pack testStr)
-    in case (gotten,cnf') of
-        (Right gotten',Right expected) -> expected @=? gotten'
-        (Left e,_) -> assertBool ("Returned unknown exception: " ++ show e) False
-        _ -> assertBool "Unexpected error" False
-    )
-  where
-    testStr = "1 2 3 -4 -5 -6 0 " ++
-              "-7 -8 9 10 0 " ++ "-1 -2 -3 -4 -7 0 " ++
-              "1 1 1 1 1 1 0"
-    (cnf,cnf') = getTripple
+{-
+==================
+parseClauses tests
+==================
+-}
 
-getTripple :: (CNFBuilder,Either l CNFBuilder)
-getTripple = (cnf,cnf')
+genParseClauses               :: String -> Text -> TestTree
+genParseClauses title testStr =
+  testCase title $
+  case (parseTest' (parseClauses $ return cnf) testStr,cnf') of
+    (Just gotten, Just expected) -> expected @=? gotten
+    _                            -> assertBool "Unexpected error" False
   where
     cnf = CNFBuilder 10 10 0 emptyClauses emptyClause
     cnf' = return $ CNFBuilder 10 10 4 clauses emptyClause
@@ -382,66 +355,58 @@ getTripple = (cnf,cnf')
       [1,1,1,1,1,1]
       ]
 
+parseClausesTest1 :: TestTree
+parseClausesTest1 =
+  genParseClauses "parse generic clauses" $
+  "1 2 3 -4 -5 -6 0 " <> "-7 -8 9 10 0 " <>
+  "-1 -2 -3 -4 -7 0 " <> "1 1 1 1 1 1 0"
+
 parseClausesTest2 :: TestTree
 parseClausesTest2 =
-  testCase ("parseClauses \"" ++ testStr ++ "\"") $ assert (
-    case (parseTest' (parseClauses $ return cnf) (pack testStr),cnf') of
-     (Right gotten, Right expected) -> gotten == expected
-     _ -> False
-    )
-  where
-    testStr = "c the evil is hardest to find\n" ++
-              "1 2 3 -4 -5 -6 0\n" ++
-              "c when we can find the last one\n" ++
-              "-7 -8 9 10 0\n" ++
-              "c finding the last one is the easiest\n" ++
-              "-1 -2 -3 -4 -7\nc intermitant\n " ++
-              "0 1 1 1 1 1 1 0"
-    (cnf,cnf') = getTripple
+  genParseClauses "parse clauses with comments" $
+  "c the evil is hardest to find\n"         <> "1 2 3 -4 -5 -6 0\n" <>
+  "c when we can find the last one\n"       <> "-7 -8 9 10 0\n"     <>
+  "c finding the last one is the easiest\n" <>
+  "-1 -2 -3 -4 -7\nc intermitant\n "        <> "0 1 1 1 1 1 1 0"
 
 parseClausesTest3 :: TestTree
 parseClausesTest3 =
   testProperty "parse randomly generated Clauses" $
   forAll
-  (sized madeClauses)
+  (sized $ \size -> do
+      clauses <- genClauses maxBound size
+      let setSize = getSizeClauses clauses
+          maxVar  = findMaxVar clauses
+          before  = return $ CNFBuilder maxVar setSize       0 emptyClauses emptyClause
+          after   = return $ CNFBuilder maxVar setSize setSize      clauses emptyClause
+          f       = round . log :: Double -> Int
+          size'   = f $ fromIntegral size
+      text <- genClausesText size' clauses
+      return (before, after, text)
+  )
   (\(before,after,text) ->
     let gotten = parseTest' (parseClauses before) text
     in case (gotten,after) of
         (Just gotten',Just after') -> counterexample "Clauses not same: " $ gotten' === after'
         _ -> counterexample "Unexpected exception" False
-       )
-
-madeClauses      :: (MonadThrow m) => Int -> Gen (m CNFBuilder,m CNFBuilder,Text)
-madeClauses size = do
-  clauses <- genClauses maxBound size
-  let setSize  = getSizeClauses clauses
-      setSize' = toInteger setSize
-      maxVar   = findMaxVar clauses
-      maxVar'  = toInteger maxVar
-      before   = cnfBuilder maxVar' setSize'
-      after    = return $ CNFBuilder maxVar setSize setSize clauses emptyClause
-      f        = round . log :: Double -> Int
-      size'    = f $ fromIntegral size
-  text <- genClausesText size' clauses
-  return (before,after,text)
-
-genClausesText              :: Int -> Clauses -> Gen Text
-genClausesText size clauses = do
-  header <- genComments size
-  middle <- genClausesText' (clausesToIntegers clauses)
-  footer <- genComments size
-  return $ header <> middle <> footer
+  )
   where
-    genClausesText' :: [[Integer]] -> Gen Text
-    genClausesText' [] = return mempty
-    genClausesText' (x:xs) = do
+    genClausesText     :: Int -> Clauses -> Gen Text
+    genClausesText size clauses = do
       header <- genComments size
-      middle <- generateClause size x
+      middle <- genClausesText' (clausesToIntegers clauses)
       footer <- genComments size
-      rest <- genClausesText' xs
-      return $ header <> middle <> footer <> rest
-
-genComments      :: Int -> Gen Text
-genComments size = do
-  m <- choose (0,size)
-  T.unlines <$> replicateM m (genComment size)
+      return $ header <> middle <> footer
+      where
+        genClausesText' :: [[Integer]] -> Gen Text
+        genClausesText' [] = return mempty
+        genClausesText' (x:xs) = do
+          header <- genComments size
+          middle <- generateClause size x
+          footer <- genComments size
+          rest <- genClausesText' xs
+          return $ header <> middle <> footer <> rest
+    genComments      :: Int -> Gen Text
+    genComments size = do
+      m <- choose (0,size)
+      T.unlines <$> replicateM m (genComment size)

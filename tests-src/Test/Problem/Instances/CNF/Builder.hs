@@ -10,33 +10,29 @@ This module provides tests for the CNFBuilder type
 -}
 
 module Test.Problem.Instances.CNF.Builder (
-  tests
+  tests -- TestTree
   ) where
 
-import TestUtils
-
-{-
-import           Control.Monad (liftM)
-import           HSat.Problem.BSP.CNF
-import           HSat.Problem.BSP.CNF.Builder
-import           HSat.Problem.BSP.CNF.Builder.Internal
-import           HSat.Problem.BSP.Common
-import HSat.Problem.BSP.CNF.Internal
+import           Control.Monad                               (liftM)
+import           Control.Monad.Catch
+import           HSat.Problem.Instances.CNF
+import           HSat.Problem.Instances.CNF.Builder
+import           HSat.Problem.Instances.CNF.Builder.Internal
+import           HSat.Problem.Instances.CNF.Internal
+import           HSat.Problem.Instances.Common
+import qualified Test.Problem.Instances.CNF.Builder.Internal as Internal (tests)
+import           Test.Problem.Instances.CNF.Builder.Internal hiding (tests)
+import           Test.Problem.Instances.CNF.Internal         ()
+import           Test.Problem.Instances.Common.Literal       (genLiteral)
 import           TestUtils
-import qualified Test.Problem.BSP.CNF.Builder.Internal as Internal (tests)
-import Test.Problem.BSP.CNF.Builder.Internal hiding (tests)
-import Test.Problem.BSP.Common.Literal (genLiteral)
-import TestUtils.Validate
-import Test.Problem.BSP.CNF.Internal ()
-import Control.Monad.Catch
--}
+import           TestUtils.Validate
+
 name :: String
 name = "Builder"
 
 tests :: TestTree
 tests =
-  testGroup name []
-  {-
+  testGroup name [
     Internal.tests,
     testGroup "cnfBuilder" [
       cnfBuilderTest1,
@@ -300,7 +296,7 @@ finishClauseTest1Generic builder oldbuilder =
       gottenCount   = getCurrClNumb builder
   in clauseIsEmpty (getCurrClause builder) .&&.
      (exptdClauses === gottenClauses)        .&&.
-     (exptdCount   === gottenCount)
+     (counterexample (show builder ++ " " ++ show oldbuilder) (exptdCount   === gottenCount))
   
 
 finishClauseTest2 :: TestTree
@@ -470,7 +466,3 @@ evaluate' cnf (x:xs) = evaluate' (evaluation cnf x) xs
     evaluation cnf' [] = finishClause' cnf'
     evaluation cnf' (y:ys) =
       evaluation (addLiteral' y cnf') ys
-  
-  
-        
--}
