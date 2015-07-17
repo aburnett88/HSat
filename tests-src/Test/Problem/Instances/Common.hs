@@ -1,6 +1,6 @@
 {-|
 Module      : Test.Problem.Instances.Common
-Description : The Clauses data type
+Description : The Common testing module
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
@@ -12,13 +12,13 @@ module
 -}
 
 module Test.Problem.Instances.Common (
-  tests
+  tests -- TestTree
   ) where
 
-import qualified Test.Problem.Instances.Common.Clause as Clause
-import qualified Test.Problem.Instances.Common.Clauses as Clauses
-import qualified Test.Problem.Instances.Common.Literal as Literal
-import qualified Test.Problem.Instances.Common.Sign as Sign
+import qualified Test.Problem.Instances.Common.Clause   as Clause
+import qualified Test.Problem.Instances.Common.Clauses  as Clauses
+import qualified Test.Problem.Instances.Common.Literal  as Literal
+import qualified Test.Problem.Instances.Common.Sign     as Sign
 import qualified Test.Problem.Instances.Common.Variable as Variable
 import           TestUtils
 

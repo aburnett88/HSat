@@ -10,14 +10,13 @@ The Test Tree Node for the internal Variable module
 -}
 
 module Test.Problem.Instances.Common.Variable.Internal (
-  tests,
-  genVariableContext
+  tests             , -- TestTree
+  genVariableContext  -- Word -> Gen Variable
   ) where
 
 import HSat.Problem.Instances.Common.Variable.Internal
 import TestUtils
 import TestUtils.Validate
-import Control.Applicative
 
 name :: String
 name = "Internal"
@@ -31,7 +30,7 @@ tests =
 
 variableTest1 :: TestTree
 variableTest1 =
-  testProperty "validate variable == True" $ property testVariable
+  testProperty ("validate variable" `equiv` " True") $ property testVariable
   where
     testVariable :: Variable -> Bool
     testVariable = validate
@@ -41,14 +40,14 @@ A variable with a value of zero should not be valid
 -}
 variableTest2 :: TestTree
 variableTest2 =
-  testCase "validate (Variable 0) == False" $
+  testCase ("validate (Variable 0)" `equiv` "False") $
   assertBool "Validation should " (not . validate $ Variable 0)
 
 genVariable :: Gen Variable
 genVariable = genVariableContext maxBound
 
 genVariableContext         :: Word -> Gen Variable
-genVariableContext maxWord = liftA Variable $ choose (1,maxWord) 
+genVariableContext maxWord = Variable <$> choose (1,maxWord) 
 
 instance Arbitrary Variable where
   arbitrary = genVariable

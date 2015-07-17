@@ -13,7 +13,8 @@ module Test.Problem.Instances (
   tests -- TestTree
   ) where
 
-import qualified Test.Problem.Instances.CNF as CNF
+import qualified Test.Problem.Instances.CNF    as CNF
+import qualified Test.Problem.Instances.Common as Common
 import           TestUtils
 
 name :: String
@@ -22,5 +23,6 @@ name = "Instances"
 tests :: TestTree
 tests =
   testGroup name [
-    CNF.tests
+    CNF.tests   ,
+    Common.tests
     ]

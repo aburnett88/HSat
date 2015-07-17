@@ -1,5 +1,5 @@
 {-|
-Module      : Test.Data.Instances.Common.Variable
+Module      : Test.Problem.Instances.Common.Variable
 Description : The Variable tests
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
@@ -10,8 +10,8 @@ The Test Tree Node for the Variable module
 -}
 
 module Test.Problem.Instances.Common.Variable (
-  tests,
-  Internal.genVariableContext
+  tests                      , -- TestTree
+  Internal.genVariableContext  -- Word -> Gen Variable
   ) where
 
 import           HSat.Problem.Instances.Common.Variable
@@ -45,7 +45,7 @@ tests =
 
 mkVariableTest1 :: TestTree
 mkVariableTest1 =
-  testProperty "getWord . mkVariable == id" $
+  testProperty ("getWord . mkVariable" `equiv` "id") $
   forAll
   mkWordNonZero
   (\word ->
@@ -60,7 +60,7 @@ mkVariableTest2 =
 
 mkVariableFromIntegerTest1 :: TestTree
 mkVariableFromIntegerTest1 =
-  testProperty "getWord . mkVariableFromInteger == id" $
+  testProperty ("getWord . mkVariableFromInteger" `equiv` "id") $
   forAll
   mkIntegerNonZero
   (\int ->
@@ -104,7 +104,7 @@ varInRangeTest1 =
 
 variableToIntegerTest1 :: TestTree
 variableToIntegerTest1 =
-  testProperty "variableToInteger . mkVariableFromInteger == abs" $
+  testProperty ("variableToInteger . mkVariableFromInteger" `equiv` "abs") $
   forAll
   mkIntegerNonZero
   (\int ->

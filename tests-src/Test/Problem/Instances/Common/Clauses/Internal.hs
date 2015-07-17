@@ -14,13 +14,13 @@ module Test.Problem.Instances.Common.Clauses.Internal (
   genClauses
   ) where
 
-import HSat.Problem.Instances.Common.Clauses
-import HSat.Problem.Instances.Common.Clauses.Internal
-import TestUtils
-import TestUtils.Validate
-import qualified Data.Vector as V
-import Control.Applicative
-import Test.Problem.Instances.Common.Clause (genClause)
+import           Control.Applicative
+import qualified Data.Vector                                    as V
+import           HSat.Problem.Instances.Common.Clauses
+import           HSat.Problem.Instances.Common.Clauses.Internal
+import           Test.Problem.Instances.Common.Clause           (genClause)
+import           TestUtils
+import           TestUtils.Validate
 
 name :: String
 name = "Internal"
@@ -34,7 +34,7 @@ tests =
 
 clausesTest1 :: TestTree
 clausesTest1 =
-  testProperty "validate arbitrary == True" $ property testClauses
+  testProperty ("validate arbitrary " `equiv` " True") $ property testClauses
   where
     testClauses :: Clauses -> Bool
     testClauses = validate
@@ -45,14 +45,10 @@ the vector containing the Literals themselves
 -}
 clausesTest2 :: TestTree
 clausesTest2 =
-  testProperty ("validate (Clauses vect (sizeVect + choose (1,maxBound))"++
-                "== False") $
+  testProperty ("validate (Clauses vect (sizeVect + choose (1,maxBound)) "
+                `equiv` " False") $
   forAll
-  (do
-      clauseList <- V.fromList `liftA` arbitrary
-      wrongLen   <- choose (1,maxBound)
-      return (clauseList,wrongLen)
-  )
+  (liftA2 (,) (V.fromList <$> arbitrary) (choose (1,maxBound)))
   (\(clauseList,wrongLen) ->
     let val = Clauses clauseList wrongLen
     in  not $ validate val
@@ -69,12 +65,10 @@ instance Validate Clauses where
     in (actualSize == sizeClauses) &&
        V.all validate clauseVector
 
-genClauses :: Word -> Int -> Gen Clauses
-genClauses maxVar size = do
-  sizeOf <- choose (0,size)
-  clauseVector <- V.replicateM (fromEnum sizeOf) $ genClause maxVar size
-  return $ mkClauses clauseVector
-
+genClauses             :: Word -> Int -> Gen Clauses
+genClauses maxVar size =
+  mkClauses <$> (flip V.replicateM (genClause maxVar size) =<< arbitrary)
+                 
 instance Arbitrary Clauses where
   arbitrary      = sized $ genClauses maxBound
   shrink clauses =
