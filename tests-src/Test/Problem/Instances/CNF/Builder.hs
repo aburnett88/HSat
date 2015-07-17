@@ -105,14 +105,14 @@ genCNFBuilderTest initStr wrongStr f =
 
 cnfBuilderTest1 :: TestTree
 cnfBuilderTest1 =
-  genCNFBuilderTest ("getExptdMaxVar" `equiv` "v") "getExptdMaxVar"
+  genCNFBuilderTest ("getExptdMaxVar " `equiv` " v") "getExptdMaxVar"
   (\(vars,_) CNFBuilder{..} ->
     vars === toInteger getExptdMaxVar
   )
 
 cnfBuilderTest2 :: TestTree
 cnfBuilderTest2 =
-  genCNFBuilderTest ("getExptdCl" `equiv` "c") "getExptdCl"
+  genCNFBuilderTest ("getExptdCl " `equiv` " c") "getExptdCl"
   (\(_,clauses) CNFBuilder{..} ->
     clauses === toInteger getExptdClNumb
   )
@@ -163,14 +163,14 @@ genCNFBuilder'Test title testStr f =
 
 cnfBuilder'Test1 :: TestTree
 cnfBuilder'Test1 =
-  genCNFBuilder'Test ("getExptdMaxVar" `equiv` "v") "getExptdMaxVar"
+  genCNFBuilder'Test ("getExptdMaxVar " `equiv` " v") "getExptdMaxVar"
   (\builder (vars,_) ->
     getExptdMaxVar builder === fromInteger vars
   )
 
 cnfBuilder'Test2 :: TestTree
 cnfBuilder'Test2 =
-  genCNFBuilder'Test ("getClNumb" `equiv` "c") "getClNumb"
+  genCNFBuilder'Test ("getClNumb " `equiv` " c") "getClNumb"
   (\builder (_,clauses) ->
     getExptdClNumb builder === fromInteger clauses
   )

@@ -3,15 +3,15 @@ module Test.Writer (
   tests
   ) where
 
-import           HSat.Parser
-import           HSat.Problem
-import           HSat.Problem.Internal
-import           HSat.Problem.Source
-import           HSat.Writer
-import           System.Directory
-import           Test.Problem ()
-import           TestUtils
+import HSat.Parser
+import HSat.Problem
+import HSat.Problem.Internal
 import HSat.Problem.ProblemExpr.Class
+import HSat.Problem.Source
+import HSat.Writer
+import System.Directory
+import Test.Problem ()
+import TestUtils
 
 name :: String
 name = "Writer"
@@ -68,7 +68,7 @@ writeFolderTest1 =
     fileNames <- run $ writeFolder plainProblemToFile problems folder file
     case compare (length fileNames) (length problems) of
      EQ -> run $ do
-       returnProblems <- fromFolder (fromFile []) folder
+       returnProblems <- fromFolder (fromFile parserInstances) folder
        removeDirectoryRecursive folder
        let problemExprs' = map problemExpr returnProblems
        return $ listsContainSame problemExprs' problemExprs

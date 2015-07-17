@@ -15,11 +15,12 @@ module Test.Problem.Instances.Common.Literal (
   genLiteral -- :: Word -> Gen Literal 
   ) where
 
+import Control.Applicative
 import HSat.Problem.Instances.Common.Literal
+import Test.Problem.Instances.Common.Sign     ()
+import Test.Problem.Instances.Common.Variable (genVariableContext)
 import TestUtils
 import TestUtils.Validate
-import Test.Problem.Instances.Common.Sign ()
-import Test.Problem.Instances.Common.Variable (genVariableContext)
 
 name :: String
 name = "Literal"
@@ -40,7 +41,7 @@ tests =
 
 mkLiteralTest1 :: TestTree
 mkLiteralTest1 =
-  testProperty "getVariable == v, getSign == s in mkLiteral s v" $ property
+  testProperty ("getVariable " `equiv` " v, getSign " `equiv` " s in mkLiteral s v") $ property
   (\(sign,variable) ->
     let valLiteral = mkLiteral sign variable
         valSign    = getSign valLiteral
@@ -51,7 +52,7 @@ mkLiteralTest1 =
 
 mkLiteralFromIntTest1 :: TestTree
 mkLiteralFromIntTest1 =
-  testProperty "literalToInteger . mkLiteralFromInteger == id" $
+  testProperty ("literalToInteger . mkLiteralFromInteger " `equiv` " id") $
   forAll
   mkIntegerNonZero
   (\int ->
@@ -61,17 +62,15 @@ mkLiteralFromIntTest1 =
 
 literalToIntegerTest1 :: TestTree
 literalToIntegerTest1 =
-  testProperty "mkLiteralFromInteger . literalToInteger == id" $ property
+  testProperty ("mkLiteralFromInteger . literalToInteger " `equiv` " id") $ property
   (\lit ->
     let val = mkLiteralFromInteger $ literalToInteger lit
     in lit === val
   )
 
 genLiteral        :: Word -> Gen Literal
-genLiteral maxVar = do
-  sign <- arbitrary
-  var  <- genVariableContext maxVar
-  return $ mkLiteral sign var
+genLiteral maxVar =
+  liftA2 mkLiteral arbitrary (genVariableContext maxVar)
 
 instance Arbitrary Literal where
   arbitrary            = genLiteral maxBound

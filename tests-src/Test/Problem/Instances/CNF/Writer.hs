@@ -32,7 +32,7 @@ tests =
 
 toTextTest1 :: TestTree
 toTextTest1 =
-  testProperty ("read . write" `equiv` "id") $ property
+  testProperty ("read . write " `equiv` " id") $ property
   (\cnf ->
     case parseOnly cnfParser $ toText cnf of
      Right (Right cnf') -> cnf' === cnf

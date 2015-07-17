@@ -54,7 +54,7 @@ mkFileSourceTest1 =
 
 mkMakeConfigTest1 :: TestTree
 mkMakeConfigTest1 =
-  testProperty ("config . mkMakeConfig c  "`equiv` " c") $ property
+  testProperty ("config . mkMakeConfig c "`equiv` " c") $ property
   (\config ->
     case mkMakeConfig config of
      MakeConfiguration c' -> c' === config

@@ -53,7 +53,7 @@ mkCNFFromClausesTest1 =
 
 cnfToIntegersTest1 :: TestTree
 cnfToIntegersTest1 =
-  testProperty ("mkCNFFromInegers . cnfToIntegers cnf  " `equiv` " cnf") $ property
+  testProperty ("mkCNFFromInegers . cnfToIntegers cnf " `equiv` " cnf") $ property
   (\cnf ->
     let cnf'               = mkCNFFromIntegers $ cnfToIntegers cnf
         expectedClauseNumb = getClauseNumb cnf

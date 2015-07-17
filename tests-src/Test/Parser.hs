@@ -27,7 +27,8 @@ tests =
 
 removeFileWithName :: FilePath -> IO ()
 removeFileWithName fp = do
-  contents <- getDirectoryContents ""
+  currentLocation <- getCurrentDirectory
+  contents <- getDirectoryContents currentLocation
   let res = filter (\f -> (removeSuffix f) == fp) contents
   mapM_ removeFile res
   where
@@ -70,14 +71,18 @@ fromFolderTest1 =
         file = "file"
     alreadyExists <- run $ doesDirectoryExist folder
     if alreadyExists then do
+      run $ putStrLn "already exists"
       run $ removeDirectoryRecursive folder else return ()
     result <- run $ catchAll (
       do
-        _ <- writeFolder undefined problems folder file
+        _ <- writeFolder plainProblemToFile problems folder file
         problems' <- fromFolder (fromFile instances) folder
+        print problems'
+        putStrLn "helping"
         return $ listsContainSame problems problems'
         )
         (\exception -> return $
                        counterexample ("Exception thrown: " ++ show exception) False)
+    run $ putStrLn "Doesn't exist"
     run $ removeDirectoryRecursive folder
     return result

@@ -45,7 +45,7 @@ tests =
 
 mkVariableTest1 :: TestTree
 mkVariableTest1 =
-  testProperty ("getWord . mkVariable" `equiv` "id") $
+  testProperty ("getWord . mkVariable " `equiv` " id") $
   forAll
   mkWordNonZero
   (\word ->
@@ -60,7 +60,7 @@ mkVariableTest2 =
 
 mkVariableFromIntegerTest1 :: TestTree
 mkVariableFromIntegerTest1 =
-  testProperty ("getWord . mkVariableFromInteger" `equiv` "id") $
+  testProperty ("getWord . mkVariableFromInteger " `equiv` " id") $
   forAll
   mkIntegerNonZero
   (\int ->
@@ -104,7 +104,7 @@ varInRangeTest1 =
 
 variableToIntegerTest1 :: TestTree
 variableToIntegerTest1 =
-  testProperty ("variableToInteger . mkVariableFromInteger" `equiv` "abs") $
+  testProperty ("variableToInteger . mkVariableFromInteger " `equiv` " abs") $
   forAll
   mkIntegerNonZero
   (\int ->

@@ -10,8 +10,8 @@ The Test Tree Node for the internal Clauses module
 -}
 
 module Test.Problem.Instances.Common.Clauses.Internal (
-  tests,
-  genClauses
+  tests     , -- :: TestTree
+  genClauses  -- :: Word -> Int -> Gen Clauses
   ) where
 
 import           Control.Applicative

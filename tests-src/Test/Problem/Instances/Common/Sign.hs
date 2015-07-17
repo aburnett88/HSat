@@ -11,12 +11,11 @@ Generator functions
 -}
 
 module Test.Problem.Instances.Common.Sign (
-  tests
+  tests -- :: TestTree
   ) where
 
 import HSat.Problem.Instances.Common.Sign
 import TestUtils
-import Control.Applicative
 
 name :: String
 name = "Sign"
@@ -57,22 +56,22 @@ tests =
 
 mkSignTest1 :: TestTree
 mkSignTest1 =
-  testCase "getBool . mkSign True == True" $
+  testCase ("getBool . mkSign True " `equiv` " True") $
   getBool (mkSign True) @=? True
 
 mkSignTest2 :: TestTree
 mkSignTest2 =
-  testCase "getBool . mkSign False == False" $
+  testCase ("getBool . mkSign False " `equiv` " False") $
   False @=? getBool (mkSign False)
   
 posTest1 :: TestTree
 posTest1 =
-  testCase "mkSign True == pos" $
+  testCase ("mkSign True " `equiv` " pos") $
   pos @=? mkSign True
 
 negTest1 :: TestTree
 negTest1 =
-  testCase "mkSign False == neg" $
+  testCase ("mkSign False " `equiv` " neg") $
   neg @=? mkSign False
 
 {-
@@ -80,7 +79,7 @@ positive integers should all create positive signs
 -}
 mkSignFromIntegerTest1 :: TestTree
 mkSignFromIntegerTest1 =
-  testProperty "mkSignFromInteger posInteger == pos" $
+  testProperty ("mkSignFromInteger posInteger " `equiv` " pos") $
   forAll
   mkPosIntegerNonZero
   (\int -> mkSignFromInteger int === pos)
@@ -88,7 +87,7 @@ mkSignFromIntegerTest1 =
 --negative integers should create negative signs
 mkSignFromIntegerTest2 :: TestTree
 mkSignFromIntegerTest2 =
-  testProperty "mkSignFromInteger negInteger == neg" $
+  testProperty ("mkSignFromInteger negInteger " `equiv` " neg") $
   forAll
   mkNegIntegerNonZero
   (\int -> mkSignFromInteger int === neg)
@@ -115,17 +114,17 @@ mkSignFromIntegerTest4 =
 
 signToIntegerTest1 :: TestTree
 signToIntegerTest1 =
-  testCase "signToInteger (mkSign True) == 1" $
+  testCase ("signToInteger (mkSign True) " `equiv` " 1") $
   1 @=? signToInteger (mkSign True)
 
 signToIntegerTest2 :: TestTree
 signToIntegerTest2 =
-  testCase "signToInteger (mkSign False) == -1" $
+  testCase ("signToInteger (mkSign False) " `equiv` " -1") $
   (-1) @=? signToInteger (mkSign False)
 
 signToIntegerTest3 :: TestTree
 signToIntegerTest3 =
-  testProperty "mkSignFromInteger . signToInteger == id" $ property
+  testProperty ("mkSignFromInteger . signToInteger " `equiv` " id") $ property
   (\sign ->
     let val = mkSignFromInteger $ signToInteger sign
     in sign === val
@@ -133,29 +132,29 @@ signToIntegerTest3 =
 
 isPosTest1 :: TestTree
 isPosTest1 =
-  testCase "isPos $ mkSign True == True" $
+  testCase ("isPos $ mkSign True " `equiv` " True") $
   True @=? isPos (mkSign True)
 
 isPosTest2 :: TestTree
 isPosTest2 =
-  testCase "isPos $ mkSign False == False" $
+  testCase ("isPos $ mkSign False " `equiv` " False") $
   False @=? isPos (mkSign False)
 
 isNegTest1 :: TestTree
 isNegTest1 =
-  testCase "isNeg $ mkSign True == False" $
+  testCase ("isNeg $ mkSign True " `equiv` " False") $
   False @=? isNeg (mkSign True)
 
 isNegTest2 :: TestTree
 isNegTest2 =
-  testCase "isNeg $ mkSign False == True" $
+  testCase ("isNeg $ mkSign False " `equiv` " True") $
   True @=? isNeg (mkSign False)
 
 {-
 Generators and Arbitrary instances
 -}
 genSign :: Gen Sign
-genSign = liftA mkSign arbitrary
+genSign = mkSign <$> arbitrary
 
 instance Arbitrary Sign where
   arbitrary   = genSign
