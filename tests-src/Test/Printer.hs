@@ -3,7 +3,7 @@
 {-|
 Module      : Test.Printer
 Description : The Printer tests
-Copyright   : (c) Andrew Burnett 2014
+Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com
 Stability   : experimental
 Portability : Unknown

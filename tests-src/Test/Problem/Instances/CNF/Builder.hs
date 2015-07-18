@@ -14,7 +14,7 @@ This module provides tests for the CNFBuilder type
 -}
 
 module Test.Problem.Instances.CNF.Builder (
-  tests -- TestTree
+  tests -- :: TestTree
   ) where
 
 import           Control.Applicative                         (liftA2)
@@ -124,7 +124,7 @@ genIntegerOutsideRange size = oneof [
           GT -> n
           LT -> negate n
           ) <$> arbitrary,
-  choose (1+maxWord', (1+maxWord') ^ (toInteger size :: Integer))
+  choose (1+maxWord', (1+maxWord') ^ (2 + toInteger size :: Integer))
   ]
 
 

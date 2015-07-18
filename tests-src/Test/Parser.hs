@@ -1,15 +1,31 @@
+{-# LANGUAGE
+    LambdaCase
+    #-}
+
+{-|
+Module      : Test.Parser
+Description : The Parser tests
+Copyright   : (c) Andrew Burnett 2014-2015
+Maintainer  : andyburnett88@gmail.com
+Stability   : experimental
+Portability : Unknown
+
+Contains the tests for the Parser module
+-}
+
 module Test.Parser (
-  tests
+  tests -- :: TestTree
   ) where
 
-import TestUtils
-import HSat.Parser
-import HSat.Writer
-import HSat.Problem.Internal
-import HSat.Problem.Source
-import System.Directory
-import Control.Monad.Catch
-import Test.Problem ()
+import           Control.Monad         (when)
+import           HSat.Parser
+import           HSat.Problem.Internal
+import           HSat.Problem.Source
+import           HSat.Writer
+import           System.Directory
+import qualified Test.Parser.Class      as Class
+import           Test.Problem ()
+import           TestUtils
 
 name :: String
 name = "Parser"
@@ -17,6 +33,7 @@ name = "Parser"
 tests :: TestTree
 tests =
   testGroup name [
+    Class.tests,
     testGroup "fromFile" [
       fromFileTest1
       ],
@@ -25,64 +42,41 @@ tests =
       ]
     ]
 
-removeFileWithName :: FilePath -> IO ()
+removeFileWithName    :: FilePath -> IO ()
 removeFileWithName fp = do
   currentLocation <- getCurrentDirectory
   contents <- getDirectoryContents currentLocation
-  let res = filter (\f -> (removeSuffix f) == fp) contents
+  let res = filter (\f -> removeSuffix f == fp) contents
   mapM_ removeFile res
   where
-    removeSuffix :: FilePath -> FilePath
-    removeSuffix [] = []
+    removeSuffix         :: FilePath -> FilePath
+    removeSuffix []      = []
     removeSuffix ('.':_) = []
-    removeSuffix (x:xs) = x : removeSuffix xs
-
+    removeSuffix (x:xs)  = x : removeSuffix xs
         
 fromFileTest1 :: TestTree
 fromFileTest1 =
   testProperty "Write random file. Read back in" $ monadicIO $ do
-    problem <- run $ generate arbitrary
+    problem <- pick arbitrary
     let fp = "fromFileText1"
-    run $ removeFileWithName fp
-    fileLocation <- run $ plainProblemToFile problem fp
-    case fileLocation of
-     Just fileLocation' -> do
-       resultValue <-
-         run $
-         catchAll (
-           do
-             problem' <- fromFile instances fileLocation'
-             return $ problemExpr problem === problemExpr problem'
-           )
-         (\exception -> return $ counterexample ("Exception" ++ show exception) False)
-       run $ removeFile fileLocation'
-       return resultValue
-     Nothing -> return $ counterexample "Failure to write file" False
+    run $ do
+      removeFileWithName fp
+      (
+        \case
+          Just fileLocation -> ((===) (problemExpr problem) . problemExpr) <$>
+                               fromFile parserInstances fileLocation <* removeFile fileLocation
+          Nothing           -> return $ counterexample "Failure to write File" False
+        ) =<< plainProblemToFile problem fp
 
-instances :: [Parser]
-instances = error "Unwritten parser instances Test.parser"
-          
 fromFolderTest1 :: TestTree
 fromFolderTest1 =
   testProperty "Write random files. Read them all back in" $ monadicIO $ do
-    exprs <- run $ generate $ listOf arbitrary
-    let folder = "fromFolderTest1"
+    exprs <- pick $ listOf arbitrary
+    let folder   = "fromFolderTest1"
         problems = map (MkProblem mkStatic) exprs
-        file = "file"
-    alreadyExists <- run $ doesDirectoryExist folder
-    if alreadyExists then do
-      run $ putStrLn "already exists"
-      run $ removeDirectoryRecursive folder else return ()
-    result <- run $ catchAll (
-      do
-        _ <- writeFolder plainProblemToFile problems folder file
-        problems' <- fromFolder (fromFile instances) folder
-        print problems'
-        putStrLn "helping"
-        return $ listsContainSame problems problems'
-        )
-        (\exception -> return $
-                       counterexample ("Exception thrown: " ++ show exception) False)
-    run $ putStrLn "Doesn't exist"
-    run $ removeDirectoryRecursive folder
-    return result
+        file     = "file"
+    run $ do
+      flip when (removeDirectoryRecursive folder) =<< doesDirectoryExist folder
+      writeFolder plainProblemToFile problems folder file *> (
+        listContainsSame' problems <$> fromFolder (fromFile parserInstances) folder
+        ) <* removeDirectoryRecursive folder
