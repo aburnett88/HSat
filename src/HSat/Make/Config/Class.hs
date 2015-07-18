@@ -20,7 +20,7 @@ Provides the ability to create 'Config'urations for randomly generated
 -}
 
 module HSat.Make.Config.Class (
-  Config(..),
+  Config(configuration),
   Makeable(..),
   mkConfig
   ) where
@@ -39,14 +39,9 @@ This super type allows for construction of all types of 'Problem's
 class (Eq        config,  Show config   ,
        IsProblem problem, Printer config, Solution problem) =>
       Makeable config problem | config -> problem where
-  makeProblem      :: (MonadRandom m, MonadThrow m) => config -> m problem
-  makeNoErrors     :: (MonadRandom m, MonadCatch m) => config -> m (config,problem)
-  makeWithSolution :: (MonadRandom m,
-                       MonadCatch m) => config -> m (SolInstance problem, problem)
-
-{-|
-A 'Config' is a existential type that holds configurations of problems
--}
+  makeProblem      :: (MonadRandom m, MonadThrow m) =>
+                      config -> m (problem, Maybe (SolInstance problem))
+                                                                             
 data Config = forall config problem. (
   Show config, Typeable config, Makeable config problem) => Config {
   configuration :: config,
