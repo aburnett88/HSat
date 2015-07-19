@@ -38,13 +38,8 @@ some config's may not generate correct problems'. We can mitigate this, and
 generate them anyway but without them being poor
 -}
 make                                :: (MonadRandom m, MonadThrow m, MonadCatch m) =>
-                                       Config -> Bool -> m Problem
-make config@Config{..} ignoreErrors = do
-  problemExpr <-
-    if ignoreErrors then
-      snd <$> makeNoErrors configuration else
-      makeProblem configuration
-  return $ MkProblem (mkMakeConfig config) (ProblemExpr problemExpr)
+                                       Config -> m Problem
+make Config(c _) = _
 
 {-|
 Creates a list of 'Problem's from a given 'Config' and the number required.
@@ -53,4 +48,4 @@ Config is generated
 -}
 makeList               :: (MonadRandom m, MonadThrow m, MonadCatch m) =>
                           Int -> Config -> m [Problem]
-makeList number config = replicateM number (make config True)
+makeList number config = replicateM number (make config)
