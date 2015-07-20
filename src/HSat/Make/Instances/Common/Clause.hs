@@ -17,6 +17,7 @@ import Control.Monad.Random
 import Control.Monad.State
 import HSat.Make.Instances.Common.Literal
 import HSat.Problem.Instances.Common
+import Control.Monad.Catch
 
 {-|
 Given a 'LiteralPredicate', a 'Word' denoting the size of the 'Clause',
@@ -24,35 +25,27 @@ this returns a tuple of a 'Bool' and a 'Clause' in a 'LiteralMake' area
 
 The Bool denotes whether all the 'Literal's generated will evaluate to 'True'
 -}
-makeClause                :: (MonadRandom m) =>
-                             LiteralPredicate -> Word ->
+makeClause                :: (MonadRandom m, MonadThrow m) =>
+                             Bool -> Word ->
                              LiteralMake m (Bool,Clause)
 makeClause predicate size = do
   clause <- (case predicate of
-    Any -> makeClauseOneTrue
-    All -> makeClauseAllTrue
-    None -> makeClauseUndefined)
+              True -> makeClauseOneTrue
+              False -> makeClauseUndefined)
             size emptyClause
   hasGeneratedTrue <- gets getHasGeneratedTrue
   let allTrue = hasGeneratedTrue == size
   reset
   return (allTrue,clause)
 
-makeClauseAllTrue     :: (MonadRandom m) => Word -> Clause ->
-                         LiteralMake m Clause
-makeClauseAllTrue 0 c = return c
-makeClauseAllTrue n c = do
-  l <- getTrueLiteral
-  makeClauseAllTrue (n-1) (clauseAddLiteral c l)
-
-makeClauseUndefined     :: (MonadRandom m) => Word -> Clause ->
+makeClauseUndefined     :: (MonadRandom m, MonadThrow m) => Word -> Clause ->
                            LiteralMake m Clause
 makeClauseUndefined 0 c = return c
 makeClauseUndefined n c = do
   l <- getRandomLiteral
   makeClauseUndefined (n-1) (clauseAddLiteral c l)
 
-makeClauseOneTrue     :: (MonadRandom m) => Word -> Clause ->
+makeClauseOneTrue     :: (MonadRandom m, MonadThrow m) => Word -> Clause ->
                          LiteralMake m Clause
 makeClauseOneTrue 0 c = return c
 makeClauseOneTrue 1 c = do

@@ -19,3 +19,5 @@ instance Arbitrary Config where
     liftA2 Config (sized genCNFConfig) (return Nothing)
     ]
   shrink _ = []
+
+

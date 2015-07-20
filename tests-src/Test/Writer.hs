@@ -49,11 +49,11 @@ plainProblemToFileTest1 =
        problem' <- run $ fromFile parserInstances fileLocation
        let gottenProblem = MkProblem mkStatic (problemExpr problem')
        --Now it gets messy... first check to see if original is equal to filetype returned
-       if gottenProblem == problem then
+       (if gottenProblem == problem then
          return $ counterexample "" True else do
            --If not, turn the original to a CNF. Check this against the file returned. 
            let cnfExpr =  convertToCNF . problemExpr $ problem'
-           return $ counterexample "Problems not the same" (cnfExpr === expectedExpr)
+           return $ counterexample "Problems not the same" (cnfExpr === expectedExpr)) <* (run $ removeFile fileLocation)
   where
     convertToCNF :: ProblemExpr -> ProblemExpr
     convertToCNF = undefined

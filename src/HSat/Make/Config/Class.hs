@@ -20,7 +20,7 @@ Provides the ability to create 'Config'urations for randomly generated
 -}
 
 module HSat.Make.Config.Class (
-  Config(configuration),
+  Config(..),
   Makeable(..),
   mkConfig
   ) where

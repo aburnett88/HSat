@@ -1,7 +1,9 @@
 {-# LANGUAGE
     LambdaCase               ,
     ExistentialQuantification,
-    RecordWildCards
+    RecordWildCards          ,
+    ScopedTypeVariables      ,
+    MonoLocalBinds
     #-}
 
 {-|
@@ -21,6 +23,8 @@ module HSat.Make (
   make,     -- :: (MonadRandom m, MonadThrow m, MonadCatch m) => Config -> Bool -> m Problem
   makeList, -- :: (MonadRandom m, MonadThrow m, MonadCatch m) => Int -> Config -> m [Problem]
   Config(..),
+  MakeException(..),
+  MakeableException(..),
   ) where
 
 import Control.Monad                  (replicateM)
@@ -39,13 +43,40 @@ generate them anyway but without them being poor
 -}
 make                                :: (MonadRandom m, MonadThrow m, MonadCatch m) =>
                                        Config -> m Problem
-make Config(c _) = _
+make config@Config{..} =
+  MkProblem (mkMakeConfig config) . ProblemExpr . fst <$> makeProblem configuration
 
 {-|
 Creates a list of 'Problem's from a given 'Config' and the number required.
 We ignore any errors and, if the Config is invalid, then the closest valid
 Config is generated
 -}
-makeList               :: (MonadRandom m, MonadThrow m, MonadCatch m) =>
-                          Int -> Config -> m [Problem]
-makeList number config = replicateM number (make config)
+makeList                       :: (MonadRandom m, MonadThrow m, MonadCatch m) =>
+                                  Int -> Int -> Config -> m [Problem]
+makeList number retries config = replicateM number $ makeRetries retries retries config
+  where
+
+makeRetries :: (MonadRandom m, MonadThrow m, MonadCatch m) => Int -> Int -> Config -> m Problem
+makeRetries 0 retries _ = throwM $ RetriesException retries
+makeRetries n retries config =
+  catch (make config) ((\e -> do
+                           let _ = e :: MakeException
+                           makeRetries (n-1) retries config))
+          
+
+data RetriesException =
+  RetriesException Int
+  deriving (Show,Eq)
+
+instance Exception RetriesException
+
+class MakeableException a where
+  m :: a -> String
+
+data MakeException = forall exception. (MakeableException exception, Exception exception, Show exception) =>
+                     MakeException exception
+
+instance Show MakeException where
+  show _ = ""
+
+instance Exception MakeException

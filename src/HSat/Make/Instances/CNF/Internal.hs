@@ -22,18 +22,19 @@ module HSat.Make.Instances.CNF.Internal (
   ClauseSizeNumber,
   VariableNumber  ,
   mkCNFInit       , -- :: (MonadRandom m) => CNFConfig -> m CNFInit
-  mkCNFInit'      , -- :: (MonadRandom m) => CNFConfig -> m (CNFConfig,CNFInit)
   mkCNF           , -- :: (MonadRandom m, MonadThrow m) => CNFInit -> m CNF
-  mkCNF'          , -- :: (MonadRandom m, MonadCatch m) => CNFInit -> m CNF
   ) where
 
 import Control.Monad                 (replicateM)
 import Control.Monad.Catch
 import Control.Monad.Random
 import HSat.Make.Common
-import HSat.Printer
+import HSat.Printer hiding ((<$>))
 import HSat.Problem.Instances.CNF
-import HSat.Problem.Instances.Common
+import HSat.Solution.Instances.CNF
+import Control.Monad.Trans.State
+import HSat.Make.Instances.Common.Literal
+import HSat.Make.Instances.Common.Clauses
 
 {-|
 CNFInit is a data type that is created that initialises a CNF data type
@@ -56,6 +57,7 @@ type within the bounds set out by the 'CNFConfig' type.
 mkCNFInit                  :: (MonadRandom m) => CNFConfig -> m CNFInit
 mkCNFInit (CNFConfig {..}) = do
   numbClauses    <- evalBounded getClauseSizeBounds
+  -- The only point of failure
   numbVariables  <- evalVariableNumber numbClauses getVariableBounds
   sizesOfClauses <- replicateM
                       (fromEnum numbClauses) $
@@ -65,34 +67,19 @@ mkCNFInit (CNFConfig {..}) = do
     getVarsCanAppearTwice getDefinitelyHasSolution
 
 evalVariableNumber     :: (MonadRandom m) => Word -> VariableNumber -> m Word
-evalVariableNumber x _ = return x
-
-{-|
-Takes a 'CNFConfig' and creates a 'CNFInit' with a potentially new 'CNFConfig' if there
-were errors in it
--}
-mkCNFInit'   :: (MonadRandom m) => CNFConfig -> m (CNFConfig,CNFInit)
-mkCNFInit' c = do
-  initial <- mkCNFInit c
-  return (c,initial)
+evalVariableNumber x (Left b) =
+  (round . (*) (fromIntegral x) . getDouble) <$> evalBounded b
+evalVariableNumber _ (Right r) = evalBounded r
 
 {-|
 Takes a 'CNFInit' and creates the 'CNF' from it, or throws an error
 if it is ill formed
 -}
-mkCNF   :: (MonadRandom m, MonadThrow m) => CNFInit -> m CNF
-mkCNF _ = return $ mkCNFFromClauses emptyClauses
-
-{-|
-Will throw a run-time error if there are any errors
--}
-mkCNF'         :: (MonadRandom m, MonadCatch m) => CNFInit -> m CNF
-mkCNF' initial =
-  catch (mkCNF initial)
-    (\exception ->
-      case exception of
-       CNFMakeError -> error "")
-
+mkCNF   :: (MonadRandom m, MonadThrow m) => CNFInit -> m (CNF, Maybe BoolSolution)
+mkCNF CNFInit{..} = do
+  literalSet <- mkLiteralSet getSetMaxVar getVarsCanAppearTwice'
+  (a,s) <- runStateT (makeClauses getSizes getWillBeSolvable) literalSet
+  return $ (mkCNFFromClauses a, if getWillBeSolvable then Just $ getTrueSet s else Nothing)
 
 {-|
 A sum-type that describes the types of errors that can be made
