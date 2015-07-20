@@ -55,27 +55,6 @@ testMaxClauseSize = 100
 testMaxClausesSize :: Int
 testMaxClausesSize = 100
 
-genBounds :: (Ord a, Bounded a) => Gen a -> Gen (Bounds a)
-genBounds f =
-  oneof [
-    return mkNoBounds,
-    mkMinimum `liftA` f,
-    mkMaximum `liftA` f,
-    mkExact `liftA` f,
-    liftA2 mkBounds f f
-    ]
-
-
-
-instance (Arbitrary a, Ord a, Bounded a) => Arbitrary (Bounds a) where
-  arbitrary = genBounds arbitrary
-  shrink _ = []
-
-instance Arbitrary PosDouble where
-  arbitrary = choose (minBound,maxBound)
-  shrink d =
-    map mkPosDouble . filter (>0.0) $ shrink . getDouble $ d
-
 --Makes sure that the choice is within the bounds of Word so as not to throw
 -- errors
 
