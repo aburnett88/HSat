@@ -1,3 +1,7 @@
+{-# LANGUAGE
+    RecordWildCards
+    #-}
+
 {-|
 Module      : HSat.Problem.Instances.CNF
 Description : The CNF data type
@@ -20,7 +24,7 @@ module HSat.Problem.Instances.CNF (
   mkCNFFromClauses ,  -- :: Clauses -> CNF
   -- * Integer Constructors
   cnfToIntegers    , -- :: CNF -> [[Integer]]
-  mkCNFFromIntegers  -- :: [[Integer]] -> CNF
+  mkCNFFromIntegers, -- :: [[Integer]] -> CNF
   ) where
 
 import HSat.Problem.Instances.CNF.Internal
@@ -53,5 +57,4 @@ instance IsProblem CNF where
   getWriter p = Just ("cnf",toText p)
   fromCNF     = id
   toCNF       = id
-
   

@@ -26,6 +26,7 @@ module TestUtils (
   listContainsSame',
   listContainsSame'2',
   equiv              ,
+  checkBounds
   ) where
 
 import qualified Control.Exception as E (catch)

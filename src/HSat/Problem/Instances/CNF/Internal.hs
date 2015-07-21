@@ -15,12 +15,14 @@ This module provides the 'CNF' internal representation
 -}
 
 module HSat.Problem.Instances.CNF.Internal (
-  CNF(..)
+  CNF(..)       ,
+  getClauseSizes, -- :: CNF -> [Word]
   ) where
 
 import HSat.Printer
 import HSat.Problem.Instances.Common
 import HSat.Problem.Instances.Common.Clauses.Internal (printClausesWithContext)
+import Data.Vector as V (map,toList)
 
 {-|
 The Conjunctive Normal Form type. It is much like a 'Clauses'
@@ -76,3 +78,6 @@ docCNF pType CNF{..} =
       NoUnicode ->
         printClausesWithContext noUnicodeAnd noUnicodeOr getMaxVar noUnicode getClauses
       Unicode -> printClausesWithContext unicodeAnd unicodeOr getMaxVar unicode getClauses
+
+getClauseSizes :: CNF -> [Word]
+getClauseSizes CNF{..} = V.toList . V.map getSizeClause . getVectClause $ getClauses
