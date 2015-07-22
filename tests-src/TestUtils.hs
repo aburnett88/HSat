@@ -26,7 +26,8 @@ module TestUtils (
   listContainsSame',
   listContainsSame'2',
   equiv              ,
-  checkBounds
+  checkBounds        ,
+  listProperty
   ) where
 
 import qualified Control.Exception as E (catch)
@@ -160,3 +161,11 @@ listContainsSame' (x:xs) ys =
     listContainsSame' xs (delete x ys) else
     False
 listContainsSame' _ _ = False
+
+listProperty        :: (a -> Property) -> [a] -> Property
+listProperty f list = listProperty' list 0
+  where
+    listProperty' [] _ = property True
+    listProperty' (x:xs) i =
+      counterexample ("Failure on element " ++ show i) (f x) .&&.
+      listProperty' xs ( (i+1) :: Int)

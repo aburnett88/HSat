@@ -17,20 +17,22 @@ this stage.
 module HSat.Problem.Instances.Common.Clause (
   -- * Data Type
   Clause,
-  getSizeClause,       -- :: Clause -> Word
-  getVectLiteral,      -- :: Clause -> Vector Literal
+  getSizeClause            ,-- :: Clause -> Word
+  getVectLiteral           ,-- :: Clause -> Vector Literal
   -- * Construction
-  mkClause,            -- :: Vector Literal -> Clause
-  emptyClause,         -- :: Clause
-  mkClauseFromLits,    -- :: [Literal] -> Clause
-  mkClauseFromIntegers,-- :: [Integer] -> Clause
-  clauseAddLiteral,    -- :: Clause -> Literal -> Clause
+  mkClause                 ,-- :: Vector Literal -> Clause
+  emptyClause              ,-- :: Clause
+  mkClauseFromLits         ,-- :: [Literal] -> Clause
+  mkClauseFromIntegers     ,-- :: [Integer] -> Clause
+  clauseAddLiteral         ,-- :: Clause -> Literal -> Clause
   -- * Conversions
-  clauseToIntegers,    -- :: Clause -> [Integer]
+  clauseToIntegers         ,-- :: Clause -> [Integer]
   -- * Tests
-  clauseIsEmpty        -- :: Clause -> Bool
+  clauseIsEmpty            ,-- :: Clause -> Bool
+  clauseContainsUniqueVars ,-- :: Clause -> Bool 
   ) where
 
+import qualified Data.Set                                      as S
 import           Data.Vector                                   (Vector)
 import qualified Data.Vector                                   as V
 import           HSat.Problem.Instances.Common.Clause.Internal
@@ -85,3 +87,9 @@ Tests whether a 'Clause' is empty
 clauseIsEmpty              :: Clause -> Bool
 clauseIsEmpty (Clause _ 0) = True
 clauseIsEmpty _            = False
+
+clauseContainsUniqueVars    :: Clause -> Bool
+clauseContainsUniqueVars cl =
+  let set  = S.fromList . V.toList $ vect
+      vect = V.map getVariable $ getVectLiteral cl
+  in S.size set == V.length vect

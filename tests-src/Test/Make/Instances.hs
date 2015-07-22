@@ -3,10 +3,13 @@ module Test.Make.Instances (
   ) where
 
 import TestUtils
+import qualified Test.Make.Instances.CNF as CNF
 
 name :: String
 name = "Instances"
 
 tests :: TestTree
 tests =
-  testGroup name []
+  testGroup name [
+    CNF.tests
+    ]

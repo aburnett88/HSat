@@ -139,3 +139,6 @@ instance Random PosDouble where
 
 instance Ord PosDouble where
   compare (PosDouble l) (PosDouble r) = compare l r
+
+instance Functor Bounds where
+  fmap f (Bounds a b) = Bounds (f a) (f b)

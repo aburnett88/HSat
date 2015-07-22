@@ -13,6 +13,8 @@ import HSat.Make.Common
 import HSat.Problem.Instances.CNF.Internal
 import HSat.Solution.Instances.CNF
 import Data.Maybe (fromJust)
+import HSat.Problem.Instances.Common
+import qualified Data.Vector as V
 
 name :: String
 name = "CNF"
@@ -34,21 +36,30 @@ makeCNFTest1 =
 
 appropriateCNFToConfig :: CNF -> Maybe BoolSolution -> CNFConfig -> Property
 appropriateCNFToConfig cnf@CNF{..} boolSol CNFConfig{..} =
-  let _ = 2
-  in checkBounds getClauseNumb getClauseSizeBounds .&&.
-     propList (flip checkBounds getClauseSizeBounds) (getClauseSizes cnf) .&&.
-     if (not getVarsCanAppearTwice) then
-       checkDuplicateVariables cnf else
-       property True .&&.
-       checkBounds getMaxVar (case getVariableBounds of
-                               Right set -> set
-                               Left double -> _ getClauseNumb double) .&&.
-       if getDefinitelyHasSolution then
-         property $ checkCNFSolution cnf (fromJust boolSol) else
-         property True
+  checkBounds getClauseNumb getClauseSizeBounds .&&.
+  propList (flip checkBounds getClauseSizeBounds) (getClauseSizes cnf) .&&.
+  if (not getVarsCanAppearTwice) then
+    checkDuplicateVariables cnf else
+    property True .&&.
+    checkBounds getMaxVar (case getVariableBounds of
+                            Right set -> set
+                            Left double -> f getClauseNumb double) .&&.
+    if getDefinitelyHasSolution then
+      property $ checkCNFSolution cnf (fromJust boolSol) else
+      property True
+  where
+    f :: Word -> Bounds PosDouble -> Bounds Word
+    f w b =
+      let w' = fromRational . toRational $ w :: Double
+      in fmap (round . (*) w' . getDouble) b    
 
 checkDuplicateVariables :: CNF -> Property
-checkDuplicateVariables = _
+checkDuplicateVariables CNF{..} =
+  listProperty (
+    \clause ->
+    counterexample ("Clause " ++ show clause ++ " contains duplicate variables")
+    (not $ clauseContainsUniqueVars clause)
+    ) $  V.toList . getVectClause $ getClauses
 
 instance Arbitrary CNFConfig where
   arbitrary = sized genCNFConfig
