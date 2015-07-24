@@ -21,10 +21,9 @@ to be created
 module HSat.Make (
   -- * Make
   make,     -- :: (MonadRandom m, MonadThrow m, MonadCatch m) => Config -> Bool -> m Problem
-  makeList, -- :: (MonadRandom m, MonadThrow m, MonadCatch m) => Int -> Config -> m [Problem]
+  makeList, -- :: (MonadRandom m, MonadThrow m, MonadCatch m) => Int -> Int -> Config -> m [Problem]
   Config(..),
   MakeException(..),
-  MakeableException(..),
   ) where
 
 import Control.Monad                  (replicateM)
@@ -56,13 +55,14 @@ makeList                       :: (MonadRandom m, MonadThrow m, MonadCatch m) =>
 makeList number retries config = replicateM number $ makeRetries retries retries config
   where
 
-makeRetries :: (MonadRandom m, MonadThrow m, MonadCatch m) => Int -> Int -> Config -> m Problem
-makeRetries 0 retries _ = throwM $ RetriesException retries
+makeRetries             :: (MonadRandom m, MonadThrow m, MonadCatch m) => Int -> Int -> Config -> m Problem
+makeRetries 0 retries _      = throwM $ RetriesException retries
 makeRetries n retries config =
-  catch (make config) ((\e -> do
-                           let _ = e :: MakeException
-                           makeRetries (n-1) retries config))
-          
+  catch (make config) (
+    (\e -> do
+        let _ = e :: MakeException
+        makeRetries (n-1) retries config)
+    )     
 
 data RetriesException =
   RetriesException Int
@@ -70,13 +70,3 @@ data RetriesException =
 
 instance Exception RetriesException
 
-class MakeableException a where
-  m :: a -> String
-
-data MakeException = forall exception. (MakeableException exception, Exception exception, Show exception) =>
-                     MakeException exception
-
-instance Show MakeException where
-  show _ = ""
-
-instance Exception MakeException

@@ -51,6 +51,22 @@ data CNFInit = CNFInit {
   } deriving (Eq,Show)
 
 {-|
+The CNFConfig type represents Conjunctive Normal Form Problems
+-}
+data CNFConfig = CNFConfig {
+  -- | The number of clauses
+  getClauseSizeBounds :: ClauseNumber,
+  -- | The number of Variables
+  getVariableBounds   :: VariableNumber,
+  -- | The sizes of the Clauses
+  getClauseSizesBounds :: ClauseSizeNumber,
+  -- | Denotes whether Variable's can appear more than once in a clause
+  getVarsCanAppearTwice :: Bool,
+  -- | Denotes whether the problem definitely has at least one solution
+  getDefinitelyHasSolution :: Bool
+  } deriving (Eq,Show)
+
+{-|
 Takes a 'CNFConfig' and, in a 'Random' context, creates a 'CNFInit' data
 type within the bounds set out by the 'CNFConfig' type.
 -}
@@ -107,21 +123,7 @@ A positive number
 type ClauseSizeNumber = Bounds Word
 
 
-{-|
-The CNFConfig type represents Conjunctive Normal Form Problems
--}
-data CNFConfig = CNFConfig {
-  -- | The number of clauses
-  getClauseSizeBounds :: ClauseNumber,
-  -- | The number of Variables
-  getVariableBounds   :: VariableNumber,
-  -- | The sizes of the Clauses
-  getClauseSizesBounds :: ClauseSizeNumber,
-  -- | Denotes whether Variable's can appear more than once in a clause
-  getVarsCanAppearTwice :: Bool,
-  -- | Denotes whether the problem definitely has at least one solution
-  getDefinitelyHasSolution :: Bool
-  } deriving (Eq,Show)
+
 
 instance Printer CNFConfig where
   compact (CNFConfig a b c d e) =

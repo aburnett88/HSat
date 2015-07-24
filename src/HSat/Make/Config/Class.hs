@@ -22,7 +22,8 @@ Provides the ability to create 'Config'urations for randomly generated
 module HSat.Make.Config.Class (
   Config(..),
   Makeable(..),
-  mkConfig
+  mkConfig,
+  MakeException(..)
   ) where
 
 import Control.Monad.Catch
@@ -47,6 +48,7 @@ data Config = forall config problem. (
   configuration :: config,
   hasProblem    :: Maybe problem
   }
+
 
 {-|
 A simple way to make a config
@@ -81,3 +83,11 @@ printerConfig pType Config{..} =
       ) <> colon
     configDoc  :: Doc
     configDoc  = pTypeToDoc pType configuration
+
+data MakeException = forall exception. (Exception exception) =>
+                     MakeException exception
+
+instance Show MakeException where
+  show _ = ""
+
+instance Exception MakeException

@@ -1,4 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE
+    OverloadedStrings
+    #-}
 
 {-|
 Module      : Test.Printer
@@ -12,11 +14,11 @@ Contains the tests for the Printer type.
 -}
 
 module Test.Printer (
-  tests
+  tests -- :: TestTree
   ) where
 
-import TestUtils
 import HSat.Printer
+import TestUtils
 
 name :: String
 name = "Printer"
@@ -45,5 +47,5 @@ errorDocTest1 =
           NoUnicode -> "Error" <> colon <+> doc
           Unicode   -> red $ "Error" <> colon <+> doc
         gotten = errorDoc printerType doc
-    in (show exptd) === (show gotten) --need to show as no Eq constraint
+    in show exptd ===  show gotten --need to show as no Eq constraint
   )
