@@ -22,6 +22,9 @@ module Test.Make.Instances.CNF.Internal (
 import TestUtils
 import HSat.Make.Instances.CNF.Internal
 import HSat.Make.Common
+import Control.Applicative
+import Control.Monad.Catch
+import HSat.Make.Config.Class
 
 name :: String
 name = "Internal"
@@ -42,20 +45,28 @@ mkCNFInitTest1 =
   testProperty "mkCNFInit returns values within bounds" $ monadicIO $ do
     config@CNFConfig{..} <- pick arbitrary
     CNFInit{..} <- run $ mkCNFInit config
-    return $ (
-      getWillBeSolvable === getDefinitelyHasSolution                                 .&&.
-      getVarsCanAppearTwice' === getVarsCanAppearTwice                               .&&.
-      checkBoundsVariables getSetMaxVar (toEnum $ length getSizes) getVariableBounds .&&.
-      checkBounds (toEnum $ length getSizes) getClauseSizeBounds                     .&&.
-      listProperty (`checkBounds` getClauseSizesBounds) getSizes
-      )
+    let prop = 
+          getWillBeSolvable ===  getWillBeSolvable                                       .&&.
+          getVarsCanAppearTwice' === getVarsCanAppearTwice                               .&&.
+          checkBoundsVariables getSetMaxVar (toEnum $ length getSizes) getVariableBounds .&&.
+          checkBounds (toEnum $ length getSizes) getClauseSizeBounds                     .&&.
+          listProperty (`checkBounds` getClauseSizesBounds) getSizes
+    stop prop
 
 mkCNFTest1 :: TestTree
 mkCNFTest1 =
   testProperty "mkCNF returns CNF that is correct according to argument" $ monadicIO $ do
     cnfInit <- pick arbitrary
-    (cnf,boolSol) <- run $ mkCNF cnfInit
-    return $ counterexample "Test not written yet" ((cnf /= cnf) && (boolSol /= boolSol))
+    ls <- run $ catch (
+      do
+        _ <- mkCNF cnfInit
+        return $ counterexample "help" False
+      )
+      (\exception ->
+        let _ = show (exception :: MakeException)
+        in return $ counterexample "Unexpected exception thrown" False
+      )
+    stop ls
   
 checkBoundsVariables :: Word -> Word -> VariableNumber -> Property
 checkBoundsVariables maxVar w vn =
@@ -69,8 +80,23 @@ checkBoundsVariables maxVar w vn =
       in fmap (round . (*) w' . getDouble) b
 
 instance Arbitrary CNFInit where
-  arbitrary = undefined
+  arbitrary = sized genCNFInit
   shrink _ = []
+
+genCNFInit :: Int -> Gen CNFInit
+genCNFInit i = do
+  varsAppearTwice <- arbitrary
+  (maxVar,sizes) <- if varsAppearTwice then
+                      liftA2 (,) (word 1) (listOf $ word 0) else do
+                        sizes <- listOf $ word 0
+                        maxVar <- if null sizes then word 1 else choose (maximum sizes, maximum sizes + (toEnum i))
+                        return (maxVar,sizes)
+  willBeSolvable <- arbitrary
+  return $ CNFInit maxVar sizes varsAppearTwice willBeSolvable
+  where
+    word        :: Word -> Gen Word
+    word offSet = (+) offSet . toEnum <$> choose (0,i)
+  
 
 instance Arbitrary CNFConfig where
   arbitrary = sized genCNFConfig

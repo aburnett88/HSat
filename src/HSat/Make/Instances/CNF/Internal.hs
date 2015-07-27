@@ -91,7 +91,7 @@ evalVariableNumber _ (Right r) = evalBounded r
 Takes a 'CNFInit' and creates the 'CNF' from it, or throws an error
 if it is ill formed
 -}
-mkCNF   :: (MonadRandom m, MonadThrow m) => CNFInit -> m (CNF, Maybe BoolSolution)
+mkCNF             :: (MonadRandom m, MonadThrow m) => CNFInit -> m (CNF, Maybe BoolSolution)
 mkCNF CNFInit{..} = do
   literalSet <- mkLiteralSet getSetMaxVar getVarsCanAppearTwice'
   (a,s) <- runStateT (makeClauses getSizes getWillBeSolvable) literalSet
