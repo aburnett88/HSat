@@ -56,7 +56,7 @@ makeTest1 =
   testProperty "make configuration is valid" $ monadicIO $ do
     config <- pick (sized genNoErrorsConfig)
     problem <- run $ make config
-    return $ meetsConfigCriteria problem config
+    stop $ meetsConfigCriteria problem config
 
 meetsConfigCriteria                    :: Problem -> Config -> Property
 meetsConfigCriteria problem Config{..} =
@@ -75,7 +75,7 @@ makeListTest1 =
     size        <- pick arbitrary
     let retries = 20
     problems    <- run $ makeList size retries config
-    return $ testProblemsAndConfig problems config
+    stop $ testProblemsAndConfig problems config
     where
       testProblemsAndConfig          :: [Problem] -> Config -> Property
       testProblemsAndConfig [] _     = property True

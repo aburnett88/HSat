@@ -25,16 +25,16 @@ module HSat.Make.Instances.CNF.Internal (
   mkCNF           , -- :: (MonadRandom m, MonadThrow m) => CNFInit -> m CNF
   ) where
 
-import Control.Monad                 (replicateM)
+import Control.Monad                      (replicateM)
 import Control.Monad.Catch
 import Control.Monad.Random
 import HSat.Make.Common
-import HSat.Printer hiding ((<$>))
+import HSat.Printer                       hiding ((<$>))
+import HSat.Make.Instances.Common.Clauses
+import HSat.Make.Instances.Common.Literal
 import HSat.Problem.Instances.CNF
 import HSat.Solution.Instances.CNF
 import Control.Monad.Trans.State
-import HSat.Make.Instances.Common.Literal
-import HSat.Make.Instances.Common.Clauses
 
 {-|
 CNFInit is a data type that is created that initialises a CNF data type

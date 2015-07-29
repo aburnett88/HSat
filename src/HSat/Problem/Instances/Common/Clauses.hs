@@ -152,3 +152,5 @@ getSetNeg =
        S.insert getVariable set else
        set
     ) S.empty
+
+

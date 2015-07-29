@@ -59,7 +59,7 @@ fromFileTest1 =
   testProperty "Write random file. Read back in" $ monadicIO $ do
     problem <- pick arbitrary
     let fp = "fromFileText1"
-    run $ do
+    test <- run $ do
       removeFileWithName fp
       (
         \case
@@ -67,7 +67,8 @@ fromFileTest1 =
                                fromFile parserInstances fileLocation <* removeFile fileLocation
           Nothing           -> return $ counterexample "Failure to write File" False
         ) =<< plainProblemToFile problem fp
-
+    stop test
+        
 fromFolderTest1 :: TestTree
 fromFolderTest1 =
   testProperty "Write random files. Read them all back in" $ monadicIO $ do
@@ -75,8 +76,9 @@ fromFolderTest1 =
     let folder   = "fromFolderTest1"
         problems = map (MkProblem mkStatic) exprs
         file     = "file"
-    run $ do
+    test <- run $ do
       flip when (removeDirectoryRecursive folder) =<< doesDirectoryExist folder
       writeFolder plainProblemToFile problems folder file *> (
-        listContainsSame' problems <$> fromFolder (fromFile parserInstances) folder
-        ) <* removeDirectoryRecursive folder
+        listsContainSame (map problemExpr problems) . map problemExpr <$> (fromFolder (fromFile parserInstances) folder
+        )) <* removeDirectoryRecursive folder
+    stop test

@@ -16,18 +16,7 @@ import qualified Data.Vector as V
 import qualified Data.Set as S
 import Data.Set (Set)
 
-name :: String
-name = "Clause"
 
-tests :: TestTree
-tests =
-  testGroup name [
-    testGroup "makeClause" [
-       makeClauseTest1,
-       makeClauseTest2,
-       makeClauseTest3
-       ]
-    ]
 
 sss :: IO (Bool,LiteralSet,Word)
 sss = do

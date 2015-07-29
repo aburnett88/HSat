@@ -20,6 +20,7 @@ module HSat.Solution.Instances.CNF (
   BoolSolution(..),
   mkTrueSet       , -- :: (MonadRandom m) => Word -> BoolSolution
   lookup          , -- :: Variable -> BoolSolution -> Maybe Sign
+  varsEvalToTrue  ,-- :: Clause -> BoolSolution -> Word
   ) where
 
 import Prelude hiding (lookup)
@@ -62,3 +63,7 @@ mkTrueSet w = do
 
 lookup :: Variable -> BoolSolution -> Maybe Sign
 lookup w b = M.lookup w $ solution b
+
+
+varsEvalToTrue            :: Clause -> BoolSolution -> Word
+varsEvalToTrue cl boolSol = error ("Clause/varsEvalToTrue not written" ++ show boolSol ++ show cl)

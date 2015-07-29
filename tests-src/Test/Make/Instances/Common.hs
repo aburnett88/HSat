@@ -14,6 +14,8 @@ module Test.Make.Instances.Common (
   ) where
 
 import TestUtils
+import qualified Test.Make.Instances.Common.Literal as Literal
+import qualified Test.Make.Instances.Common.Clause as Clause
 
 name :: String
 name = "Common"
@@ -21,4 +23,6 @@ name = "Common"
 tests :: TestTree
 tests =
   testGroup name [
+    Literal.tests,
+    Clause.tests
     ]

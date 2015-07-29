@@ -29,14 +29,14 @@ module HSat.Make.Instances.Common.Literal (
   LiteralMakeError(..),
   ) where
 
-import Prelude hiding (lookup)
+import           Prelude                       hiding (lookup)
+import           Control.Monad.Catch
 import           Control.Monad.Random
 import           Control.Monad.State
 import           Data.Set                      (Set)
 import qualified Data.Set                      as S
 import           HSat.Problem.Instances.Common
-import Control.Monad.Catch
-import HSat.Solution.Instances.CNF
+import           HSat.Solution.Instances.CNF
 
 {-|
 Provides a context that allows 'Literal's to be created randomly relative to certain

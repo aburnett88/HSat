@@ -27,7 +27,8 @@ module TestUtils (
   listContainsSame'2',
   equiv              ,
   checkBounds        ,
-  listProperty
+  listProperty,
+  isSame,
   ) where
 
 import qualified Control.Exception as E (catch)
@@ -140,7 +141,7 @@ listsContainSame [] [] = property True
 listsContainSame (x:xs) ys =
   if x `elem` ys then
     listsContainSame xs (delete x ys) else
-    counterexample ("Second list does not contain element" ++ show x) False
+    counterexample ("Second list does not contain element: " ++ show x ++ (show ys)) False
 listsContainSame a b =
   counterexample ("Lists inconsistant" ++ show a ++ show b) False
 
@@ -169,3 +170,8 @@ listProperty f list = listProperty' list 0
     listProperty' (x:xs) i =
       counterexample ("Failure on element " ++ show i) (f x) .&&.
       listProperty' xs ( (i+1) :: Int)
+
+isSame :: [Word] -> [Word] -> Property
+isSame [] [] = property True
+isSame (x:xs) (y:ys) = x === y .&&. isSame xs ys
+isSame _ _ = error "not done"

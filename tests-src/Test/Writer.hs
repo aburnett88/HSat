@@ -52,7 +52,7 @@ plainProblemToFileTest1 =
     let files'   = filter (\f -> stripSuffix f == fileName) files
     run $ mapM_ removeFile files'
     fileWritten  <- run $ plainProblemToFile problem fileName
-    case fileWritten of
+    test <- case fileWritten of
      Nothing -> return $ counterexample "File unable to be written" False
      Just fileLocation -> do
        problem' <- run $ fromFile parserInstances fileLocation
@@ -64,6 +64,7 @@ plainProblemToFileTest1 =
            --If not, turn the original to a CNF. Check this against the file returned. 
            let cnfExpr =  convertToCNF . problemExpr $ problem'
            return $ counterexample "Problems not the same" (cnfExpr === expectedExpr)
+    stop test
   where
     convertToCNF :: ProblemExpr -> ProblemExpr
     convertToCNF (ProblemExpr e) = ProblemExpr . toCNF $ e
@@ -76,7 +77,7 @@ writeFolderTest1 =
     problemExprs <- pick arbitrary
     let problems = map (MkProblem mkStatic) problemExprs
     fileNames    <- run $ writeFolder plainProblemToFile problems folder file
-    case compare (length fileNames) (length problems) of
+    test <- case compare (length fileNames) (length problems) of
      EQ -> run $ do
        returnProblems    <- fromFolder (fromFile parserInstances) folder
        removeDirectoryRecursive folder
@@ -85,3 +86,4 @@ writeFolderTest1 =
      _ -> do
        run $ removeDirectoryRecursive folder
        return $ counterexample "Number of files generated not correct" False
+    stop test

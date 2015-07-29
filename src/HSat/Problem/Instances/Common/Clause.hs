@@ -29,7 +29,7 @@ module HSat.Problem.Instances.Common.Clause (
   clauseToIntegers         ,-- :: Clause -> [Integer]
   -- * Tests
   clauseIsEmpty            ,-- :: Clause -> Bool
-  clauseContainsUniqueVars ,-- :: Clause -> Bool 
+  clauseContainsUniqueVars ,-- :: Clause -> Bool
   ) where
 
 import qualified Data.Set                                      as S

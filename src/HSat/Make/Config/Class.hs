@@ -8,7 +8,7 @@
   #-}
 
 {-|
-Module      : HSat.Make.Config
+Module      : HSat.Make.Config.Class
 Description : The Config module
 Copyright   : (c) Andrew Burnett 2014-2015
 Maintainer  : andyburnett88@gmail.com

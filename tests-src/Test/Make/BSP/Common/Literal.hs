@@ -186,7 +186,7 @@ checkTrue l oldLs newLs =
                           oldSet else
                           S.delete (getVariable l) oldSet
       mapping = getTrueSet oldLs
-      sameSign = case M.lookup (getVariable l) mapping of
+      sameSign = case lookup (getVariable l) mapping of
         Nothing -> False
         Just s' -> s' == getSign l
       exptdNumb = getHasGeneratedTrue oldLs + 1
