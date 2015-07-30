@@ -67,3 +67,6 @@ lookup w b = M.lookup w $ solution b
 
 varsEvalToTrue            :: Clause -> BoolSolution -> Word
 varsEvalToTrue cl boolSol = error ("Clause/varsEvalToTrue not written" ++ show boolSol ++ show cl)
+
+solutionFromList :: [Bool] -> BoolSolution
+solutionFromList = error "unwritten solutionFromList"

@@ -10,7 +10,7 @@ Contains the test hierarchy for the Make Clause modules
 -}
 
 module Test.Make.Instances.Common.Clause (
-  tests        ,-- :: TestTree
+  tests   ,-- :: TestTree
   ) where
 
 import Control.Monad.Catch

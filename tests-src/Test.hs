@@ -13,12 +13,13 @@ module Main (
   main
   ) where
 
+import qualified Test.Make     as Make
+import qualified Test.Parser   as Parser
+import qualified Test.Printer  as Printer
+import qualified Test.Problem  as Problem
+import qualified Test.Solution as Solution
+import qualified Test.Writer   as Writer
 import           TestUtils
-import qualified Test.Problem as Problem
-import qualified Test.Make as Make
-import qualified Test.Writer as Writer
-import qualified Test.Parser as Parser
-import qualified Test.Printer as Printer
 
 main :: IO ()
 main = defaultMain tests
@@ -29,9 +30,10 @@ name = "HSat Tests"
 tests :: TestTree
 tests =
   testGroup name [
-    Problem.tests,
-    Make.tests,
-    Writer.tests,
-    Parser.tests,
-    Printer.tests
+    Problem.tests ,
+    Make.tests    ,
+    Writer.tests  ,
+    Parser.tests  ,
+    Printer.tests ,
+    Solution.tests
     ]
