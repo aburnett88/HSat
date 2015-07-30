@@ -9,7 +9,7 @@ Portability : Unknown
 Contains the test hierarchy for the Solution Instances modules
 -}
 
-module Test.Solution (
+module Test.Solution.Instances (
   tests,-- :: TestTree
   ) where
 
